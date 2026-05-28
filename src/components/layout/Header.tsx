@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { usePathname } from "next/navigation";
 
 export function Header() {
@@ -49,6 +49,10 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[85vw] p-0 border-r-0">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Navigation Menu</SheetTitle>
+                <SheetDescription>Access all features of the Elite Performance Terminal</SheetDescription>
+              </SheetHeader>
                <div className="flex flex-col h-full p-8 bg-card">
                   <div className="flex items-center gap-4 mb-12">
                     <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-xl">
