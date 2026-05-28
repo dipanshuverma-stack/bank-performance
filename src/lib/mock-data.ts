@@ -7,9 +7,9 @@ export const PERFORMANCE_STATS = {
 };
 
 export const UPCOMING_EXAMS = [
-  { name: 'SBI PO Prelims', date: '2025-06-15', icon: '🏦' },
-  { name: 'IBPS PO Mains', date: '2025-05-20', icon: '📝' },
-  { name: 'RBI Grade B Phase 1', date: '2025-07-10', icon: '🏛️' },
+  { name: 'SBI PO Prelims', date: '2025-11-15', icon: '🏦' },
+  { name: 'IBPS PO Mains', date: '2025-12-20', icon: '📝' },
+  { name: 'RBI Grade B Phase 1', date: '2026-02-10', icon: '🏛️' },
 ];
 
 export const RECENT_LOGS = [
