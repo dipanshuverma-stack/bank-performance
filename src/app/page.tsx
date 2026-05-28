@@ -64,7 +64,9 @@ export default function Home() {
           <h1 className="text-3xl md:text-6xl font-headline font-black tracking-tighter text-foreground">
             {profile?.name ? `Welcome, ${profile.name}` : "Elite Command"} <span className="text-primary italic">Center</span>
           </h1>
-          <p className="text-muted-foreground mt-2 max-w-md font-medium">Real-time performance intelligence for <Badge variant="outline" className="text-primary border-primary/20">{profile?.targetExam || "SBI/IBPS PO"}</Badge> candidates.</p>
+          <div className="text-muted-foreground mt-2 max-w-md font-medium">
+            Real-time performance intelligence for <Badge variant="outline" className="text-primary border-primary/20">{profile?.targetExam || "SBI/IBPS PO"}</Badge> candidates.
+          </div>
         </div>
         <div className="flex items-center gap-3 bg-card border rounded-3xl p-4 shadow-sm">
            <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center text-primary"><Activity className="w-5 h-5" /></div>
