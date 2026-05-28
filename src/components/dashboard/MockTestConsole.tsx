@@ -18,8 +18,6 @@ import {
   Trophy, 
   Target, 
   Trash2,
-  History,
-  TrendingUp,
   Award,
   CheckCircle2,
   XCircle,
@@ -33,9 +31,9 @@ interface MockLog {
   examType: string;
   score: number;
   totalMarks: number;
-  quantsScore: number;
-  reasoningScore: number;
-  englishScore: number;
+  quantsCorrect: number;
+  reasoningCorrect: number;
+  englishCorrect: number;
   correct: number;
   wrong: number;
   accuracy: number;
@@ -63,9 +61,9 @@ export function MockTestConsole() {
   const [examType, setExamType] = useState("SBI PO");
   const [score, setScore] = useState("");
   const [totalMarks, setTotalMarks] = useState("100");
-  const [quantsScore, setQuantsScore] = useState("");
-  const [reasoningScore, setReasoningScore] = useState("");
-  const [englishScore, setEnglishScore] = useState("");
+  const [quantsCorrect, setQuantsCorrect] = useState("");
+  const [reasoningCorrect, setReasoningCorrect] = useState("");
+  const [englishCorrect, setEnglishCorrect] = useState("");
   const [correct, setCorrect] = useState("");
   const [wrong, setWrong] = useState("");
 
@@ -105,9 +103,9 @@ export function MockTestConsole() {
       examType: examType,
       score: parseFloat(score),
       totalMarks: parseFloat(totalMarks),
-      quantsScore: parseFloat(quantsScore) || 0,
-      reasoningScore: parseFloat(reasoningScore) || 0,
-      englishScore: parseFloat(englishScore) || 0,
+      quantsCorrect: parseInt(quantsCorrect) || 0,
+      reasoningCorrect: parseInt(reasoningCorrect) || 0,
+      englishCorrect: parseInt(englishCorrect) || 0,
       correct: correctNum,
       wrong: wrongNum,
       accuracy: Math.round(accuracyValue * 10) / 10,
@@ -119,9 +117,9 @@ export function MockTestConsole() {
     // Reset Form
     setMockName("");
     setScore("");
-    setQuantsScore("");
-    setReasoningScore("");
-    setEnglishScore("");
+    setQuantsCorrect("");
+    setReasoningCorrect("");
+    setEnglishCorrect("");
     setCorrect("");
     setWrong("");
     
@@ -205,19 +203,19 @@ export function MockTestConsole() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Subject Breakdown</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Correct Answers Breakdown</label>
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <span className="text-[9px] font-bold text-muted-foreground block text-center uppercase">Quants</span>
-                  <Input type="number" placeholder="0" value={quantsScore} onChange={(e) => setQuantsScore(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
+                  <Input type="number" placeholder="0" value={quantsCorrect} onChange={(e) => setQuantsCorrect(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-muted-foreground block text-center uppercase">Reason</span>
-                  <Input type="number" placeholder="0" value={reasoningScore} onChange={(e) => setReasoningScore(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
+                  <span className="text-[9px] font-bold text-muted-foreground block text-center uppercase">Reasoning</span>
+                  <Input type="number" placeholder="0" value={reasoningCorrect} onChange={(e) => setReasoningCorrect(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
                 </div>
                 <div className="space-y-1">
                   <span className="text-[9px] font-bold text-muted-foreground block text-center uppercase">English</span>
-                  <Input type="number" placeholder="0" value={englishScore} onChange={(e) => setEnglishScore(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
+                  <Input type="number" placeholder="0" value={englishCorrect} onChange={(e) => setEnglishCorrect(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
                 </div>
               </div>
             </div>
@@ -225,7 +223,7 @@ export function MockTestConsole() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-success ml-1 flex items-center gap-1">
-                  <CheckCircle2 className="w-2.5 h-2.5" /> Correct
+                  <CheckCircle2 className="w-2.5 h-2.5" /> Total Correct
                 </label>
                 <Input 
                   type="number"
@@ -237,7 +235,7 @@ export function MockTestConsole() {
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-destructive ml-1 flex items-center gap-1">
-                  <XCircle className="w-2.5 h-2.5" /> Wrong
+                  <XCircle className="w-2.5 h-2.5" /> Total Wrong
                 </label>
                 <Input 
                   type="number"
@@ -320,17 +318,17 @@ export function MockTestConsole() {
                           <div className="text-xl font-headline font-bold text-primary">{mock.accuracy}%</div>
                         </div>
                         <div className="hidden sm:block text-center border-l border-border/50 pl-8">
-                          <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1.5 opacity-60">Q | R | E</div>
+                          <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1.5 opacity-60">Subject Correct (Q|R|E)</div>
                           <div className="text-sm font-bold text-foreground">
-                            {mock.quantsScore} | {mock.reasoningScore} | {mock.englishScore}
+                            {mock.quantsCorrect} | {mock.reasoningCorrect} | {mock.englishCorrect}
                           </div>
                         </div>
                         <div className="text-center border-l border-border/50 pl-8">
-                          <div className="text-[10px] text-success font-black uppercase tracking-widest mb-1.5">Correct</div>
+                          <div className="text-[10px] text-success font-black uppercase tracking-widest mb-1.5">Total Correct</div>
                           <div className="text-xl font-headline font-bold text-success">{mock.correct}</div>
                         </div>
                         <div className="text-center border-l border-border/50 pl-8">
-                          <div className="text-[10px] text-destructive font-black uppercase tracking-widest mb-1.5">Wrong</div>
+                          <div className="text-[10px] text-destructive font-black uppercase tracking-widest mb-1.5">Total Wrong</div>
                           <div className="text-xl font-headline font-bold text-destructive">{mock.wrong}</div>
                         </div>
                       </div>
@@ -356,4 +354,3 @@ export function MockTestConsole() {
     </div>
   );
 }
-
