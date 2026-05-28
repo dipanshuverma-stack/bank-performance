@@ -14,7 +14,8 @@ import {
   Loader2,
   Brain,
   CheckCircle2,
-  BookOpen
+  BookOpen,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,28 +83,33 @@ export function AdaptiveToDo() {
     try {
       const result = await generateAdaptiveToDoList({
         weakAreas: [
-          { subject: 'Quants', chapter: 'Arithmetic' },
-          { subject: 'Reasoning', chapter: 'Puzzles' }
+          { subject: 'Quants', chapter: 'Arithmetic Word Problems' },
+          { subject: 'Reasoning', chapter: 'Circular Seating Arrangement' }
         ],
-        availableStudyTimeMinutes: 120
+        availableStudyTimeMinutes: 180
       });
       
-      const suggestion = result.dailyToDoList[0];
-      if (suggestion) {
-        setNewChapter(suggestion.chapter);
-        setNewSubject(suggestion.subject);
-        setNewTime(String(suggestion.estimatedTimeMinutes || 45));
+      if (result.dailyToDoList && result.dailyToDoList.length > 0) {
+        const newAiTasks: Task[] = result.dailyToDoList.map(item => ({
+          id: Math.random().toString(36).substr(2, 9),
+          subject: item.subject,
+          chapter: item.chapter,
+          time: item.estimatedTimeMinutes,
+          completed: false,
+        }));
+        
+        setTasks(prev => [...newAiTasks, ...prev]);
         
         toast({
-          title: "AI Suggestion Ready",
-          description: `Focus on ${suggestion.chapter} in ${suggestion.subject}.`,
+          title: "AI Strategy Plan Applied",
+          description: `Identified ${newAiTasks.length} high-scoring topics based on your weak areas and upcoming SBI/IBPS PO weightage.`,
         });
       }
     } catch (err: any) {
       toast({
         variant: "destructive",
-        title: "AI Busy",
-        description: "Could not fetch suggestion. Please try manual entry.",
+        title: "AI Capacity Reached",
+        description: "Rate limit exceeded. Please try manual entry or wait a moment.",
       });
     } finally {
       setLoading(false);
@@ -118,32 +124,42 @@ export function AdaptiveToDo() {
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <ListTodo className="w-5 h-5" />
             </div>
-            <CardTitle className="text-xl font-headline font-bold">Daily Study Planner</CardTitle>
+            <CardTitle className="text-xl font-headline font-bold">Study Roadmap</CardTitle>
           </div>
           <CardDescription className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground ml-10">
-            Manual Control • AI Insights
+            Manual Entries & Strategic AI Insights
           </CardDescription>
         </div>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={getAiSuggestion}
+          disabled={loading}
+          className="rounded-xl border-2 bg-background hover:bg-primary/5 group/ai hidden sm:flex h-9"
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary mr-2" />}
+          <span className="font-bold text-[10px] uppercase tracking-wider">AI Strategize</span>
+        </Button>
       </CardHeader>
 
       <CardContent className="flex-1 p-6 space-y-6">
         {/* Manual Input Area */}
-        <div className="space-y-4 p-4 rounded-2xl bg-accent/30 border-2 border-dashed border-border/50 group hover:border-primary/30 transition-all">
+        <div className="space-y-4 p-4 rounded-2xl bg-accent/20 border border-border/40">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground ml-1">Chapter / Topic</label>
+              <label className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground ml-1">Manual Topic</label>
               <Input 
-                placeholder="Enter study topic..." 
+                placeholder="Topic name..." 
                 value={newChapter}
                 onChange={(e) => setNewChapter(e.target.value)}
-                className="rounded-xl border-none bg-background/50 focus-visible:ring-primary shadow-sm h-11"
+                className="rounded-xl border-none bg-background/50 h-10 text-sm font-medium"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground ml-1">Subject</label>
                 <Select value={newSubject} onValueChange={setNewSubject}>
-                  <SelectTrigger className="rounded-xl border-none bg-background/50 h-11">
+                  <SelectTrigger className="rounded-xl border-none bg-background/50 h-10 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -153,12 +169,12 @@ export function AdaptiveToDo() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground ml-1">Minutes</label>
+                <label className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground ml-1">Min</label>
                 <Input 
                   type="number"
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
-                  className="rounded-xl border-none bg-background/50 h-11"
+                  className="rounded-xl border-none bg-background/50 h-10 text-sm"
                 />
               </div>
             </div>
@@ -167,26 +183,26 @@ export function AdaptiveToDo() {
           <div className="flex gap-2">
             <Button 
               onClick={() => addTask(newSubject, newChapter, parseInt(newTime))}
-              className="flex-1 rounded-xl h-11 font-bold shadow-lg shadow-primary/20"
+              className="flex-1 rounded-xl h-10 font-bold text-xs"
               disabled={!newChapter}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Task
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              Add Session
             </Button>
             <Button 
               variant="outline" 
               onClick={getAiSuggestion}
               disabled={loading}
-              className="rounded-xl h-11 border-2 bg-background hover:bg-primary/5 group/ai"
+              className="sm:hidden rounded-xl h-10 border-2 bg-background flex-1"
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary group-hover/ai:animate-pulse" />}
-              <span className="hidden sm:inline ml-2 font-bold text-xs">AI Suggest</span>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary" />}
+              <span className="ml-2 font-bold text-xs uppercase">AI Suggest</span>
             </Button>
           </div>
         </div>
 
-        {/* Task List */}
-        <div className="space-y-3">
+        {/* Task List - Showing multiple items clearly */}
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
           {tasks.length > 0 ? (
             tasks.map((task) => (
               <div 
@@ -221,7 +237,7 @@ export function AdaptiveToDo() {
                     {task.completed && (
                       <span className="flex items-center gap-1 text-success">
                         <CheckCircle2 className="w-3 h-3" />
-                        Completed
+                        Done
                       </span>
                     )}
                   </div>
@@ -237,12 +253,12 @@ export function AdaptiveToDo() {
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-accent/50 rounded-full flex items-center justify-center mb-4 text-muted-foreground/30">
-                <BookOpen className="w-8 h-8" />
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="w-14 h-14 bg-accent/50 rounded-full flex items-center justify-center mb-4 text-muted-foreground/30">
+                <Brain className="w-7 h-7" />
               </div>
-              <h4 className="font-bold text-sm text-foreground mb-1">No Study Tasks Yet</h4>
-              <p className="text-xs text-muted-foreground max-w-[200px]">Add your own tasks or let the AI suggest your next focus area.</p>
+              <h4 className="font-bold text-sm text-foreground mb-1">Your roadmap is empty</h4>
+              <p className="text-[10px] text-muted-foreground max-w-[180px] font-medium">Use 'AI Strategize' to get scoring suggestions for upcoming exams.</p>
             </div>
           )}
         </div>

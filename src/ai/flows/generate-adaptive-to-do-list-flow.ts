@@ -1,10 +1,10 @@
 'use server';
 /**
- * @fileOverview A Genkit flow optimized for suggesting specific study topics and time allocations.
- *
- * - generateAdaptiveToDoList - A function that handles the generation of the adaptive to-do list.
- * - GenerateAdaptiveToDoListInput - The input type for the generateAdaptiveToDoList function.
- * - GenerateAdaptiveToDoListOutput - The return type for the generateAdaptiveToDoList function.
+ * @fileOverview A Genkit flow optimized for suggesting strategic study topics and time allocations.
+ * 
+ * - generateAdaptiveToDoList - Generates 3-4 high-impact tasks based on weak areas and scoring topics.
+ * - GenerateAdaptiveToDoListInput - Input including weak areas and available time.
+ * - GenerateAdaptiveToDoListOutput - A list of 3-4 strategic tasks.
  */
 
 import { ai } from '@/ai/genkit';
@@ -31,7 +31,7 @@ const GenerateAdaptiveToDoListOutputSchema = z.object({
       chapter: z.string().describe('The specific topic or chapter to study.'),
       estimatedTimeMinutes: z.number().describe('How long to spend on this topic.'),
     })
-  ),
+  ).describe('A list of 3 to 4 recommended study tasks.'),
   overallRecommendation: z.string().optional(),
 });
 export type GenerateAdaptiveToDoListOutput = z.infer<typeof GenerateAdaptiveToDoListOutputSchema>;
@@ -46,20 +46,25 @@ const prompt = ai.definePrompt({
   name: 'generateAdaptiveToDoListPrompt',
   input: { schema: GenerateAdaptiveToDoListInputSchema },
   output: { schema: GenerateAdaptiveToDoListOutputSchema },
-  prompt: `You are an AI study coach for bank exams. Suggest exactly ONE high-impact topic and an appropriate time duration for a study session.
+  prompt: `You are an AI study coach for bank exams (SBI PO, IBPS PO, RBI Grade B). Your goal is to suggest a strategic study plan consisting of 3 to 4 high-impact tasks.
 
 User Context:
 {{#if weakAreas}}
-Weak Areas: {{#each weakAreas}}{{this.subject}}: {{this.chapter}}, {{/each}}
+Focus Areas (Weakness): {{#each weakAreas}}{{this.subject}}: {{this.chapter}}, {{/each}}
 {{/if}}
 {{#if availableStudyTimeMinutes}}
-Available Time: {{availableStudyTimeMinutes}} minutes
+Total Available Time: {{availableStudyTimeMinutes}} minutes
 {{/if}}
 
+Strategic Logic:
+1. **Prioritize Scoring Subjects**: Ensure tasks include "high-scoring" and "high-weightage" topics like Data Interpretation (DI), Puzzles & Seating Arrangement, and Arithmetic (Profit/Loss, SI/CI). These are vital for clearing cutoffs in SBI/IBPS PO.
+2. **Address Weaknesses**: Allocate more time to the sub-topics the user is weak in.
+3. **Exam Readiness**: Align suggestions with the standard Adda247 mock pattern for upcoming Prelims and Mains.
+
 Rules:
-1. Return exactly one specific sub-topic from the Adda247 bank exam syllabus (Reasoning or Quants).
-2. The estimated time should be realistic (usually 30-60 minutes).
-3. The chapter name should be concise and actionable.`,
+- Suggest exactly 3 to 4 tasks.
+- The total 'estimatedTimeMinutes' across all tasks should be close to the 'availableStudyTimeMinutes' (default to 120-180 mins if not provided).
+- Return specific, actionable chapter names from the Adda247 syllabus.`,
 });
 
 const generateAdaptiveToDoListFlow = ai.defineFlow(
@@ -71,7 +76,7 @@ const generateAdaptiveToDoListFlow = ai.defineFlow(
   async (input) => {
     const { output } = await prompt(input);
     if (!output) {
-      throw new Error('Failed to generate suggestion.');
+      throw new Error('Failed to generate study suggestions.');
     }
     return output;
   }
