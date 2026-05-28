@@ -6,6 +6,7 @@ import { CountdownCard } from "@/components/dashboard/CountdownCard";
 import { QuoteCard } from "@/components/dashboard/QuoteCard";
 import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
 import { PersonalBests } from "@/components/dashboard/PersonalBests";
+import { AchievementPanel } from "@/components/dashboard/AchievementPanel";
 import { Activity, ShieldCheck, Zap, BookOpen, Trophy, Sparkles, BrainCircuit } from "lucide-react";
 
 export default function Home() {
@@ -76,7 +77,7 @@ export default function Home() {
         
         <div className="space-y-8">
           <PersonalBests />
-          <CountdownCard />
+          <AchievementPanel />
         </div>
 
         {/* Intelligence Metrics */}
@@ -129,11 +130,7 @@ export default function Home() {
         </div>
         <div className="space-y-8">
           <QuoteCard />
-          <div className="p-8 rounded-[2rem] bg-primary/5 border border-primary/10 flex flex-col justify-center items-center text-center space-y-4">
-             <BrainCircuit className="w-12 h-12 text-primary opacity-20" />
-             <h3 className="text-xl font-headline font-bold">Operational Status</h3>
-             <p className="text-sm text-muted-foreground max-w-xs font-medium">Your preparation intensity is currently ranked as <span className="text-primary font-bold">Tier 1 Elite</span>. Focus on DI speed today.</p>
-          </div>
+          <CountdownCard />
         </div>
       </div>
 
