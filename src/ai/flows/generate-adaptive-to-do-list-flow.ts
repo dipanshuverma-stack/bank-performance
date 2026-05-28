@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for generating a personalized daily study to-do list based on identified weak areas.
+ * @fileOverview A Genkit flow optimized for suggesting specific study topics and time allocations.
  *
  * - generateAdaptiveToDoList - A function that handles the generation of the adaptive to-do list.
  * - GenerateAdaptiveToDoListInput - The input type for the generateAdaptiveToDoList function.
@@ -14,63 +14,27 @@ const GenerateAdaptiveToDoListInputSchema = z.object({
   weakAreas: z
     .array(
       z.object({
-        subject: z
-          .string()
-          .describe(
-            'The subject of the weak area (e.g., "Reasoning", "Quants").'
-          ),
-        chapter: z.string().describe('The specific chapter name.'),
-        subtopics: z
-          .array(z.string())
-          .optional()
-          .describe('Optional: Specific sub-topics within the chapter.'),
-        reason: z
-          .string()
-          .optional()
-          .describe('Optional: Reason for identifying this as a weak area.'),
+        subject: z.string(),
+        chapter: z.string(),
       })
     )
-    .describe('An array of identified weak chapters/topics.'),
-  studyGoals: z
-    .string()
-    .optional()
-    .describe('Optional: Overall study goals or focus areas for the day.'),
-  availableStudyTimeMinutes: z
-    .number()
-    .optional()
-    .describe('Optional: Total available study time in minutes for the day.'),
-  syllabusContext: z
-    .string()
-    .optional()
-    .describe('Optional: General context about the Adda247 syllabus structure.'),
+    .optional(),
+  availableStudyTimeMinutes: z.number().optional(),
+  studyGoals: z.string().optional(),
 });
-export type GenerateAdaptiveToDoListInput = z.infer<
-  typeof GenerateAdaptiveToDoListInputSchema
->;
+export type GenerateAdaptiveToDoListInput = z.infer<typeof GenerateAdaptiveToDoListInputSchema>;
 
 const GenerateAdaptiveToDoListOutputSchema = z.object({
-  dailyToDoList: z
-    .array(
-      z.object({
-        subject: z.string().describe('The subject of the task.'),
-        chapter: z.string().describe('The chapter to focus on.'),
-        subtopic: z.string().optional().describe('Specific sub-topic, if applicable.'),
-        taskDescription: z.string().describe('A detailed description of the task.'),
-        estimatedTimeMinutes: z
-          .number()
-          .optional()
-          .describe('Estimated time to complete this task in minutes.'),
-      })
-    )
-    .describe('A personalized list of study tasks for the day.'),
-  overallRecommendation: z
-    .string()
-    .optional()
-    .describe('An overall recommendation or motivational message.'),
+  dailyToDoList: z.array(
+    z.object({
+      subject: z.enum(['Reasoning', 'Quants']),
+      chapter: z.string().describe('The specific topic or chapter to study.'),
+      estimatedTimeMinutes: z.number().describe('How long to spend on this topic.'),
+    })
+  ),
+  overallRecommendation: z.string().optional(),
 });
-export type GenerateAdaptiveToDoListOutput = z.infer<
-  typeof GenerateAdaptiveToDoListOutputSchema
->;
+export type GenerateAdaptiveToDoListOutput = z.infer<typeof GenerateAdaptiveToDoListOutputSchema>;
 
 export async function generateAdaptiveToDoList(
   input: GenerateAdaptiveToDoListInput
@@ -82,31 +46,20 @@ const prompt = ai.definePrompt({
   name: 'generateAdaptiveToDoListPrompt',
   input: { schema: GenerateAdaptiveToDoListInputSchema },
   output: { schema: GenerateAdaptiveToDoListOutputSchema },
-  prompt: `You are an AI assistant designed to help bank exam aspirants create personalized daily study to-do lists.
-Your goal is to recommend specific chapters and sub-topics from the Adda247 syllabus based on the user's identified weak areas, to optimize their study time.
+  prompt: `You are an AI study coach for bank exams. Suggest exactly ONE high-impact topic and an appropriate time duration for a study session.
 
-Here are the user's identified weak areas:
-{{#each weakAreas}}
-- Subject: {{{this.subject}}}, Chapter: {{{this.chapter}}}{{#if this.subtopics}}, Subtopics: {{#each this.subtopics}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}{{#if this.reason}}, Reason: {{{this.reason}}}{{/if}}
-{{/each}}
-
-{{#if studyGoals}}
-User's Study Goals: {{{studyGoals}}}
+User Context:
+{{#if weakAreas}}
+Weak Areas: {{#each weakAreas}}{{this.subject}}: {{this.chapter}}, {{/each}}
 {{/if}}
-
 {{#if availableStudyTimeMinutes}}
-User's Available Study Time: {{{availableStudyTimeMinutes}}} minutes
+Available Time: {{availableStudyTimeMinutes}} minutes
 {{/if}}
 
-{{#if syllabusContext}}
-Adda247 Syllabus Context: {{{syllabusContext}}}
-{{/if}}
-
-Generate a detailed daily to-do list, prioritizing tasks from the weak areas. For each task, include the subject, chapter, specific sub-topic (if available), a clear task description, and an estimated time to complete it in minutes. Ensure the tasks are actionable and directly address the weak areas.
-
-Also, provide an overall recommendation or a motivational message to the student.
-
-Output your response in a JSON format matching the schema for GenerateAdaptiveToDoListOutput.`,
+Rules:
+1. Return exactly one specific sub-topic from the Adda247 bank exam syllabus (Reasoning or Quants).
+2. The estimated time should be realistic (usually 30-60 minutes).
+3. The chapter name should be concise and actionable.`,
 });
 
 const generateAdaptiveToDoListFlow = ai.defineFlow(
@@ -118,7 +71,7 @@ const generateAdaptiveToDoListFlow = ai.defineFlow(
   async (input) => {
     const { output } = await prompt(input);
     if (!output) {
-      throw new Error('Failed to generate adaptive to-do list.');
+      throw new Error('Failed to generate suggestion.');
     }
     return output;
   }
