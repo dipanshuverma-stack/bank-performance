@@ -13,7 +13,8 @@ import {
   Clock, 
   Target,
   ChevronRight,
-  Brain
+  Brain,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,12 +30,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { useToast } from "@/hooks/use-toast";
 
 export function AdaptiveToDo() {
+  const { toast } = useToast();
   const [tasks, setTasks] = useState<any[]>([]);
   const [recommendation, setRecommendation] = useState("");
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Configuration State
   const [studyMinutes, setStudyMinutes] = useState([300]);
@@ -43,8 +47,8 @@ export function AdaptiveToDo() {
 
   const refreshTasks = async (customParams?: any) => {
     setLoading(true);
+    setError(null);
     try {
-      // Logic: Prioritize areas with historically lower accuracy or high volume
       const weakAreas = [
         { subject: 'Quants', chapter: 'Arithmetic Word Problems', subtopics: ['Profit, Loss & Discount'], reason: 'Accuracy volatility' },
         { subject: 'Reasoning', chapter: 'Puzzles & Seating Arrangement', subtopics: ['Circular Seating'], reason: 'High completion time' }
@@ -61,8 +65,25 @@ export function AdaptiveToDo() {
       setTasks(result.dailyToDoList);
       setRecommendation(result.overallRecommendation || "");
       setIsDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to generate planner:", error);
+    } catch (err: any) {
+      console.error("Failed to generate planner:", err);
+      const errorMessage = err.message?.includes("429") 
+        ? "AI Busy: Too many requests. Please wait a moment and try again." 
+        : "Could not generate plan. Using offline fallback.";
+      
+      setError(errorMessage);
+      
+      // Fallback data if AI fails
+      setTasks([
+        { subject: 'Quants', chapter: 'Number Series', taskDescription: 'Practice 20 wrong number series questions.', estimatedTimeMinutes: 30 },
+        { subject: 'Reasoning', chapter: 'Syllogism', taskDescription: 'Solve 15 Only-a-Few case problems.', estimatedTimeMinutes: 25 }
+      ]);
+      
+      toast({
+        variant: "destructive",
+        title: "Intelligence Offline",
+        description: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -175,7 +196,13 @@ export function AdaptiveToDo() {
             </div>
           ) : tasks.length > 0 ? (
             <>
-              {recommendation && (
+              {error && (
+                <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-[10px] font-bold uppercase tracking-tight">{error}</span>
+                </div>
+              )}
+              {recommendation && !error && (
                 <div className="mb-6 p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-start gap-3">
                   <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                   <p className="text-xs font-medium text-primary leading-relaxed italic">
