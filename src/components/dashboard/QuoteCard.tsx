@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 type QuoteData = {
   quote: string;
   author: string;
+  dateFetched?: string;
 };
 
 export function QuoteCard() {
@@ -16,9 +17,27 @@ export function QuoteCard() {
 
   useEffect(() => {
     async function loadQuote() {
+      // Check cache first to save AI quota
+      const cached = localStorage.getItem("elite-daily-quote");
+      const today = new Date().toLocaleDateString();
+      
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed.dateFetched === today) {
+            setQuoteData(parsed);
+            return;
+          }
+        } catch (e) {
+          // Ignore parse error and fetch fresh
+        }
+      }
+
       try {
         const result = await generateMotivationalQuote({});
-        setQuoteData(result);
+        const dataWithDate = { ...result, dateFetched: today };
+        setQuoteData(dataWithDate);
+        localStorage.setItem("elite-daily-quote", JSON.stringify(dataWithDate));
       } catch (error) {
         setQuoteData({
           quote: "Dream is not that which you see while sleeping, it is something that does not let you sleep.",

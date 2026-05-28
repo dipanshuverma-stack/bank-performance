@@ -92,7 +92,7 @@ export function AdaptiveToDo() {
   };
 
   const analyzeWeakAreasFromLogs = () => {
-    if (!mounted) return [];
+    if (typeof window === 'undefined') return [];
     
     // 1. Get data from logs
     const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
@@ -181,13 +181,18 @@ export function AdaptiveToDo() {
         });
       }
     } catch (err: any) {
+      console.error("AI Strategy Error:", err);
+      const isQuotaError = err.message?.includes("429") || err.message?.includes("quota");
+      
       // CODE FALLBACK: If AI fails, use the code strategist
       const fallbackTasks = generateStrategicTasksLocally(weakAreas);
       setTasks(prev => [...fallbackTasks, ...prev.filter(t => !t.isAiSuggested)]);
       
       toast({ 
-        title: "Code Strategist Active", 
-        description: "AI is busy. Using local logic to prioritize identified weak areas." 
+        title: isQuotaError ? "Quota Limit Reached" : "Code Strategist Active", 
+        description: isQuotaError 
+          ? "The AI is resting due to high usage. Using local strategic logic for now."
+          : "AI is busy. Using local logic to prioritize identified weak areas." 
       });
     } finally {
       setLoading(false);
