@@ -39,6 +39,7 @@ interface Task {
 
 export function AdaptiveToDo() {
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -49,6 +50,7 @@ export function AdaptiveToDo() {
   const [newTime, setNewTime] = useState("45");
 
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem("elite-tasks");
     if (saved) {
       try {
@@ -60,8 +62,10 @@ export function AdaptiveToDo() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("elite-tasks", JSON.stringify(tasks));
-  }, [tasks]);
+    if (mounted) {
+      localStorage.setItem("elite-tasks", JSON.stringify(tasks));
+    }
+  }, [tasks, mounted]);
 
   const addTask = () => {
     if (!newChapter) return;
@@ -86,11 +90,13 @@ export function AdaptiveToDo() {
   };
 
   const analyzeWeakAreasFromLogs = () => {
+    if (!mounted) return [];
+    
     // 1. Get data from logs
     const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
     const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
 
-    // 2. Aggregate manual weak areas from mocks (now an array)
+    // 2. Aggregate manual weak areas from mocks
     const manualWeakTopics = mockLogs
       .filter((m: any) => m.weakTopics && Array.isArray(m.weakTopics))
       .flatMap((m: any) => m.weakTopics);
@@ -156,6 +162,8 @@ export function AdaptiveToDo() {
       setLoading(false);
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <Card className="bento-card h-full flex flex-col">
@@ -230,7 +238,7 @@ export function AdaptiveToDo() {
                   {task.reason && <span className="text-primary italic normal-case truncate max-w-[150px]"> — {task.reason}</span>}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => removeTask(id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 rounded-lg shrink-0"><Trash2 className="w-4 h-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => removeTask(task.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 rounded-lg shrink-0"><Trash2 className="w-4 h-4" /></Button>
             </div>
           ))
         ) : (

@@ -61,6 +61,7 @@ const EXAM_TYPES = [
 
 export function MockTestConsole() {
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [mocks, setMocks] = useState<MockLog[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
@@ -77,6 +78,7 @@ export function MockTestConsole() {
   const [selectedWeakTopics, setSelectedWeakTopics] = useState<string[]>([]);
 
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem("elite-mock-logs");
     if (saved) {
       try {
@@ -88,8 +90,10 @@ export function MockTestConsole() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("elite-mock-logs", JSON.stringify(mocks));
-  }, [mocks]);
+    if (mounted) {
+      localStorage.setItem("elite-mock-logs", JSON.stringify(mocks));
+    }
+  }, [mocks, mounted]);
 
   const addMock = () => {
     if (!mockName || !score || !correct || !wrong) {
@@ -142,6 +146,8 @@ export function MockTestConsole() {
   const avgAccuracy = mocks.length > 0 
     ? (mocks.reduce((acc, m) => acc + m.accuracy, 0) / mocks.length).toFixed(1)
     : "0";
+
+  if (!mounted) return null;
 
   return (
     <div className="space-y-6">

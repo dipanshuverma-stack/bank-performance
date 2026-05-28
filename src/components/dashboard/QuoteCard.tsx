@@ -21,8 +21,8 @@ export function QuoteCard() {
         setQuoteData(result);
       } catch (error) {
         setQuoteData({
-          quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-          author: "Winston Churchill"
+          quote: "Dream is not that which you see while sleeping, it is something that does not let you sleep.",
+          author: "Dr. APJ Abdul Kalam"
         });
       }
     }

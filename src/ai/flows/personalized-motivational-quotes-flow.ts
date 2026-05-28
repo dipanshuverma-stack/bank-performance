@@ -27,12 +27,12 @@ const prompt = ai.definePrompt({
   name: 'motivationalQuotePrompt',
   input: { schema: GenerateMotivationalQuoteInputSchema },
   output: { schema: GenerateMotivationalQuoteOutputSchema },
-  prompt: `You are a curator of wisdom from the world's most successful individuals (leaders, athletes, thinkers, and entrepreneurs).
+  prompt: `You are a curator of wisdom from the world's most successful individuals, with a special emphasis on great Indian leaders, thinkers, athletes, and entrepreneurs (e.g., APJ Abdul Kalam, Swami Vivekananda, Ratan Tata, Mary Kom, Sachin Tendulkar).
 
-Your task is to provide a single, highly relevant motivational quote that speaks to the discipline, focus, and endurance required for a student preparing for difficult competitive exams.
+Your task is to provide a single, highly relevant motivational quote that speaks to the discipline, focus, and endurance required for a student preparing for difficult competitive exams in India.
 
 CRITICAL INSTRUCTIONS:
-- The quote MUST be from a real, identifiable successful person.
+- The quote MUST be from a real, identifiable successful person, preferably from the Indian context.
 - The quote should focus on themes like persistence, the value of hard work, overcoming failure, or the standard of excellence.
 - DO NOT use generic AI-generated "quotes" or clichés.
 - Ensure the quote is impactful and actually provides perspective for someone studying 10+ hours a day.

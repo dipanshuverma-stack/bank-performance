@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Play, 
@@ -34,6 +34,7 @@ import {
 import { ADDA247_SYLLABUS } from "@/lib/syllabus";
 
 export function AccuracyTimer() {
+  const [mounted, setMounted] = useState(false);
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
@@ -43,6 +44,7 @@ export function AccuracyTimer() {
   const timerRef = useRef<any>(null);
 
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem("accuracy-logs");
     if (saved) {
       try { setLogs(JSON.parse(saved)); } catch (e) { console.error("Failed to parse logs"); }
@@ -50,8 +52,10 @@ export function AccuracyTimer() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("accuracy-logs", JSON.stringify(logs));
-  }, [logs]);
+    if (mounted) {
+      localStorage.setItem("accuracy-logs", JSON.stringify(logs));
+    }
+  }, [logs, mounted]);
 
   const availableTopics = useMemo(() => {
     const subjectData = ADDA247_SYLLABUS.find(s => s.name === currentSubject);
@@ -96,6 +100,8 @@ export function AccuracyTimer() {
   };
 
   const deleteLog = (id: number) => setLogs(logs.filter(l => l.id !== id));
+
+  if (!mounted) return null;
 
   return (
     <div className="space-y-6">
