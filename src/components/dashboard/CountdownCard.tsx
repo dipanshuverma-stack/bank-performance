@@ -24,7 +24,7 @@ export function CountdownCard() {
   }, []);
 
   return (
-    <Card className="bento-card bg-slate-900 dark:bg-primary/20 border-none shadow-xl shadow-slate-200 dark:shadow-primary/5 group transition-all duration-500">
+    <Card className="bento-card bg-slate-950 dark:bg-primary/20 border-none shadow-xl shadow-slate-200 dark:shadow-primary/5 group transition-all duration-500">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
