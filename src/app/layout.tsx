@@ -4,6 +4,7 @@ import './globals.css';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Toaster } from '@/components/ui/toaster';
+import { AchievementMonitor } from '@/components/dashboard/AchievementMonitor';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -41,6 +42,7 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+        <AchievementMonitor />
         <Toaster />
       </body>
     </html>

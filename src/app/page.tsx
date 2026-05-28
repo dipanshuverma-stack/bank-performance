@@ -6,8 +6,7 @@ import { CountdownCard } from "@/components/dashboard/CountdownCard";
 import { QuoteCard } from "@/components/dashboard/QuoteCard";
 import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
 import { PersonalBests } from "@/components/dashboard/PersonalBests";
-import { AchievementPanel } from "@/components/dashboard/AchievementPanel";
-import { Activity, ShieldCheck, Zap, BookOpen, Trophy, Sparkles, BrainCircuit } from "lucide-react";
+import { Activity, ShieldCheck, Trophy, Sparkles, BookOpen } from "lucide-react";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -77,7 +76,19 @@ export default function Home() {
         
         <div className="space-y-8">
           <PersonalBests />
-          <AchievementPanel />
+          {/* AI Insights could go here in the future */}
+          <div className="p-8 rounded-[2.5rem] bg-primary/5 border border-primary/10 flex flex-col justify-between backdrop-blur-sm">
+            <div className="flex justify-between items-start mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-primary">Live Intelligence</div>
+            </div>
+            <div>
+              <h3 className="text-lg font-headline font-bold mb-2">Smart Insights</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">AI is currently analyzing your latest sessions to provide high-resolution strategic advice.</p>
+            </div>
+          </div>
         </div>
 
         {/* Intelligence Metrics */}
