@@ -19,40 +19,39 @@ export function CountdownCard() {
     };
 
     calculateDays();
-    // Update every hour to keep it fresh
     const interval = setInterval(calculateDays, 3600000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <Card className="bento-card bg-primary text-primary-foreground border-none shadow-xl shadow-primary/20">
+    <Card className="bento-card bg-indigo-600 dark:bg-primary text-white border-none shadow-xl shadow-indigo-500/20 dark:shadow-primary/20">
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-6">
           <div className="bg-white/20 p-1.5 rounded-lg">
-            <Timer className="w-5 h-5" />
+            <Timer className="w-5 h-5 text-white" />
           </div>
-          <h3 className="font-headline text-lg font-bold tracking-tight">Exam Countdown</h3>
+          <h3 className="font-headline text-lg font-bold tracking-tight text-white">Exam Countdown</h3>
         </div>
         <div className="space-y-5">
           {examCountdowns.length > 0 ? (
             examCountdowns.map((exam, i) => (
-              <div key={i} className="flex items-center justify-between border-b border-primary-foreground/10 pb-3 last:border-0 last:pb-0">
+              <div key={i} className="flex items-center justify-between border-b border-white/10 pb-3 last:border-0 last:pb-0">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl grayscale-[0.2]">{exam.icon}</span>
-                  <span className="text-sm font-semibold opacity-90">{exam.name}</span>
+                  <span className="text-xl">{exam.icon}</span>
+                  <span className="text-sm font-semibold text-white/95">{exam.name}</span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-2xl font-headline font-bold tracking-tighter leading-none">
+                  <span className="text-2xl font-headline font-bold tracking-tighter leading-none text-white">
                     {exam.days > 0 ? `${exam.days}d` : 'Today'}
                   </span>
-                  <span className="text-[10px] opacity-70 uppercase tracking-widest font-bold mt-1">
+                  <span className="text-[10px] text-white/80 uppercase tracking-widest font-black mt-1">
                     {exam.days > 0 ? 'Remaining' : 'Exam Day'}
                   </span>
                 </div>
               </div>
             ))
           ) : (
-            <div className="py-4 text-center opacity-60 text-sm font-medium">
+            <div className="py-4 text-center text-white/60 text-sm font-medium">
               Calculating precision dates...
             </div>
           )}

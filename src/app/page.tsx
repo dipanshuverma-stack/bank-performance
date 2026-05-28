@@ -33,19 +33,25 @@ export default function Home() {
         </div>
 
         <nav className="flex-1 space-y-2">
-          <Button variant="ghost" className="w-full justify-start text-primary bg-primary/5 font-semibold">
-            <LayoutDashboard className="w-5 h-5 lg:mr-3" />
-            <span className="hidden lg:block">Dashboard</span>
+          <Button variant="ghost" asChild className="w-full justify-start text-primary bg-primary/5 font-semibold cursor-pointer">
+            <a href="#dashboard">
+              <LayoutDashboard className="w-5 h-5 lg:mr-3" />
+              <span className="hidden lg:block">Dashboard</span>
+            </a>
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:bg-accent">
-            <TimerIcon className="w-5 h-5 lg:mr-3" />
-            <span className="hidden lg:block">Accuracy Timer</span>
+          <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground hover:bg-accent cursor-pointer">
+            <a href="#timer">
+              <TimerIcon className="w-5 h-5 lg:mr-3" />
+              <span className="hidden lg:block">Accuracy Timer</span>
+            </a>
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:bg-accent">
-            <BookOpen className="w-5 h-5 lg:mr-3" />
-            <span className="hidden lg:block">Syllabus</span>
+          <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground hover:bg-accent cursor-pointer">
+            <a href="#syllabus">
+              <BookOpen className="w-5 h-5 lg:mr-3" />
+              <span className="hidden lg:block">Syllabus</span>
+            </a>
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:bg-accent">
+          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:bg-accent cursor-not-allowed opacity-50">
             <Settings className="w-5 h-5 lg:mr-3" />
             <span className="hidden lg:block">Settings</span>
           </Button>
@@ -87,14 +93,14 @@ export default function Home() {
                     <span className="font-headline font-bold text-xl">Elite Perf</span>
                   </div>
                   <nav className="flex-1 space-y-4">
-                    <Button variant="ghost" className="w-full justify-start text-primary bg-primary/5">
-                      <LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard
+                    <Button variant="ghost" asChild className="w-full justify-start text-primary bg-primary/5">
+                      <a href="#dashboard"><LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard</a>
                     </Button>
-                    <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-                      <TimerIcon className="w-5 h-5 mr-3" /> Timer
+                    <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground">
+                      <a href="#timer"><TimerIcon className="w-5 h-5 mr-3" /> Timer</a>
                     </Button>
-                    <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-                      <BookOpen className="w-5 h-5 mr-3" /> Syllabus
+                    <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground">
+                      <a href="#syllabus"><BookOpen className="w-5 h-5 mr-3" /> Syllabus</a>
                     </Button>
                   </nav>
                </div>
@@ -104,8 +110,8 @@ export default function Home() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+      <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto scroll-smooth">
+        <header id="dashboard" className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 scroll-mt-10">
           <div>
             <h1 className="text-2xl md:text-4xl font-headline font-bold tracking-tight text-foreground">
               Welcome back, <span className="text-primary underline decoration-primary/20">Dipanshu</span>
@@ -133,15 +139,12 @@ export default function Home() {
 
         {/* Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {/* Performance Overview (Takes 2 cols on desktop) */}
           <div className="lg:col-span-2">
             <PerformanceOverview />
           </div>
           
-          {/* Countdown Card */}
           <CountdownCard />
           
-          {/* Motivational and Mini Stats */}
           <div className="space-y-6">
             <QuoteCard />
             <div className="p-6 rounded-2xl bg-card border flex items-center justify-between shadow-sm">
@@ -149,13 +152,12 @@ export default function Home() {
                  <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-1">Total Mocks</div>
                  <div className="text-3xl font-headline font-bold">42</div>
                </div>
-               <div className="w-12 h-12 rounded-xl bg-success/10 text-success flex items-center justify-center">
+               <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                  <Activity className="w-6 h-6" />
                </div>
             </div>
           </div>
 
-          {/* Adaptive To-Do (Takes 2 cols on desktop) */}
           <div className="lg:col-span-2">
             <AdaptiveToDo />
           </div>
@@ -163,7 +165,7 @@ export default function Home() {
 
         {/* Feature Sections */}
         <section className="space-y-16">
-          <div className="space-y-6">
+          <div id="timer" className="space-y-6 scroll-mt-24">
              <div className="flex items-center justify-between">
                 <h2 className="text-xl md:text-2xl font-headline font-bold">Accuracy Console</h2>
                 <div className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest">Precision Mapping</div>
@@ -171,7 +173,7 @@ export default function Home() {
              <AccuracyTimer />
           </div>
 
-          <div className="space-y-6">
+          <div id="syllabus" className="space-y-6 scroll-mt-24">
              <div className="flex items-center justify-between">
                 <h2 className="text-xl md:text-2xl font-headline font-bold">Syllabus Roadmap</h2>
                 <div className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest">Mastery Tracker</div>
