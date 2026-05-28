@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,7 +29,8 @@ import {
   Award,
   CheckCircle2,
   XCircle,
-  BarChart3
+  BarChart3,
+  AlertTriangle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -44,6 +46,7 @@ interface MockLog {
   correct: number;
   wrong: number;
   accuracy: number;
+  weakTopics?: string;
   date: string;
 }
 
@@ -67,6 +70,7 @@ export function MockTestConsole() {
   const [englishCorrect, setEnglishCorrect] = useState("");
   const [correct, setCorrect] = useState("");
   const [wrong, setWrong] = useState("");
+  const [weakTopics, setWeakTopics] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("elite-mock-logs");
@@ -106,6 +110,7 @@ export function MockTestConsole() {
       correct: correctNum,
       wrong: wrongNum,
       accuracy: Math.round(accuracyValue * 10) / 10,
+      weakTopics: weakTopics,
       date: new Date().toLocaleDateString(),
     };
 
@@ -115,6 +120,7 @@ export function MockTestConsole() {
     // Reset Form
     setMockName(""); setScore(""); setQuantsCorrect(""); 
     setReasoningCorrect(""); setEnglishCorrect(""); setCorrect(""); setWrong("");
+    setWeakTopics("");
     
     toast({ title: "Performance Archived", description: `${examType} ${mockName} metrics saved.` });
   };
@@ -153,7 +159,7 @@ export function MockTestConsole() {
                     Log New Mock
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] rounded-3xl border-none shadow-2xl">
+                <DialogContent className="sm:max-w-[500px] rounded-3xl border-none shadow-2xl overflow-y-auto max-h-[90vh]">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-headline font-bold">Deep Metric Logger</DialogTitle>
                   </DialogHeader>
@@ -205,6 +211,10 @@ export function MockTestConsole() {
                         <Input type="number" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-2xl h-11 bg-destructive/5 border-destructive/20 font-bold text-sm" />
                       </div>
                     </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-yellow-500 ml-1 flex items-center gap-1"><AlertTriangle className="w-2.5 h-2.5" /> Identified Weak Topics</label>
+                      <Input placeholder="e.g. Caselet DI, Syllogism Possibility" value={weakTopics} onChange={(e) => setWeakTopics(e.target.value)} className="rounded-2xl h-11 bg-yellow-500/5 border-yellow-500/20 font-bold text-sm" />
+                    </div>
                     <Button onClick={addMock} className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20">Archive Performance</Button>
                   </div>
                 </DialogContent>
@@ -232,6 +242,12 @@ export function MockTestConsole() {
                           <span className="font-bold text-foreground">{mock.name}</span>
                         </div>
                         <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{mock.date} • {mock.score}/{mock.totalMarks} Marks</div>
+                        {mock.weakTopics && (
+                          <div className="mt-2 flex items-center gap-1.5 text-[9px] text-yellow-600 dark:text-yellow-400 font-bold uppercase tracking-tighter">
+                            <AlertTriangle className="w-3 h-3" />
+                            Weak Areas: {mock.weakTopics}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">

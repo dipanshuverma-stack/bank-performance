@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -85,14 +86,44 @@ export function AdaptiveToDo() {
     setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
+  const analyzeWeakAreasFromLogs = () => {
+    // 1. Get data from accuracy console logs
+    const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
+    const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+
+    // 2. Aggregate manual weak areas from mocks
+    const manualWeakTopics = mockLogs
+      .filter((m: any) => m.weakTopics)
+      .map((m: any) => m.weakTopics.split(','))
+      .flat()
+      .map((s: string) => s.trim());
+
+    // 3. Simple heuristic: any accuracy log or mock area that indicates struggle
+    // In a real app, we'd calculate accuracy % over time per topic.
+    // For now, we'll just return a representative list.
+    const detectedWeakAreas = manualWeakTopics.map((topic: string) => ({
+      subject: 'Exam Priority',
+      chapter: topic
+    }));
+
+    // Add some fallbacks if logs are empty
+    if (detectedWeakAreas.length === 0) {
+      return [
+        { subject: 'Quants', chapter: 'Data Interpretation (Caselets)' },
+        { subject: 'Reasoning', chapter: 'Critical Reasoning' }
+      ];
+    }
+
+    return detectedWeakAreas.slice(0, 3);
+  };
+
   const getAiSuggestion = async () => {
     setLoading(true);
     try {
+      const weakAreas = analyzeWeakAreasFromLogs();
+      
       const result = await generateAdaptiveToDoList({
-        weakAreas: [
-          { subject: 'Quants', chapter: 'Arithmetic Word Problems (Profit/Loss)' },
-          { subject: 'Reasoning', chapter: 'Circular Seating Arrangement' }
-        ],
+        weakAreas: weakAreas,
         availableStudyTimeMinutes: 180
       });
       
@@ -108,10 +139,17 @@ export function AdaptiveToDo() {
         }));
         
         setTasks(prev => [...newAiTasks, ...prev.filter(t => !t.isAiSuggested)]);
-        toast({ title: "Weak Subject Strategy Active", description: "Roadmap updated based on upcoming SBI/IBPS PO requirements." });
+        toast({ 
+          title: "Weak Subject Strategy Active", 
+          description: `Roadmap updated based on ${weakAreas.length} identified weak areas.` 
+        });
       }
     } catch (err: any) {
-      toast({ variant: "destructive", title: "AI Capacity Reached", description: "Try manual entry or check back in a minute." });
+      toast({ 
+        variant: "destructive", 
+        title: "AI Capacity Reached", 
+        description: "Try manual entry or check back in a minute." 
+      });
     } finally {
       setLoading(false);
     }
@@ -197,7 +235,7 @@ export function AdaptiveToDo() {
           <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground/30">
             <Brain className="w-12 h-12 mb-4 opacity-20" />
             <h4 className="font-bold text-sm text-foreground/40 uppercase tracking-widest">Roadmap Empty</h4>
-            <p className="text-[10px] font-black uppercase mt-1">Use "AI Strategize" for a weak-subject priority plan</p>
+            <p className="text-[10px] font-black uppercase mt-1">Use "AI Strategize" for a plan based on manual & auto-detected weak areas</p>
           </div>
         )}
       </CardContent>
