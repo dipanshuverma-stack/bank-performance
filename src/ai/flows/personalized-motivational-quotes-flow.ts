@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview This file implements a Genkit flow for generating personalized motivational quotes.
+ * @fileOverview This file implements a Genkit flow for generating motivational quotes from successful people.
  *
- * - generateMotivationalQuote - A function that generates a motivational quote for bank exam aspirants.
+ * - generateMotivationalQuote - A function that fetches a motivational quote from a successful person.
  * - GenerateMotivationalQuoteInput - The input type for the generateMotivationalQuote function.
  * - GenerateMotivationalQuoteOutput - The return type for the generateMotivationalQuote function.
  */
@@ -12,38 +12,32 @@ import { z } from 'genkit';
 
 const GenerateMotivationalQuoteInputSchema = z
   .object({})
-  .describe('Input for generating a personalized motivational quote. No specific input is required as the context is bank exam preparation.');
+  .describe('Input for generating a personalized motivational quote.');
 export type GenerateMotivationalQuoteInput = z.infer<typeof GenerateMotivationalQuoteInputSchema>;
 
 const GenerateMotivationalQuoteOutputSchema = z
   .object({
-    quote: z.string().describe('A personalized motivational quote relevant to bank exam preparation.'),
+    quote: z.string().describe('A powerful quote from a successful person.'),
+    author: z.string().describe('The name of the successful person who said the quote.'),
   })
-  .describe('Output containing a personalized motivational quote.');
+  .describe('Output containing a quote and its author.');
 export type GenerateMotivationalQuoteOutput = z.infer<typeof GenerateMotivationalQuoteOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'motivationalQuotePrompt',
   input: { schema: GenerateMotivationalQuoteInputSchema },
   output: { schema: GenerateMotivationalQuoteOutputSchema },
-  prompt: `You are a high-performance coach and wise mentor for competitive exam aspirants. 
+  prompt: `You are a curator of wisdom from the world's most successful individuals (leaders, athletes, thinkers, and entrepreneurs).
 
-Your task is to generate a single, powerful, and authentic motivational quote (maximum 2-3 sentences) specifically for students preparing for rigorous bank exams (SBI PO, IBPS, RBI).
+Your task is to provide a single, highly relevant motivational quote that speaks to the discipline, focus, and endurance required for a student preparing for difficult competitive exams.
 
 CRITICAL INSTRUCTIONS:
-- AVOID generic "AI-sounding" platitudes or toxic positivity.
-- AVOID clichés like "yesterday's challenges" or "shapes your success tomorrow."
-- FOCUS on the psychological grit, discipline, and stoic endurance required for long-term preparation.
-- DRAW inspiration from concepts of deliberate practice, the beauty of the struggle, and the precision required in competitive fields.
-- TONE should be grounded, slightly intense, and deeply encouraging.
+- The quote MUST be from a real, identifiable successful person.
+- The quote should focus on themes like persistence, the value of hard work, overcoming failure, or the standard of excellence.
+- DO NOT use generic AI-generated "quotes" or clichés.
+- Ensure the quote is impactful and actually provides perspective for someone studying 10+ hours a day.
 
-Examples of the quality and depth required:
-- "The standard you walk past is the standard you accept. In the quiet of your study hours, every unsolved problem is a choice between mastery and mediocrity."
-- "Discipline is simply the art of remembering what you want most, even when the exhaustion of the moment whispers for you to quit. Stay the course."
-- "Precision isn't an accident; it's the residue of a thousand failed attempts and the refusal to stop until the process is seamless."
-- "The weight of preparation is heavy, but it is lighter than the burden of regret. Carry it with pride today."
-
-Now, generate one such impactful motivational quote. Return it in a JSON object with a 'quote' key.`,
+Return the result as a JSON object with 'quote' and 'author' keys.`,
 });
 
 const generateMotivationalQuoteFlow = ai.defineFlow(

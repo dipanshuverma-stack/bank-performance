@@ -6,16 +6,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Quote, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type QuoteData = {
+  quote: string;
+  author: string;
+};
+
 export function QuoteCard() {
-  const [quote, setQuote] = useState<string | null>(null);
+  const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
 
   useEffect(() => {
     async function loadQuote() {
       try {
         const result = await generateMotivationalQuote({});
-        setQuote(result.quote);
+        setQuoteData(result);
       } catch (error) {
-        setQuote("Success is not final, failure is not fatal: it is the courage to continue that counts.");
+        setQuoteData({
+          quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+          author: "Winston Churchill"
+        });
       }
     }
     loadQuote();
@@ -30,20 +38,28 @@ export function QuoteCard() {
         </div>
         
         <div className="flex-1 flex items-center py-4">
-          {quote ? (
-            <p className="text-lg font-medium leading-relaxed italic">
-              "{quote}"
-            </p>
+          {quoteData ? (
+            <div className="w-full">
+              <p className="text-lg font-medium leading-relaxed italic mb-2">
+                "{quoteData.quote}"
+              </p>
+              <p className="text-xs font-bold text-right opacity-80 uppercase tracking-widest">
+                — {quoteData.author}
+              </p>
+            </div>
           ) : (
             <div className="space-y-2 w-full">
               <Skeleton className="h-4 w-full bg-white/20" />
               <Skeleton className="h-4 w-3/4 bg-white/20" />
+              <div className="flex justify-end">
+                <Skeleton className="h-3 w-1/4 bg-white/20" />
+              </div>
             </div>
           )}
         </div>
         
-        <div className="text-[10px] uppercase tracking-widest opacity-60 text-right">
-          Daily Inspiration Hub
+        <div className="text-[10px] uppercase tracking-widest opacity-60 text-right mt-2">
+          Wisdom of the Elite
         </div>
       </CardContent>
     </Card>
