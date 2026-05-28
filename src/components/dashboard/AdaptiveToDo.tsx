@@ -20,7 +20,8 @@ import {
   Trash2, 
   Loader2,
   Brain,
-  Zap
+  Zap,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,7 @@ interface Task {
   time: number;
   completed: boolean;
   isAiSuggested?: boolean;
+  isFallback?: boolean;
   reason?: string;
 }
 
@@ -93,42 +95,69 @@ export function AdaptiveToDo() {
     if (!mounted) return [];
     
     // 1. Get data from logs
-    const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
     const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
 
-    // 2. Aggregate manual weak areas from mocks
-    const manualWeakTopics = mockLogs
-      .filter((m: any) => m.weakTopics && Array.isArray(m.weakTopics))
-      .flatMap((m: any) => m.weakTopics);
+    // 2. Aggregate manual weak areas and low-accuracy topics
+    const weakTopics = mockLogs
+      .filter((m: any) => m.accuracy < 75 || (m.weakTopics && m.weakTopics.length > 0))
+      .flatMap((m: any) => m.weakTopics || []);
 
-    // 3. Aggregate sub-75% accuracy topics from manual Practice sessions
-    const practiceWeakTopics = accuracyLogs
-      .map((log: any) => log.topic);
-
-    // 4. Combine and deduplicate
-    const uniqueWeakTopics = Array.from(new Set([...manualWeakTopics, ...practiceWeakTopics]));
+    // 3. Combine and deduplicate
+    const uniqueWeakTopics = Array.from(new Set(weakTopics as string[]));
 
     const detectedWeakAreas = uniqueWeakTopics.map((topic: string) => ({
       subject: 'Exam Priority',
       chapter: topic
     }));
 
-    // Fallbacks
-    if (detectedWeakAreas.length === 0) {
-      return [
-        { subject: 'Quants', chapter: 'Data Interpretation (Caselets)' },
-        { subject: 'Reasoning', chapter: 'Critical Reasoning' }
-      ];
-    }
-
     return detectedWeakAreas.slice(0, 5);
+  };
+
+  const generateStrategicTasksLocally = (weakAreas: any[]) => {
+    const fallbackTasks: Task[] = [];
+    
+    // Add up to 2 tasks from weak areas
+    weakAreas.slice(0, 2).forEach(area => {
+      fallbackTasks.push({
+        id: Math.random().toString(36).substr(2, 9),
+        subject: area.subject === 'Exam Priority' ? 'Reasoning' : area.subject,
+        chapter: area.chapter,
+        time: 45,
+        completed: false,
+        isAiSuggested: true,
+        isFallback: true,
+        reason: "Manual Weakness Target"
+      });
+    });
+
+    // Fill the rest with high-impact defaults
+    const fillers = [
+      { subject: 'Quants', chapter: 'Data Interpretation (Table)', reason: 'High Exam Weightage' },
+      { subject: 'Reasoning', chapter: 'Puzzles (Floor & Flat)', reason: 'Core Scoring Pillar' },
+      { subject: 'Quants', chapter: 'Arithmetic core (Profit & Loss)', reason: 'Fundamental concept' }
+    ];
+
+    fillers.slice(0, 4 - fallbackTasks.length).forEach(filler => {
+      fallbackTasks.push({
+        id: Math.random().toString(36).substr(2, 9),
+        subject: filler.subject,
+        chapter: filler.chapter,
+        time: 60,
+        completed: false,
+        isAiSuggested: true,
+        isFallback: true,
+        reason: filler.reason
+      });
+    });
+
+    return fallbackTasks;
   };
 
   const getAiSuggestion = async () => {
     setLoading(true);
+    const weakAreas = analyzeWeakAreasFromLogs();
+    
     try {
-      const weakAreas = analyzeWeakAreasFromLogs();
-      
       const result = await generateAdaptiveToDoList({
         weakAreas: weakAreas,
         availableStudyTimeMinutes: 180
@@ -145,18 +174,20 @@ export function AdaptiveToDo() {
           reason: item.reason
         }));
         
-        // Strategy: AI Suggestions replace previous AI suggestions but keep manual tasks
         setTasks(prev => [...newAiTasks, ...prev.filter(t => !t.isAiSuggested)]);
         toast({ 
-          title: "Weak Subject Strategy Active", 
-          description: `Roadmap updated based on ${weakAreas.length} identified weak areas.` 
+          title: "Strategic Intelligence Active", 
+          description: "Roadmap updated via AI strategic analysis." 
         });
       }
     } catch (err: any) {
+      // CODE FALLBACK: If AI fails, use the code strategist
+      const fallbackTasks = generateStrategicTasksLocally(weakAreas);
+      setTasks(prev => [...fallbackTasks, ...prev.filter(t => !t.isAiSuggested)]);
+      
       toast({ 
-        variant: "destructive", 
-        title: "AI Capacity Reached", 
-        description: "The strategy engine is busy. Try again in a minute." 
+        title: "Code Strategist Active", 
+        description: "AI is busy. Using local logic to prioritize identified weak areas." 
       });
     } finally {
       setLoading(false);
@@ -217,7 +248,7 @@ export function AdaptiveToDo() {
           </Dialog>
           <Button variant="outline" size="sm" onClick={getAiSuggestion} disabled={loading} className="rounded-xl border-2 bg-background h-9 shadow-sm group">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary mr-2" />}
-            <span className="font-bold text-[10px] uppercase tracking-wider">AI Strategize</span>
+            <span className="font-bold text-[10px] uppercase tracking-wider">Smart Strategize</span>
           </Button>
         </div>
       </CardHeader>
@@ -230,7 +261,12 @@ export function AdaptiveToDo() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <label htmlFor={task.id} className={`text-sm font-bold truncate cursor-pointer ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.chapter}</label>
-                  {task.isAiSuggested && <Badge variant="default" className="bg-primary/20 text-primary text-[7px] px-1.5 h-3.5 rounded-sm font-black uppercase tracking-tighter border-none shrink-0">AI Priority</Badge>}
+                  {task.isAiSuggested && (
+                    <Badge variant="default" className="bg-primary/20 text-primary text-[7px] px-1.5 h-3.5 rounded-sm font-black uppercase tracking-tighter border-none shrink-0 flex items-center gap-1">
+                      {task.isFallback ? <ShieldCheck className="w-2.5 h-2.5" /> : <Sparkles className="w-2.5 h-2.5" />}
+                      {task.isFallback ? "Code Optimized" : "AI Priority"}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-3 text-[10px] text-muted-foreground font-bold uppercase">
                   <span className="flex items-center gap-1"><Zap className={`w-3 h-3 ${task.subject === 'Quants' ? 'text-blue-500' : 'text-purple-500'}`} />{task.subject}</span>
@@ -245,7 +281,7 @@ export function AdaptiveToDo() {
           <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground/30">
             <Brain className="w-12 h-12 mb-4 opacity-20" />
             <h4 className="font-bold text-sm text-foreground/40 uppercase tracking-widest">Roadmap Empty</h4>
-            <p className="text-[10px] font-black uppercase mt-1">Use "AI Strategize" for a plan based on manual & auto-detected weak areas</p>
+            <p className="text-[10px] font-black uppercase mt-1">Use "Smart Strategize" for a plan based on manual & auto-detected weak areas</p>
           </div>
         )}
       </CardContent>
