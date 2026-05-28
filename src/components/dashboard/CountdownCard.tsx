@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { UPCOMING_EXAMS } from "@/lib/mock-data";
-import { Timer } from "lucide-react";
+import { Timer, CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function CountdownCard() {
@@ -24,35 +24,44 @@ export function CountdownCard() {
   }, []);
 
   return (
-    <Card className="bento-card bg-indigo-600 dark:bg-primary text-white border-none shadow-xl shadow-indigo-500/20 dark:shadow-primary/20">
+    <Card className="bento-card bg-slate-900 dark:bg-primary/10 border-none shadow-xl shadow-slate-200 dark:shadow-primary/5 group transition-all duration-500">
       <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="bg-white/20 p-1.5 rounded-lg">
-            <Timer className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/20 dark:bg-primary p-2 rounded-xl text-primary dark:text-white transition-colors">
+              <Timer className="w-5 h-5" />
+            </div>
+            <h3 className="font-headline text-lg font-bold tracking-tight text-white dark:text-foreground">Exam Countdown</h3>
           </div>
-          <h3 className="font-headline text-lg font-bold tracking-tight text-white">Exam Countdown</h3>
+          <CalendarDays className="w-4 h-4 text-slate-500 dark:text-primary opacity-50" />
         </div>
-        <div className="space-y-5">
+        
+        <div className="space-y-6">
           {examCountdowns.length > 0 ? (
             examCountdowns.map((exam, i) => (
-              <div key={i} className="flex items-center justify-between border-b border-white/10 pb-3 last:border-0 last:pb-0">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{exam.icon}</span>
-                  <span className="text-sm font-semibold text-white/95">{exam.name}</span>
+              <div key={i} className="flex items-center justify-between border-b border-white/10 dark:border-primary/10 pb-4 last:border-0 last:pb-0 group/item">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/5 dark:bg-primary/5 flex items-center justify-center text-xl group-hover/item:scale-110 transition-transform">
+                    {exam.icon}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-white/95 dark:text-foreground">{exam.name}</span>
+                    <span className="text-[10px] text-slate-400 dark:text-muted-foreground uppercase tracking-widest font-medium">Adda247 Series</span>
+                  </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-2xl font-headline font-bold tracking-tighter leading-none text-white">
+                  <span className="text-3xl font-headline font-bold tracking-tighter leading-none text-white dark:text-primary">
                     {exam.days > 0 ? `${exam.days}d` : 'Today'}
                   </span>
-                  <span className="text-[10px] text-white/80 uppercase tracking-widest font-black mt-1">
+                  <span className="text-[10px] text-slate-400 dark:text-muted-foreground uppercase tracking-widest font-black mt-1">
                     {exam.days > 0 ? 'Remaining' : 'Exam Day'}
                   </span>
                 </div>
               </div>
             ))
           ) : (
-            <div className="py-4 text-center text-white/60 text-sm font-medium">
-              Calculating precision dates...
+            <div className="py-8 text-center text-white/40 dark:text-muted-foreground text-sm font-medium animate-pulse">
+              Syncing exam dates...
             </div>
           )}
         </div>
