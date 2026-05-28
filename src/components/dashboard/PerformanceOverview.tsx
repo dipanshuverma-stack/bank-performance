@@ -14,7 +14,7 @@ import {
   Bar,
   Cell
 } from 'recharts';
-import { Target, TrendingUp, Zap, BarChart3, LineChart, Activity } from "lucide-react";
+import { Target, TrendingUp, Zap, BarChart3, LineChart, Activity, CheckCircle2, XCircle, Clock, Brain } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
@@ -63,9 +63,50 @@ export function PerformanceOverview() {
   const [mounted, setMounted] = useState(false);
   const [period, setPeriod] = useState<keyof typeof PERIOD_DATA>("weekly");
   const [activeView, setActiveView] = useState<"performance" | "volume">("performance");
+  const [realStats, setRealStats] = useState({
+    totalCorrect: 0,
+    totalWrong: 0,
+    avgPracticeTime: "0:00",
+    quantsAccuracy: 0,
+    reasoningAccuracy: 0
+  });
 
   useEffect(() => {
     setMounted(true);
+    
+    // Load real data from localStorage
+    const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+    const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
+
+    if (mockLogs.length > 0) {
+      const totalCorrect = mockLogs.reduce((acc: number, m: any) => acc + (m.correct || 0), 0);
+      const totalWrong = mockLogs.reduce((acc: number, m: any) => acc + (m.wrong || 0), 0);
+      
+      // Subject accuracy calc
+      const quants = mockLogs.filter((m: any) => m.examType.includes("Quants") || m.quantsCorrect > 0);
+      const reasoning = mockLogs.filter((m: any) => m.examType.includes("Reasoning") || m.reasoningCorrect > 0);
+      
+      const qAcc = quants.length > 0 ? (quants.reduce((acc: number, m: any) => acc + m.accuracy, 0) / quants.length) : 0;
+      const rAcc = reasoning.length > 0 ? (reasoning.reduce((acc: number, m: any) => acc + m.accuracy, 0) / reasoning.length) : 0;
+
+      setRealStats(prev => ({
+        ...prev,
+        totalCorrect,
+        totalWrong,
+        quantsAccuracy: Math.round(qAcc),
+        reasoningAccuracy: Math.round(rAcc)
+      }));
+    }
+
+    if (accuracyLogs.length > 0) {
+      const avgTime = accuracyLogs.reduce((acc: number, l: any) => acc + l.time, 0) / accuracyLogs.length;
+      const mins = Math.floor(avgTime / 60);
+      const secs = Math.floor(avgTime % 60);
+      setRealStats(prev => ({
+        ...prev,
+        avgPracticeTime: `${mins}:${secs.toString().padStart(2, '0')}`
+      }));
+    }
   }, []);
 
   if (!mounted) return null;
@@ -129,6 +170,34 @@ export function PerformanceOverview() {
             <span className="text-5xl font-headline font-bold text-foreground tabular-nums tracking-tighter">
               {currentStats.testsTaken}
             </span>
+          </div>
+        </div>
+
+        {/* Extended Mastery Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 border-y border-border/40 py-8 bg-slate-50/30 dark:bg-white/[0.01]">
+          <div className="flex flex-col items-center justify-center text-center p-4 border-r border-border/50">
+             <CheckCircle2 className="w-5 h-5 text-success mb-2" />
+             <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Total Correct</span>
+             <span className="text-2xl font-headline font-bold text-foreground">{realStats.totalCorrect}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-center p-4 border-r border-border/50">
+             <XCircle className="w-5 h-5 text-destructive mb-2" />
+             <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Total Mistakes</span>
+             <span className="text-2xl font-headline font-bold text-foreground">{realStats.totalWrong}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-center p-4 border-r border-border/50">
+             <Clock className="w-5 h-5 text-primary mb-2" />
+             <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Avg Efficiency</span>
+             <span className="text-2xl font-headline font-bold text-foreground">{realStats.avgPracticeTime}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center text-center p-4">
+             <Brain className="w-5 h-5 text-purple-500 mb-2" />
+             <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Domain Mastery</span>
+             <div className="flex gap-2 items-center">
+                <span className="text-xs font-bold text-blue-500">Q:{realStats.quantsAccuracy}%</span>
+                <div className="w-[1px] h-3 bg-border" />
+                <span className="text-xs font-bold text-purple-500">R:{realStats.reasoningAccuracy}%</span>
+             </div>
           </div>
         </div>
 
