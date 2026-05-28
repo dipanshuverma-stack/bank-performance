@@ -14,8 +14,8 @@ import {
   Loader2,
   Brain,
   CheckCircle2,
-  BookOpen,
-  ArrowRight
+  Zap,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,8 @@ interface Task {
   chapter: string;
   time: number;
   completed: boolean;
+  isAiSuggested?: boolean;
+  reason?: string;
 }
 
 export function AdaptiveToDo() {
@@ -81,9 +83,10 @@ export function AdaptiveToDo() {
   const getAiSuggestion = async () => {
     setLoading(true);
     try {
+      // In a real app, these weak areas would come from performance logs
       const result = await generateAdaptiveToDoList({
         weakAreas: [
-          { subject: 'Quants', chapter: 'Arithmetic Word Problems' },
+          { subject: 'Quants', chapter: 'Arithmetic Word Problems (Profit/Loss)' },
           { subject: 'Reasoning', chapter: 'Circular Seating Arrangement' }
         ],
         availableStudyTimeMinutes: 180
@@ -96,20 +99,23 @@ export function AdaptiveToDo() {
           chapter: item.chapter,
           time: item.estimatedTimeMinutes,
           completed: false,
+          isAiSuggested: true,
+          reason: item.reason
         }));
         
-        setTasks(prev => [...newAiTasks, ...prev]);
+        // Clear old AI suggestions to show the fresh 3-4 tasks clearly
+        setTasks(prev => [...newAiTasks, ...prev.filter(t => !t.isAiSuggested)]);
         
         toast({
-          title: "AI Strategy Plan Applied",
-          description: `Identified ${newAiTasks.length} high-scoring topics based on your weak areas and upcoming SBI/IBPS PO weightage.`,
+          title: "Weak Subject Strategy Active",
+          description: "Prioritized your weak topics and high-scoring exam pillars.",
         });
       }
     } catch (err: any) {
       toast({
         variant: "destructive",
         title: "AI Capacity Reached",
-        description: "Rate limit exceeded. Please try manual entry or wait a moment.",
+        description: "Please try manual entry or check back in a minute.",
       });
     } finally {
       setLoading(false);
@@ -127,7 +133,7 @@ export function AdaptiveToDo() {
             <CardTitle className="text-xl font-headline font-bold">Study Roadmap</CardTitle>
           </div>
           <CardDescription className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground ml-10">
-            Manual Entries & Strategic AI Insights
+            Weak Area Optimization Engine
           </CardDescription>
         </div>
         <Button 
@@ -135,10 +141,10 @@ export function AdaptiveToDo() {
           size="sm"
           onClick={getAiSuggestion}
           disabled={loading}
-          className="rounded-xl border-2 bg-background hover:bg-primary/5 group/ai hidden sm:flex h-9"
+          className="rounded-xl border-2 bg-background hover:bg-primary/5 group/ai hidden sm:flex h-9 shadow-sm"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary mr-2" />}
-          <span className="font-bold text-[10px] uppercase tracking-wider">AI Strategize</span>
+          <span className="font-bold text-[10px] uppercase tracking-wider">AI Weakness-Fix</span>
         </Button>
       </CardHeader>
 
@@ -152,17 +158,17 @@ export function AdaptiveToDo() {
                 placeholder="Topic name..." 
                 value={newChapter}
                 onChange={(e) => setNewChapter(e.target.value)}
-                className="rounded-xl border-none bg-background/50 h-10 text-sm font-medium"
+                className="rounded-xl border-none bg-background h-10 text-sm font-medium"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground ml-1">Subject</label>
                 <Select value={newSubject} onValueChange={setNewSubject}>
-                  <SelectTrigger className="rounded-xl border-none bg-background/50 h-10 text-sm">
+                  <SelectTrigger className="rounded-xl border-none bg-background h-10 text-sm font-bold">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl font-bold">
                     <SelectItem value="Reasoning">Reasoning</SelectItem>
                     <SelectItem value="Quants">Quants</SelectItem>
                   </SelectContent>
@@ -174,7 +180,7 @@ export function AdaptiveToDo() {
                   type="number"
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
-                  className="rounded-xl border-none bg-background/50 h-10 text-sm"
+                  className="rounded-xl border-none bg-background h-10 text-sm font-bold"
                 />
               </div>
             </div>
@@ -183,11 +189,11 @@ export function AdaptiveToDo() {
           <div className="flex gap-2">
             <Button 
               onClick={() => addTask(newSubject, newChapter, parseInt(newTime))}
-              className="flex-1 rounded-xl h-10 font-bold text-xs"
+              className="flex-1 rounded-xl h-10 font-bold text-xs shadow-lg shadow-primary/20"
               disabled={!newChapter}
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />
-              Add Session
+              Add Task
             </Button>
             <Button 
               variant="outline" 
@@ -196,13 +202,13 @@ export function AdaptiveToDo() {
               className="sm:hidden rounded-xl h-10 border-2 bg-background flex-1"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary" />}
-              <span className="ml-2 font-bold text-xs uppercase">AI Suggest</span>
+              <span className="ml-2 font-bold text-xs uppercase">AI Strategize</span>
             </Button>
           </div>
         </div>
 
-        {/* Task List - Showing multiple items clearly */}
-        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+        {/* Task List */}
+        <div className="space-y-3 overflow-y-auto pr-2 scrollbar-hide">
           {tasks.length > 0 ? (
             tasks.map((task) => (
               <div 
@@ -210,7 +216,9 @@ export function AdaptiveToDo() {
                 className={`group relative flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 ${
                   task.completed 
                   ? 'bg-slate-50/50 dark:bg-white/5 border-transparent opacity-60' 
-                  : 'bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-md'
+                  : task.isAiSuggested 
+                    ? 'bg-primary/[0.03] border-primary/20 hover:border-primary/40' 
+                    : 'bg-card border-border/40 hover:border-primary/20'
                 }`}
               >
                 <Checkbox 
@@ -227,17 +235,24 @@ export function AdaptiveToDo() {
                     >
                       {task.chapter}
                     </label>
-                    <Badge variant="secondary" className="text-[8px] px-1.5 h-4 rounded-md font-black uppercase tracking-tighter shrink-0">
-                      {task.subject}
-                    </Badge>
+                    {task.isAiSuggested && (
+                      <Badge variant="default" className="bg-primary/20 text-primary hover:bg-primary/20 text-[7px] px-1.5 h-3.5 rounded-sm font-black uppercase tracking-tighter shrink-0 border-none">
+                        AI Priority
+                      </Badge>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold">
-                    <Clock className="w-3 h-3" />
-                    {task.time} minutes
-                    {task.completed && (
-                      <span className="flex items-center gap-1 text-success">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Done
+                  <div className="flex items-center gap-3 text-[10px] text-muted-foreground font-bold">
+                    <span className="flex items-center gap-1 uppercase">
+                      <Zap className={`w-3 h-3 ${task.subject === 'Quants' ? 'text-blue-500' : 'text-purple-500'}`} />
+                      {task.subject}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {task.time}m
+                    </span>
+                    {task.reason && (
+                      <span className="text-primary italic font-medium hidden md:inline truncate opacity-80">
+                        — {task.reason}
                       </span>
                     )}
                   </div>
@@ -257,8 +272,10 @@ export function AdaptiveToDo() {
               <div className="w-14 h-14 bg-accent/50 rounded-full flex items-center justify-center mb-4 text-muted-foreground/30">
                 <Brain className="w-7 h-7" />
               </div>
-              <h4 className="font-bold text-sm text-foreground mb-1">Your roadmap is empty</h4>
-              <p className="text-[10px] text-muted-foreground max-w-[180px] font-medium">Use 'AI Strategize' to get scoring suggestions for upcoming exams.</p>
+              <h4 className="font-bold text-sm text-foreground mb-1">Your Roadmap is empty</h4>
+              <p className="text-[10px] text-muted-foreground max-w-[200px] font-medium leading-relaxed">
+                Click <span className="text-primary font-bold">"AI Weakness-Fix"</span> to generate 3-4 strategic sessions focused on your weak subjects.
+              </p>
             </div>
           )}
         </div>
