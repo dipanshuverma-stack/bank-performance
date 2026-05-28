@@ -18,58 +18,33 @@ import { Target, TrendingUp, Zap, BarChart3, LineChart, Activity, CheckCircle2, 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
-const PERIOD_DATA = {
-  daily: [
-    { name: '06:00', accuracy: 45, score: 32, tests: 0 },
-    { name: '09:00', accuracy: 72, score: 65, tests: 1 },
-    { name: '12:00', accuracy: 65, score: 58, tests: 0 },
-    { name: '15:00', accuracy: 88, score: 82, tests: 1 },
-    { name: '18:00', accuracy: 75, score: 70, tests: 1 },
-    { name: '21:00', accuracy: 82, score: 78, tests: 0 },
-    { name: '00:00', accuracy: 90, score: 85, tests: 0 },
-  ],
-  weekly: [
-    { name: 'Mon', accuracy: 65, score: 55, tests: 2 },
-    { name: 'Tue', accuracy: 72, score: 62, tests: 3 },
-    { name: 'Wed', accuracy: 68, score: 60, tests: 1 },
-    { name: 'Thu', accuracy: 82, score: 75, tests: 4 },
-    { name: 'Fri', accuracy: 75, score: 68, tests: 2 },
-    { name: 'Sat', accuracy: 88, score: 80, tests: 5 },
-    { name: 'Sun', accuracy: 78, score: 72, tests: 2 },
-  ],
-  '15days': [
-    { name: 'D1-3', accuracy: 60, score: 52, tests: 8 },
-    { name: 'D4-6', accuracy: 65, score: 58, tests: 6 },
-    { name: 'D7-9', accuracy: 75, score: 68, tests: 10 },
-    { name: 'D10-12', accuracy: 70, score: 65, tests: 7 },
-    { name: 'D13-15', accuracy: 84, score: 78, tests: 12 },
-  ],
-  monthly: [
-    { name: 'Week 1', accuracy: 62, score: 55, tests: 15 },
-    { name: 'Week 2', accuracy: 70, score: 64, tests: 18 },
-    { name: 'Week 3', accuracy: 78, score: 70, tests: 22 },
-    { name: 'Week 4', accuracy: 85, score: 79, tests: 25 },
-  ],
-};
-
-const STATS_BY_PERIOD = {
-  daily: { avgScore: 64.5, avgAccuracy: 73.8, testsTaken: 3, growth: "+4.2%" },
-  weekly: { avgScore: 67.4, avgAccuracy: 75.4, testsTaken: 19, growth: "+12.5%" },
-  '15days': { avgScore: 64.2, avgAccuracy: 70.8, testsTaken: 43, growth: "+18.3%" },
-  monthly: { avgScore: 66.1, avgAccuracy: 73.7, testsTaken: 80, growth: "+22.1%" },
-};
+// Empty baseline data structure
+const EMPTY_CHART_DATA = [
+  { name: 'P1', accuracy: 0, score: 0, tests: 0 },
+  { name: 'P2', accuracy: 0, score: 0, tests: 0 },
+  { name: 'P3', accuracy: 0, score: 0, tests: 0 },
+  { name: 'P4', accuracy: 0, score: 0, tests: 0 },
+  { name: 'P5', accuracy: 0, score: 0, tests: 0 },
+];
 
 export function PerformanceOverview() {
   const [mounted, setMounted] = useState(false);
-  const [period, setPeriod] = useState<keyof typeof PERIOD_DATA>("weekly");
+  const [period, setPeriod] = useState("weekly");
   const [activeView, setActiveView] = useState<"performance" | "volume">("performance");
-  const [realStats, setRealStats] = useState({
+  
+  const [stats, setStats] = useState({
+    avgScore: 0,
+    avgAccuracy: 0,
+    testsTaken: 0,
+    growth: "0%",
     totalCorrect: 0,
     totalWrong: 0,
     avgPracticeTime: "0:00",
     quantsAccuracy: 0,
     reasoningAccuracy: 0
   });
+
+  const [chartData, setChartData] = useState(EMPTY_CHART_DATA);
 
   useEffect(() => {
     setMounted(true);
@@ -81,6 +56,8 @@ export function PerformanceOverview() {
     if (mockLogs.length > 0) {
       const totalCorrect = mockLogs.reduce((acc: number, m: any) => acc + (m.correct || 0), 0);
       const totalWrong = mockLogs.reduce((acc: number, m: any) => acc + (m.wrong || 0), 0);
+      const avgScore = (mockLogs.reduce((acc: number, m: any) => acc + (m.score || 0), 0) / mockLogs.length).toFixed(1);
+      const avgAccuracy = (mockLogs.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / mockLogs.length).toFixed(1);
       
       // Subject accuracy calc
       const quants = mockLogs.filter((m: any) => m.examType.includes("Quants") || m.quantsCorrect > 0);
@@ -89,30 +66,42 @@ export function PerformanceOverview() {
       const qAcc = quants.length > 0 ? (quants.reduce((acc: number, m: any) => acc + m.accuracy, 0) / quants.length) : 0;
       const rAcc = reasoning.length > 0 ? (reasoning.reduce((acc: number, m: any) => acc + m.accuracy, 0) / reasoning.length) : 0;
 
-      setRealStats(prev => ({
+      // Map mock logs to chart data (simple chronological mapping)
+      const mappedChartData = mockLogs.slice(-7).reverse().map((m: any, i: number) => ({
+        name: m.date.split('/')[0] + '/' + m.date.split('/')[1], // Short date
+        accuracy: m.accuracy,
+        score: m.score,
+        tests: 1
+      }));
+
+      setStats(prev => ({
         ...prev,
+        avgScore: parseFloat(avgScore),
+        avgAccuracy: parseFloat(avgAccuracy),
+        testsTaken: mockLogs.length,
         totalCorrect,
         totalWrong,
         quantsAccuracy: Math.round(qAcc),
         reasoningAccuracy: Math.round(rAcc)
       }));
+
+      if (mappedChartData.length > 0) {
+        setChartData(mappedChartData);
+      }
     }
 
     if (accuracyLogs.length > 0) {
       const avgTime = accuracyLogs.reduce((acc: number, l: any) => acc + l.time, 0) / accuracyLogs.length;
       const mins = Math.floor(avgTime / 60);
       const secs = Math.floor(avgTime % 60);
-      setRealStats(prev => ({
+      setStats(prev => ({
         ...prev,
         avgPracticeTime: `${mins}:${secs.toString().padStart(2, '0')}`
       }));
     }
-  }, []);
+  }, [period]);
 
   if (!mounted) return null;
-
-  const currentStats = STATS_BY_PERIOD[period];
-  const chartData = PERIOD_DATA[period];
 
   return (
     <Card className="bento-card col-span-1 lg:col-span-2 overflow-hidden bg-card/50">
@@ -124,11 +113,11 @@ export function PerformanceOverview() {
           </div>
           <div className="flex items-center gap-2 text-success font-bold text-[10px] uppercase tracking-widest ml-7">
             <TrendingUp className="w-3.5 h-3.5" />
-            {currentStats.growth} overall improvement
+            {stats.growth} improvement found
           </div>
         </div>
         
-        <Tabs defaultValue="weekly" className="w-full md:w-auto" onValueChange={(v) => setPeriod(v as any)}>
+        <Tabs defaultValue="weekly" className="w-full md:w-auto" onValueChange={setPeriod}>
           <TabsList className="grid grid-cols-4 w-full h-10 bg-accent/20 rounded-xl p-1">
             <TabsTrigger value="daily" className="text-[10px] font-black uppercase tracking-tighter rounded-lg data-[state=active]:bg-card">Daily</TabsTrigger>
             <TabsTrigger value="weekly" className="text-[10px] font-black uppercase tracking-tighter rounded-lg data-[state=active]:bg-card">Weekly</TabsTrigger>
@@ -147,7 +136,7 @@ export function PerformanceOverview() {
                <Activity className="w-4 h-4 text-primary opacity-20 group-hover:opacity-100 transition-opacity" />
             </div>
             <span className="text-5xl font-headline font-bold text-foreground tabular-nums tracking-tighter">
-              {currentStats.avgAccuracy}%
+              {stats.avgAccuracy}%
             </span>
             <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mb-12 blur-2xl group-hover:bg-primary/10 transition-colors" />
           </div>
@@ -158,7 +147,7 @@ export function PerformanceOverview() {
               <Zap className="w-4 h-4 text-blue-500 opacity-20 group-hover:opacity-100 transition-opacity" />
             </div>
             <span className="text-5xl font-headline font-bold text-foreground tabular-nums tracking-tighter">
-              {currentStats.avgScore}
+              {stats.avgScore}
             </span>
           </div>
 
@@ -168,7 +157,7 @@ export function PerformanceOverview() {
               <BarChart3 className="w-4 h-4 text-success opacity-20 group-hover:opacity-100 transition-opacity" />
             </div>
             <span className="text-5xl font-headline font-bold text-foreground tabular-nums tracking-tighter">
-              {currentStats.testsTaken}
+              {stats.testsTaken}
             </span>
           </div>
         </div>
@@ -178,25 +167,25 @@ export function PerformanceOverview() {
           <div className="flex flex-col items-center justify-center text-center p-4 border-r border-border/50">
              <CheckCircle2 className="w-5 h-5 text-success mb-2" />
              <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Total Correct</span>
-             <span className="text-2xl font-headline font-bold text-foreground">{realStats.totalCorrect}</span>
+             <span className="text-2xl font-headline font-bold text-foreground">{stats.totalCorrect}</span>
           </div>
           <div className="flex flex-col items-center justify-center text-center p-4 border-r border-border/50">
              <XCircle className="w-5 h-5 text-destructive mb-2" />
              <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Total Mistakes</span>
-             <span className="text-2xl font-headline font-bold text-foreground">{realStats.totalWrong}</span>
+             <span className="text-2xl font-headline font-bold text-foreground">{stats.totalWrong}</span>
           </div>
           <div className="flex flex-col items-center justify-center text-center p-4 border-r border-border/50">
              <Clock className="w-5 h-5 text-primary mb-2" />
              <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Avg Efficiency</span>
-             <span className="text-2xl font-headline font-bold text-foreground">{realStats.avgPracticeTime}</span>
+             <span className="text-2xl font-headline font-bold text-foreground">{stats.avgPracticeTime}</span>
           </div>
           <div className="flex flex-col items-center justify-center text-center p-4">
              <Brain className="w-5 h-5 text-purple-500 mb-2" />
              <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Domain Mastery</span>
              <div className="flex gap-2 items-center">
-                <span className="text-xs font-bold text-blue-500">Q:{realStats.quantsAccuracy}%</span>
+                <span className="text-xs font-bold text-blue-500">Q:{stats.quantsAccuracy}%</span>
                 <div className="w-[1px] h-3 bg-border" />
-                <span className="text-xs font-bold text-purple-500">R:{realStats.reasoningAccuracy}%</span>
+                <span className="text-xs font-bold text-purple-500">R:{stats.reasoningAccuracy}%</span>
              </div>
           </div>
         </div>
