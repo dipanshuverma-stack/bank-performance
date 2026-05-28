@@ -97,7 +97,7 @@ export function MockTestConsole() {
 
   const addMock = () => {
     if (!mockName || !score || !correct || !wrong) {
-      toast({ variant: "destructive", title: "Missing Metrics", description: "Please fill in the core performance details." });
+      toast({ variant: "destructive", title: "Missing Metrics", description: "Please fill in the core performance details (Name, Score, Correct/Wrong)." });
       return;
     }
 
@@ -232,7 +232,7 @@ export function MockTestConsole() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-yellow-500 ml-1 flex items-center gap-1"><AlertTriangle className="w-2.5 h-2.5" /> Identify Weak Sub-topics</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-yellow-500 ml-1 flex items-center gap-1"><AlertTriangle className="w-2.5 h-2.5" /> Identify Weak Sub-topics (Optional)</label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" className="w-full justify-between rounded-2xl h-11 bg-yellow-500/5 border-yellow-500/20 font-bold text-xs">
