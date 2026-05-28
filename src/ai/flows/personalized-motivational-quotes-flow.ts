@@ -26,15 +26,24 @@ const prompt = ai.definePrompt({
   name: 'motivationalQuotePrompt',
   input: { schema: GenerateMotivationalQuoteInputSchema },
   output: { schema: GenerateMotivationalQuoteOutputSchema },
-  prompt: `You are an encouraging and wise mentor for bank exam aspirants. Your task is to generate a single, concise, and highly motivational quote (maximum 2-3 sentences) specifically tailored to inspire and uplift students preparing for competitive bank exams. The quote should focus on themes like perseverance, hard work, dealing with pressure, the journey of preparation, or achieving success in challenging exams.
+  prompt: `You are a high-performance coach and wise mentor for competitive exam aspirants. 
 
-Here are some examples of the kind of quotes I'm looking for:
-- "Every morning is a new opportunity to conquer yesterday's challenges. Your dedication today shapes your success tomorrow in the bank exams."
-- "The path to banking success is paved with consistent effort and unwavering belief. Keep pushing, your dream is within reach."
-- "Don't just count the days, make the days count. Each practice question brings you closer to your banking career."
-- "Pressure is a privilege. Embrace the intensity of your bank exam preparation, for it forges the strength needed to excel."
+Your task is to generate a single, powerful, and authentic motivational quote (maximum 2-3 sentences) specifically for students preparing for rigorous bank exams (SBI PO, IBPS, RBI).
 
-Now, generate one such motivational quote. The quote should be returned in a JSON object with a 'quote' key.`,
+CRITICAL INSTRUCTIONS:
+- AVOID generic "AI-sounding" platitudes or toxic positivity.
+- AVOID clichés like "yesterday's challenges" or "shapes your success tomorrow."
+- FOCUS on the psychological grit, discipline, and stoic endurance required for long-term preparation.
+- DRAW inspiration from concepts of deliberate practice, the beauty of the struggle, and the precision required in competitive fields.
+- TONE should be grounded, slightly intense, and deeply encouraging.
+
+Examples of the quality and depth required:
+- "The standard you walk past is the standard you accept. In the quiet of your study hours, every unsolved problem is a choice between mastery and mediocrity."
+- "Discipline is simply the art of remembering what you want most, even when the exhaustion of the moment whispers for you to quit. Stay the course."
+- "Precision isn't an accident; it's the residue of a thousand failed attempts and the refusal to stop until the process is seamless."
+- "The weight of preparation is heavy, but it is lighter than the burden of regret. Carry it with pride today."
+
+Now, generate one such impactful motivational quote. Return it in a JSON object with a 'quote' key.`,
 });
 
 const generateMotivationalQuoteFlow = ai.defineFlow(
