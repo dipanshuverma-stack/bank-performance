@@ -14,6 +14,21 @@ export function AchievementMonitor() {
   const { toast } = useToast();
   const checking = useRef(false);
 
+  const addNotification = (title: string, description: string, type: 'achievement' | 'alert') => {
+    const saved = localStorage.getItem("elite-notifications") || "[]";
+    const notifications = JSON.parse(saved);
+    const newNotification = {
+      id: Math.random().toString(36).substr(2, 9),
+      title,
+      description,
+      date: new Date().toLocaleDateString(),
+      type,
+      read: false
+    };
+    localStorage.setItem("elite-notifications", JSON.stringify([newNotification, ...notifications]));
+    window.dispatchEvent(new Event('elite-new-notification'));
+  };
+
   useEffect(() => {
     const checkAchievements = async () => {
       if (checking.current) return;
@@ -39,6 +54,7 @@ export function AchievementMonitor() {
               
               const Icon = ICON_MAP[ach.icon] || Trophy;
 
+              // 1. Show Toast
               toast({
                 title: "Achievement Unlocked!",
                 description: (
@@ -54,6 +70,9 @@ export function AchievementMonitor() {
                 ),
                 variant: "default",
               });
+
+              // 2. Add to Notification Center
+              addNotification(`Elite Milestone: ${ach.title}`, ach.description, 'achievement');
             }
           });
 

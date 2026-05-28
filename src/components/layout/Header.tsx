@@ -10,15 +10,77 @@ import {
   Trophy, 
   Timer as TimerIcon, 
   BookOpen,
-  Sparkles
+  Sparkles,
+  Trash2,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+
+interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  type: 'achievement' | 'alert' | 'reminder';
+  read: boolean;
+}
 
 export function Header() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+    const loadNotifications = () => {
+      const saved = localStorage.getItem("elite-notifications");
+      if (saved) {
+        try {
+          setNotifications(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse notifications");
+        }
+      }
+    };
+
+    loadNotifications();
+    // Listen for storage changes to update notifications in real-time
+    window.addEventListener('storage', loadNotifications);
+    // Custom event for internal app updates
+    window.addEventListener('elite-new-notification', loadNotifications);
+    
+    return () => {
+      window.removeEventListener('storage', loadNotifications);
+      window.removeEventListener('elite-new-notification', loadNotifications);
+    };
+  }, []);
+
+  const saveNotifications = (newNotifications: Notification[]) => {
+    setNotifications(newNotifications);
+    localStorage.setItem("elite-notifications", JSON.stringify(newNotifications));
+  };
+
+  const markAllAsRead = () => {
+    const updated = notifications.map(n => ({ ...n, read: true }));
+    saveNotifications(updated);
+  };
+
+  const clearNotifications = () => {
+    saveNotifications([]);
+  };
+
+  const deleteNotification = (id: string) => {
+    const updated = notifications.filter(n => n.id !== id);
+    saveNotifications(updated);
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const getPageTitle = () => {
     switch(pathname) {
@@ -26,9 +88,13 @@ export function Header() {
       case "/mocks": return "Mock Analytics";
       case "/accuracy": return "Accuracy Console";
       case "/syllabus": return "Syllabus Roadmap";
+      case "/mistakes": return "Mistake Journal";
+      case "/profile": return "Profile Settings";
       default: return "Dashboard";
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <>
@@ -111,10 +177,59 @@ export function Header() {
             
             <ThemeToggle />
             
-            <Button variant="outline" size="icon" className="rounded-2xl h-12 w-12 relative border border-border/60 hover:bg-accent transition-all group">
-               <Bell className="w-5 h-5 text-foreground group-hover:rotate-12 transition-transform" />
-               <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background shadow-lg shadow-destructive/20" />
-            </Button>
+            <Popover onOpenChange={(open) => open && markAllAsRead()}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-2xl h-12 w-12 relative border border-border/60 hover:bg-accent transition-all group">
+                   <Bell className="w-5 h-5 text-foreground group-hover:rotate-12 transition-transform" />
+                   {unreadCount > 0 && (
+                     <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background shadow-lg shadow-destructive/20" />
+                   )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 rounded-3xl border-none shadow-2xl bg-card" align="end">
+                <div className="p-4 border-b border-border/50 flex items-center justify-between">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Alerts</h4>
+                  {notifications.length > 0 && (
+                    <Button variant="ghost" size="sm" onClick={clearNotifications} className="text-[10px] h-7 px-2 font-black uppercase text-muted-foreground hover:text-destructive">
+                      Clear All
+                    </Button>
+                  )}
+                </div>
+                <ScrollArea className="h-[300px]">
+                  {notifications.length > 0 ? (
+                    <div className="divide-y divide-border/30">
+                      {notifications.map((n) => (
+                        <div key={n.id} className="p-4 group relative hover:bg-accent/30 transition-colors">
+                          <div className="flex items-start gap-3">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${n.type === 'achievement' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                              {n.type === 'achievement' ? <Trophy className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                            </div>
+                            <div className="flex-1 pr-6">
+                              <div className="text-xs font-bold text-foreground mb-0.5">{n.title}</div>
+                              <div className="text-[10px] text-muted-foreground leading-relaxed">{n.description}</div>
+                              <div className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest mt-2">{n.date}</div>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                            className="absolute top-4 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center py-12 text-center text-muted-foreground/20">
+                      <Bell className="w-12 h-12 mb-2 opacity-10" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em]">All Systems Clear</p>
+                    </div>
+                  )}
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
             
             <Button asChild className="rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 shadow-xl shadow-primary/20 font-black uppercase text-[10px] tracking-widest transition-all hover:-translate-y-0.5 active:translate-y-0">
                <Link href="/mocks">Quick Log</Link>
