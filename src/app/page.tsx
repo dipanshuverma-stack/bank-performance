@@ -1,9 +1,11 @@
+
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
 import { CountdownCard } from "@/components/dashboard/CountdownCard";
 import { QuoteCard } from "@/components/dashboard/QuoteCard";
 import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
 import { AccuracyTimer } from "@/components/timer/AccuracyTimer";
 import { SyllabusTracker } from "@/components/syllabus/SyllabusTracker";
+import { MockTestConsole } from "@/components/dashboard/MockTestConsole";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   LayoutDashboard, 
@@ -14,7 +16,8 @@ import {
   Search,
   Activity,
   Menu,
-  ChevronRight
+  ChevronRight,
+  Trophy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -41,6 +44,12 @@ export default function Home() {
             <a href="#dashboard">
               <LayoutDashboard className="w-5 h-5 lg:mr-3" />
               <span className="hidden lg:block">Overview</span>
+            </a>
+          </Button>
+          <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground hover:bg-accent hover:text-foreground font-semibold cursor-pointer h-12 rounded-xl">
+            <a href="#mock-test-section">
+              <Trophy className="w-5 h-5 lg:mr-3" />
+              <span className="hidden lg:block">Mock Analytics</span>
             </a>
           </Button>
           <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground hover:bg-accent hover:text-foreground font-semibold cursor-pointer h-12 rounded-xl">
@@ -107,6 +116,9 @@ export default function Home() {
                       <a href="#dashboard"><LayoutDashboard className="w-6 h-6 mr-4" /> Overview</a>
                     </Button>
                     <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground h-14 text-lg font-semibold rounded-2xl">
+                      <a href="#mock-test-section"><Trophy className="w-6 h-6 mr-4" /> Mocks</a>
+                    </Button>
+                    <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground h-14 text-lg font-semibold rounded-2xl">
                       <a href="#timer"><TimerIcon className="w-6 h-6 mr-4" /> Console</a>
                     </Button>
                     <Button variant="ghost" asChild className="w-full justify-start text-muted-foreground h-14 text-lg font-semibold rounded-2xl">
@@ -145,8 +157,8 @@ export default function Home() {
                 <Bell className="w-5 h-5 text-foreground" />
                 <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background animate-pulse" />
              </Button>
-             <Button className="rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-6 md:px-8 shadow-lg shadow-primary/20 font-bold tracking-tight">
-                Mock Connect
+             <Button asChild className="rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-6 md:px-8 shadow-lg shadow-primary/20 font-bold tracking-tight cursor-pointer">
+                <a href="#mock-test-section">Mock Connect</a>
              </Button>
           </div>
         </header>
@@ -163,8 +175,8 @@ export default function Home() {
             <QuoteCard />
             <div className="p-8 rounded-3xl bg-card border-2 border-dashed border-border/60 flex items-center justify-between shadow-sm group hover:border-primary/40 transition-all">
                <div>
-                 <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">Total Mocks</div>
-                 <div className="text-4xl font-headline font-bold tracking-tighter text-foreground">42</div>
+                 <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">Improved Accuracy</div>
+                 <div className="text-4xl font-headline font-bold tracking-tighter text-foreground">+12.5%</div>
                </div>
                <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                  <Activity className="w-7 h-7" />
@@ -179,6 +191,14 @@ export default function Home() {
 
         {/* Feature Sections */}
         <section className="space-y-24">
+          <div id="mock-test-section" className="space-y-8 scroll-mt-28">
+             <div className="flex flex-col gap-2">
+                <span className="text-[10px] text-primary font-black uppercase tracking-widest">Mock Intelligence</span>
+                <h2 className="text-2xl md:text-3xl font-headline font-extrabold tracking-tight text-foreground">Mock Test Console</h2>
+             </div>
+             <MockTestConsole />
+          </div>
+
           <div id="timer" className="space-y-8 scroll-mt-28">
              <div className="flex flex-col gap-2">
                 <span className="text-[10px] text-primary font-black uppercase tracking-widest">Active Monitoring</span>
