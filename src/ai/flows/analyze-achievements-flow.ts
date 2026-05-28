@@ -68,7 +68,13 @@ const analyzeAchievementsFlow = ai.defineFlow(
     outputSchema: AnalyzeAchievementsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    try {
+      const { output } = await prompt(input);
+      return output || { newlyUnlocked: [] };
+    } catch (error: any) {
+      // Gracefully handle quota exhaustion or other AI errors
+      console.warn('Achievement discovery skipped due to AI availability:', error.message);
+      return { newlyUnlocked: [] };
+    }
   }
 );

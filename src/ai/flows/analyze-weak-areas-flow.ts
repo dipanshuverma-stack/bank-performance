@@ -64,7 +64,16 @@ const analyzeWeakAreasFlow = ai.defineFlow(
     outputSchema: AnalyzeWeakAreasOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    try {
+      const { output } = await prompt(input);
+      return output!;
+    } catch (error: any) {
+      console.warn('Weak area analysis skipped due to AI availability:', error.message);
+      return {
+        weakSubTopics: [],
+        explanation: 'Deep AI analysis is currently unavailable. Please review your recent mock logs for low-accuracy chapters.',
+        recommendations: ['Review topics with accuracy below 75% in your recent mocks.'],
+      };
+    }
   }
 );

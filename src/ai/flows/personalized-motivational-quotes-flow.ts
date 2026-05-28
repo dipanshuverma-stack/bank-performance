@@ -47,8 +47,16 @@ const generateMotivationalQuoteFlow = ai.defineFlow(
     outputSchema: GenerateMotivationalQuoteOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    try {
+      const { output } = await prompt(input);
+      return output!;
+    } catch (error: any) {
+      console.warn('Motivational quote generation skipped due to AI availability:', error.message);
+      return {
+        quote: "Dream is not that which you see while sleeping, it is something that does not let you sleep.",
+        author: "Dr. APJ Abdul Kalam"
+      };
+    }
   }
 );
 
