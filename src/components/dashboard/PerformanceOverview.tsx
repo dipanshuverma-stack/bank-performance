@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   AreaChart, 
   Area, 
@@ -14,8 +14,9 @@ import {
   Bar,
   Cell
 } from 'recharts';
-import { Target, TrendingUp, Zap, Calendar, BarChart3, LineChart, Activity } from "lucide-react";
+import { Target, TrendingUp, Zap, BarChart3, LineChart, Activity } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 const PERIOD_DATA = {
   daily: [
