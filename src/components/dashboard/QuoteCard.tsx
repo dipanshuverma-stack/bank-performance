@@ -30,7 +30,7 @@ export function QuoteCard() {
   }, []);
 
   return (
-    <Card className="bento-card border-none bg-gradient-to-br from-indigo-500 to-indigo-700 text-white">
+    <Card className="bento-card border-none bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/10">
       <CardContent className="p-6 h-full flex flex-col justify-between">
         <div className="flex items-center justify-between mb-2">
           <Quote className="w-8 h-8 opacity-40 rotate-180" />

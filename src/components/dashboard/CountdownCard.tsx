@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { UPCOMING_EXAMS } from "@/lib/mock-data";
-import { Timer, CalendarDays, Settings2, Plus, Trash2, X } from "lucide-react";
+import { Timer, CalendarDays, Settings2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,19 +81,19 @@ export function CountdownCard() {
   };
 
   return (
-    <Card className="bento-card bg-slate-950 dark:bg-slate-900 border-none shadow-2xl shadow-slate-300 dark:shadow-none group transition-all duration-500 overflow-visible">
+    <Card className="bento-card border-none shadow-2xl shadow-primary/5 group transition-all duration-500 overflow-visible bg-card">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/20 dark:bg-primary/10 p-2.5 rounded-2xl text-primary transition-all group-hover:scale-110">
+            <div className="bg-primary/10 p-2.5 rounded-2xl text-primary transition-all group-hover:scale-110">
               <Timer className="w-5 h-5" />
             </div>
-            <h3 className="font-headline text-lg font-bold tracking-tight text-white">Exam Countdown</h3>
+            <h3 className="font-headline text-lg font-bold tracking-tight text-foreground">Exam Countdown</h3>
           </div>
           
           <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-xl transition-all">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all">
                 <Settings2 className="w-4 h-4" />
               </Button>
             </DialogTrigger>
@@ -170,18 +170,18 @@ export function CountdownCard() {
         <div className="space-y-7">
           {examCountdowns.length > 0 ? (
             examCountdowns.map((exam, i) => (
-              <div key={i} className="flex items-center justify-between border-b border-white/10 pb-5 last:border-0 last:pb-0 group/item">
+              <div key={i} className="flex items-center justify-between border-b border-border/50 pb-5 last:border-0 last:pb-0 group/item">
                 <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center text-2xl group-hover/item:scale-110 transition-transform border border-white/5">
+                  <div className="w-11 h-11 rounded-2xl bg-accent flex items-center justify-center text-2xl group-hover/item:scale-110 transition-transform border border-border/20">
                     {exam.icon}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-white group-hover/item:text-primary transition-colors">{exam.name}</span>
-                    <span className="text-[9px] text-slate-400 uppercase tracking-[0.2em] font-black">Target Milestone</span>
+                    <span className="text-sm font-bold text-foreground group-hover/item:text-primary transition-colors">{exam.name}</span>
+                    <span className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black">Target Milestone</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-4xl font-headline font-bold tracking-tighter leading-none text-white tabular-nums">
+                  <span className="text-4xl font-headline font-bold tracking-tighter leading-none text-foreground tabular-nums">
                     {exam.days !== undefined && exam.days > 0 ? `${exam.days}d` : exam.days === 0 ? 'Now' : 'Done'}
                   </span>
                   <span className="text-[9px] text-primary uppercase tracking-[0.2em] font-black mt-1.5 opacity-80">
@@ -191,7 +191,7 @@ export function CountdownCard() {
               </div>
             ))
           ) : (
-            <div className="py-12 text-center text-white/30 text-sm font-bold flex flex-col items-center gap-3">
+            <div className="py-12 text-center text-muted-foreground/30 text-sm font-bold flex flex-col items-center gap-3">
               <CalendarDays className="w-8 h-8 opacity-20" />
               <p className="uppercase tracking-widest text-[10px]">No active exam targets</p>
             </div>
