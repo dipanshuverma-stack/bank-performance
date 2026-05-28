@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -24,15 +23,20 @@ import {
   Plus, 
   Activity, 
   Trophy, 
-  Target, 
   Trash2,
   Award,
   CheckCircle2,
   XCircle,
   BarChart3,
-  AlertTriangle
+  AlertTriangle,
+  X,
+  ChevronDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ADDA247_SYLLABUS } from "@/lib/syllabus";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface MockLog {
   id: string;
@@ -46,7 +50,7 @@ interface MockLog {
   correct: number;
   wrong: number;
   accuracy: number;
-  weakTopics?: string;
+  weakTopics: string[];
   date: string;
 }
 
@@ -70,7 +74,7 @@ export function MockTestConsole() {
   const [englishCorrect, setEnglishCorrect] = useState("");
   const [correct, setCorrect] = useState("");
   const [wrong, setWrong] = useState("");
-  const [weakTopics, setWeakTopics] = useState("");
+  const [selectedWeakTopics, setSelectedWeakTopics] = useState<string[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("elite-mock-logs");
@@ -110,7 +114,7 @@ export function MockTestConsole() {
       correct: correctNum,
       wrong: wrongNum,
       accuracy: Math.round(accuracyValue * 10) / 10,
-      weakTopics: weakTopics,
+      weakTopics: selectedWeakTopics,
       date: new Date().toLocaleDateString(),
     };
 
@@ -120,13 +124,19 @@ export function MockTestConsole() {
     // Reset Form
     setMockName(""); setScore(""); setQuantsCorrect(""); 
     setReasoningCorrect(""); setEnglishCorrect(""); setCorrect(""); setWrong("");
-    setWeakTopics("");
+    setSelectedWeakTopics([]);
     
     toast({ title: "Performance Archived", description: `${examType} ${mockName} metrics saved.` });
   };
 
   const removeMock = (id: string) => {
     setMocks(mocks.filter(m => m.id !== id));
+  };
+
+  const toggleTopic = (topic: string) => {
+    setSelectedWeakTopics(prev => 
+      prev.includes(topic) ? prev.filter(t => t !== topic) : [...prev, topic]
+    );
   };
 
   const avgAccuracy = mocks.length > 0 
@@ -183,6 +193,7 @@ export function MockTestConsole() {
                         <Input placeholder="e.g. Mock 1" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-2xl h-11 bg-accent/30 font-bold text-xs" />
                       </div>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Obtained Score</label>
@@ -193,6 +204,7 @@ export function MockTestConsole() {
                         <Input type="number" value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className="rounded-2xl h-11 bg-accent/30 font-bold text-sm" />
                       </div>
                     </div>
+
                     <div className="space-y-3">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Correct Answers Breakdown</label>
                       <div className="grid grid-cols-3 gap-3">
@@ -201,6 +213,7 @@ export function MockTestConsole() {
                         <Input type="number" placeholder="English" value={englishCorrect} onChange={(e) => setEnglishCorrect(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
                       </div>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-success ml-1 flex items-center gap-1"><CheckCircle2 className="w-2.5 h-2.5" /> Total Correct</label>
@@ -211,10 +224,55 @@ export function MockTestConsole() {
                         <Input type="number" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-2xl h-11 bg-destructive/5 border-destructive/20 font-bold text-sm" />
                       </div>
                     </div>
+
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-yellow-500 ml-1 flex items-center gap-1"><AlertTriangle className="w-2.5 h-2.5" /> Identified Weak Topics</label>
-                      <Input placeholder="e.g. Caselet DI, Syllogism Possibility" value={weakTopics} onChange={(e) => setWeakTopics(e.target.value)} className="rounded-2xl h-11 bg-yellow-500/5 border-yellow-500/20 font-bold text-sm" />
+                      <label className="text-[10px] font-black uppercase tracking-widest text-yellow-500 ml-1 flex items-center gap-1"><AlertTriangle className="w-2.5 h-2.5" /> Identify Weak Sub-topics</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between rounded-2xl h-11 bg-yellow-500/5 border-yellow-500/20 font-bold text-xs">
+                            {selectedWeakTopics.length > 0 ? `${selectedWeakTopics.length} Topics Selected` : "Select Areas of Struggle"}
+                            <ChevronDown className="w-4 h-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[450px] p-0 rounded-2xl shadow-2xl border-none" align="start">
+                          <ScrollArea className="h-[400px] p-4">
+                            <div className="space-y-4">
+                              {ADDA247_SYLLABUS.map((subject) => (
+                                <div key={subject.name} className="space-y-2">
+                                  <h4 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                    <div className="w-1 h-3 bg-primary rounded-full" />
+                                    {subject.name}
+                                  </h4>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {subject.chapters.flatMap(ch => ch.subtopics).map((sub) => (
+                                      <div key={sub.id} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                                        <Checkbox 
+                                          id={`weak-${sub.id}`} 
+                                          checked={selectedWeakTopics.includes(sub.name)}
+                                          onCheckedChange={() => toggleTopic(sub.name)}
+                                        />
+                                        <label htmlFor={`weak-${sub.id}`} className="text-[11px] font-semibold leading-none cursor-pointer">{sub.name}</label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </PopoverContent>
+                      </Popover>
+                      {selectedWeakTopics.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedWeakTopics.map(topic => (
+                            <Badge key={topic} variant="secondary" className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[9px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              {topic}
+                              <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => toggleTopic(topic)} />
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
+
                     <Button onClick={addMock} className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20">Archive Performance</Button>
                   </div>
                 </DialogContent>
@@ -242,10 +300,14 @@ export function MockTestConsole() {
                           <span className="font-bold text-foreground">{mock.name}</span>
                         </div>
                         <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{mock.date} • {mock.score}/{mock.totalMarks} Marks</div>
-                        {mock.weakTopics && (
-                          <div className="mt-2 flex items-center gap-1.5 text-[9px] text-yellow-600 dark:text-yellow-400 font-bold uppercase tracking-tighter">
-                            <AlertTriangle className="w-3 h-3" />
-                            Weak Areas: {mock.weakTopics}
+                        {mock.weakTopics && mock.weakTopics.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {mock.weakTopics.map(topic => (
+                              <Badge key={topic} variant="outline" className="text-[8px] text-yellow-600 border-yellow-200 dark:text-yellow-400 dark:border-yellow-900 font-bold uppercase tracking-tighter">
+                                <AlertTriangle className="w-2.5 h-2.5 mr-1" />
+                                {topic}
+                              </Badge>
+                            ))}
                           </div>
                         )}
                       </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -87,26 +86,28 @@ export function AdaptiveToDo() {
   };
 
   const analyzeWeakAreasFromLogs = () => {
-    // 1. Get data from accuracy console logs
+    // 1. Get data from logs
     const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
     const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
 
-    // 2. Aggregate manual weak areas from mocks
+    // 2. Aggregate manual weak areas from mocks (now an array)
     const manualWeakTopics = mockLogs
-      .filter((m: any) => m.weakTopics)
-      .map((m: any) => m.weakTopics.split(','))
-      .flat()
-      .map((s: string) => s.trim());
+      .filter((m: any) => m.weakTopics && Array.isArray(m.weakTopics))
+      .flatMap((m: any) => m.weakTopics);
 
-    // 3. Simple heuristic: any accuracy log or mock area that indicates struggle
-    // In a real app, we'd calculate accuracy % over time per topic.
-    // For now, we'll just return a representative list.
-    const detectedWeakAreas = manualWeakTopics.map((topic: string) => ({
+    // 3. Aggregate sub-75% accuracy topics from manual Practice sessions
+    const practiceWeakTopics = accuracyLogs
+      .map((log: any) => log.topic);
+
+    // 4. Combine and deduplicate
+    const uniqueWeakTopics = Array.from(new Set([...manualWeakTopics, ...practiceWeakTopics]));
+
+    const detectedWeakAreas = uniqueWeakTopics.map((topic: string) => ({
       subject: 'Exam Priority',
       chapter: topic
     }));
 
-    // Add some fallbacks if logs are empty
+    // Fallbacks
     if (detectedWeakAreas.length === 0) {
       return [
         { subject: 'Quants', chapter: 'Data Interpretation (Caselets)' },
@@ -114,7 +115,7 @@ export function AdaptiveToDo() {
       ];
     }
 
-    return detectedWeakAreas.slice(0, 3);
+    return detectedWeakAreas.slice(0, 5);
   };
 
   const getAiSuggestion = async () => {
@@ -138,6 +139,7 @@ export function AdaptiveToDo() {
           reason: item.reason
         }));
         
+        // Strategy: AI Suggestions replace previous AI suggestions but keep manual tasks
         setTasks(prev => [...newAiTasks, ...prev.filter(t => !t.isAiSuggested)]);
         toast({ 
           title: "Weak Subject Strategy Active", 
@@ -148,7 +150,7 @@ export function AdaptiveToDo() {
       toast({ 
         variant: "destructive", 
         title: "AI Capacity Reached", 
-        description: "Try manual entry or check back in a minute." 
+        description: "The strategy engine is busy. Try again in a minute." 
       });
     } finally {
       setLoading(false);
@@ -228,7 +230,7 @@ export function AdaptiveToDo() {
                   {task.reason && <span className="text-primary italic normal-case truncate max-w-[150px]"> — {task.reason}</span>}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => removeTask(task.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 rounded-lg shrink-0"><Trash2 className="w-4 h-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => removeTask(id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 rounded-lg shrink-0"><Trash2 className="w-4 h-4" /></Button>
             </div>
           ))
         ) : (
