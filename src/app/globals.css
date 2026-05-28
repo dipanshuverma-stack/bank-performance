@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,7 +24,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 239 84% 67%;
-    --radius: 1rem;
+    --radius: 1.25rem;
   }
 
   .dark {
@@ -54,19 +55,15 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground selection:bg-primary/20 antialiased;
+    @apply bg-background text-foreground selection:bg-primary/20 antialiased font-body;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline tracking-tight text-foreground;
+    @apply font-headline tracking-tighter text-foreground;
   }
-}
-
-.glass {
-  @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl dark:bg-black/40 dark:border-white/10;
 }
 
 .bento-card {
-  @apply relative overflow-hidden rounded-[2rem] border bg-card transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/20;
+  @apply relative overflow-hidden rounded-[2.5rem] border bg-card transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/20;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -78,10 +75,14 @@
 }
 
 .page-transition {
-  animation: fadeIn 0.5s ease-out;
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.neon-glow {
+  box-shadow: 0 0 15px -5px hsl(var(--primary));
 }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -10,7 +11,9 @@ import {
   Activity,
   ChevronRight,
   Trophy,
-  BrainCircuit
+  BrainCircuit,
+  AlertOctagon,
+  UserCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,6 +26,7 @@ export function Sidebar() {
     { name: "Mock Analytics", href: "/mocks", icon: Trophy },
     { name: "Accuracy Console", href: "/accuracy", icon: TimerIcon },
     { name: "Syllabus Roadmap", href: "/syllabus", icon: BookOpen },
+    { name: "Mistake Journal", href: "/mistakes", icon: AlertOctagon },
   ];
 
   return (
@@ -80,16 +84,16 @@ export function Sidebar() {
            </div>
         </div>
 
-        <div className="flex items-center justify-between bg-accent/30 p-3 rounded-2xl border border-border/40">
+        <Link href="/profile" className="flex items-center justify-between bg-accent/30 p-3 rounded-2xl border border-border/40 hover:bg-accent transition-all group/profile">
            <div className="flex items-center gap-3 overflow-hidden">
-             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground flex items-center justify-center font-black text-lg shadow-lg shrink-0">D</div>
+             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground flex items-center justify-center font-black text-lg shadow-lg shrink-0 group-hover/profile:scale-105 transition-transform">D</div>
              <div className="hidden lg:block overflow-hidden">
-               <div className="text-sm font-bold truncate text-foreground">Dipanshu</div>
-               <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Standard Member</div>
+               <div className="text-sm font-bold truncate text-foreground">User Profile</div>
+               <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Manage Settings</div>
              </div>
            </div>
-           <Settings className="w-4 h-4 text-muted-foreground hidden lg:block hover:rotate-90 transition-transform cursor-pointer" />
-         </div>
+           <Settings className="w-4 h-4 text-muted-foreground hidden lg:block group-hover/profile:rotate-90 transition-transform" />
+         </Link>
       </div>
     </aside>
   );
