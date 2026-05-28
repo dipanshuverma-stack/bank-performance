@@ -23,7 +23,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 239 84% 67%;
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 
   .dark {
@@ -38,7 +38,7 @@
     --secondary: 222.2 47.4% 15.2%;
     --secondary-foreground: 210 40% 98%;
     --muted: 223 47% 15%;
-    --muted-foreground: 215 20% 95%; /* Significantly brighter for dark mode visibility */
+    --muted-foreground: 215 20% 95%;
     --accent: 216 34% 15%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 63% 45%;
@@ -54,7 +54,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground selection:bg-primary/20;
+    @apply bg-background text-foreground selection:bg-primary/20 antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tight text-foreground;
@@ -66,7 +66,7 @@
 }
 
 .bento-card {
-  @apply relative overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20;
+  @apply relative overflow-hidden rounded-[2rem] border bg-card transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/20;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -75,4 +75,13 @@
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.page-transition {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
