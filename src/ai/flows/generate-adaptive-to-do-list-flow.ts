@@ -86,7 +86,9 @@ const prompt = ai.definePrompt({
 Your goal is to recommend specific chapters and sub-topics from the Adda247 syllabus based on the user's identified weak areas, to optimize their study time.
 
 Here are the user's identified weak areas:
-Weak Areas: {{{JSON weakAreas}}}
+{{#each weakAreas}}
+- Subject: {{{this.subject}}}, Chapter: {{{this.chapter}}}{{#if this.subtopics}}, Subtopics: {{#each this.subtopics}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}}{{#if this.reason}}, Reason: {{{this.reason}}}{{/if}}
+{{/each}}
 
 {{#if studyGoals}}
 User's Study Goals: {{{studyGoals}}}
