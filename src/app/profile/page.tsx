@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Target, Clock, BookOpen, Save, ShieldCheck } from "lucide-react";
+import { User, Target, Clock, BookOpen, Save, ShieldCheck, BellRing, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
@@ -33,6 +33,25 @@ export default function ProfilePage() {
     toast({
       title: "Profile Synchronized",
       description: "AI study parameters have been updated based on your latest settings.",
+    });
+  };
+
+  const sendTestNotification = () => {
+    const saved = localStorage.getItem("elite-notifications") || "[]";
+    const notifications = JSON.parse(saved);
+    const newNotification = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: "System Diagnostic",
+      description: "Notification delivery system is operational. Precision tracking active.",
+      date: new Date().toLocaleDateString(),
+      type: 'reminder',
+      read: false
+    };
+    localStorage.setItem("elite-notifications", JSON.stringify([newNotification, ...notifications]));
+    window.dispatchEvent(new Event('elite-new-notification'));
+    toast({
+      title: "Diagnostic Alert Sent",
+      description: "Check the notification bell in the header.",
     });
   };
 
@@ -94,10 +113,28 @@ export default function ProfilePage() {
         </Card>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20">
-          <Save className="w-5 h-5 mr-3" /> Save Changes
-        </Button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <Card className="bento-card border-none bg-accent/5 overflow-hidden">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+               <div className="p-2 bg-success/10 rounded-xl text-success"><Activity className="w-5 h-5" /></div>
+               <CardTitle className="text-xl font-bold">System Diagnostics</CardTitle>
+            </div>
+            <CardDescription className="text-xs">Verify the operational status of your notification and alert system.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={sendTestNotification} variant="outline" className="w-full rounded-xl h-12 font-bold border-2 border-dashed">
+              <BellRing className="w-4 h-4 mr-2 text-primary" />
+              Trigger Test Notification
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <div className="flex flex-col justify-center gap-4">
+          <Button onClick={handleSave} className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 w-full">
+            <Save className="w-5 h-5 mr-3" /> Save All Changes
+          </Button>
+        </div>
       </div>
     </div>
   );
