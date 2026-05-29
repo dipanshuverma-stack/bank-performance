@@ -14,9 +14,10 @@ import {
   Bar,
   Cell
 } from 'recharts';
-import { Target, TrendingUp, BarChart3, LineChart } from "lucide-react";
+import { Target, TrendingUp, BarChart3, LineChart, Layers } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const EMPTY_CHART_DATA = Array.from({ length: 5 }, (_, i) => ({
   name: `P${i + 1}`,
@@ -28,6 +29,7 @@ const EMPTY_CHART_DATA = Array.from({ length: 5 }, (_, i) => ({
 export function PerformanceOverview() {
   const [mounted, setMounted] = useState(false);
   const [period, setPeriod] = useState("weekly");
+  const [stage, setStage] = useState<"Prelims" | "Mains">("Prelims");
   const [activeView, setActiveView] = useState<"performance" | "volume">("performance");
   
   const [stats, setStats] = useState({
@@ -35,11 +37,6 @@ export function PerformanceOverview() {
     avgAccuracy: 0,
     testsTaken: 0,
     growth: "0%",
-    totalCorrect: 0,
-    totalWrong: 0,
-    avgPracticeTime: "0:00",
-    quantsAccuracy: 0,
-    reasoningAccuracy: 0
   });
 
   const [chartData, setChartData] = useState(EMPTY_CHART_DATA);
@@ -47,34 +44,47 @@ export function PerformanceOverview() {
   useEffect(() => {
     setMounted(true);
     const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
-    const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
 
-    if (mockLogs.length > 0) {
-      const sumScore = mockLogs.reduce((acc: number, m: any) => acc + (m.score || 0), 0);
-      const sumAcc = mockLogs.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0);
+    // Filter by stage (Prelims vs Mains)
+    const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
+
+    if (stageFiltered.length > 0) {
+      const sumScore = stageFiltered.reduce((acc: number, m: any) => acc + (m.score || 0), 0);
+      const sumAcc = stageFiltered.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0);
       
-      const avgScore = (sumScore / mockLogs.length).toFixed(1);
-      const avgAccuracy = (sumAcc / mockLogs.length).toFixed(1);
+      const avgScore = (sumScore / stageFiltered.length).toFixed(1);
+      const avgAccuracy = (sumAcc / stageFiltered.length).toFixed(1);
 
-      const mappedChartData = mockLogs.slice(-7).reverse().map((m: any) => ({
+      // Simple time-based mapping for chart
+      const mappedChartData = stageFiltered.slice(-7).reverse().map((m: any) => ({
         name: m.date.split('/')[0] + '/' + m.date.split('/')[1],
         accuracy: m.accuracy,
         score: m.score,
         tests: 1
       }));
 
-      setStats(prev => ({
-        ...prev,
+      setStats({
         avgScore: parseFloat(avgScore),
         avgAccuracy: parseFloat(avgAccuracy),
-        testsTaken: mockLogs.length
-      }));
+        testsTaken: stageFiltered.length,
+        growth: "Active"
+      });
 
       if (mappedChartData.length > 0) {
         setChartData(mappedChartData);
+      } else {
+        setChartData(EMPTY_CHART_DATA);
       }
+    } else {
+      setStats({
+        avgScore: 0,
+        avgAccuracy: 0,
+        testsTaken: 0,
+        growth: "No Data"
+      });
+      setChartData(EMPTY_CHART_DATA);
     }
-  }, [period]);
+  }, [period, stage]);
 
   const MemoizedAreaChart = useMemo(() => (
     <ResponsiveContainer width="100%" height="100%">
@@ -135,52 +145,101 @@ export function PerformanceOverview() {
 
   return (
     <Card className="bento-card col-span-1 lg:col-span-2 overflow-hidden bg-card/50">
-      <CardHeader className="flex flex-col md:flex-row md:items-center justify-between bg-accent/5 py-4 px-6 gap-4 border-b">
+      <CardHeader className="flex flex-col md:flex-row md:items-center justify-between bg-accent/5 py-6 px-6 gap-6 border-b">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5 text-primary" />
             <CardTitle className="text-xl font-headline font-bold">Performance Intel</CardTitle>
           </div>
-          <div className="flex items-center gap-2 text-success font-black text-[10px] uppercase tracking-widest ml-7">
-            <TrendingUp className="w-3.5 h-3.5" />
-            Operational Ready
+          <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest ml-7">
+            <Layers className="w-3.5 h-3.5" />
+            {stage} Analytics Mode
           </div>
         </div>
         
-        <Tabs defaultValue="weekly" className="w-full md:w-auto" onValueChange={setPeriod}>
-          <TabsList className="grid grid-cols-4 w-full h-9 bg-accent/20 rounded-xl p-1">
-            <TabsTrigger value="daily" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">D</TabsTrigger>
-            <TabsTrigger value="weekly" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">W</TabsTrigger>
-            <TabsTrigger value="15days" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">15D</TabsTrigger>
-            <TabsTrigger value="monthly" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">M</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+          {/* Stage Toggle */}
+          <Tabs value={stage} className="w-full md:w-auto" onValueChange={(val: any) => setStage(val)}>
+            <TabsList className="grid grid-cols-2 w-full md:w-[200px] h-10 bg-primary/10 rounded-xl p-1 border border-primary/20">
+              <TabsTrigger value="Prelims" className="text-[10px] font-black uppercase tracking-widest rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Prelims</TabsTrigger>
+              <TabsTrigger value="Mains" className="text-[10px] font-black uppercase tracking-widest rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Mains</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {/* Period Toggle */}
+          <Tabs value={period} className="hidden lg:block" onValueChange={setPeriod}>
+            <TabsList className="grid grid-cols-4 w-[160px] h-9 bg-accent/20 rounded-xl p-1">
+              <TabsTrigger value="daily" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">D</TabsTrigger>
+              <TabsTrigger value="weekly" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">W</TabsTrigger>
+              <TabsTrigger value="15days" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">15D</TabsTrigger>
+              <TabsTrigger value="monthly" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">M</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </CardHeader>
       
-      <CardContent className="p-6">
-        <div className="swipe-row md:grid md:grid-cols-3 gap-4 mb-6 scrollbar-hide">
+      <CardContent className="p-8">
+        <div className="swipe-row md:grid md:grid-cols-3 gap-6 mb-8 scrollbar-hide">
           {[
-            { label: "Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground" },
-            { label: "Avg Score", value: stats.avgScore, color: "text-primary" },
-            { label: "Mocks", value: stats.testsTaken, color: "text-success" },
+            { label: "Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground", icon: TrendingUp },
+            { label: "Avg Score", value: stats.avgScore, color: "text-primary", icon: Target },
+            { label: "Mocks Logged", value: stats.testsTaken, color: "text-emerald-500", icon: BarChart3 },
           ].map((stat, i) => (
-            <div key={i} className="swipe-item w-[70%] md:w-full flex flex-col p-4 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40">
-              <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-1">{stat.label}</span>
-              <span className={`text-2xl md:text-3xl font-headline font-bold ${stat.color} tabular-nums tracking-tighter`}>{stat.value}</span>
+            <div key={i} className="swipe-item w-[75%] md:w-full flex flex-col p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 group hover:border-primary/20 transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">{stat.label}</span>
+                <stat.icon className="w-4 h-4 text-muted-foreground/30" />
+              </div>
+              <span className={cn("text-3xl md:text-4xl font-headline font-black tabular-nums tracking-tighter", stat.color)}>
+                {stat.value}
+              </span>
+              <div className="mt-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+                {stage} Phase Metrics
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="h-[300px] w-full mt-2 bg-slate-50/20 dark:bg-white/[0.01] rounded-3xl p-4 border border-border/40">
-          <div className="flex items-center justify-end gap-2 mb-4">
-             <Button variant="ghost" size="sm" onClick={() => setActiveView("performance")} className={`h-7 px-3 text-[9px] font-black uppercase tracking-widest rounded-lg ${activeView === 'performance' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>
-               <LineChart className="w-3 h-3 mr-1.5" /> Flux
-             </Button>
-             <Button variant="ghost" size="sm" onClick={() => setActiveView("volume")} className={`h-7 px-3 text-[9px] font-black uppercase tracking-widest rounded-lg ${activeView === 'volume' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>
-               <BarChart3 className="w-3 h-3 mr-1.5" /> Vol
-             </Button>
+        <div className="h-[350px] w-full mt-4 bg-slate-50/20 dark:bg-white/[0.01] rounded-[2.5rem] p-6 border border-border/40 relative overflow-hidden group">
+          <div className="flex items-center justify-between mb-6">
+             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Trajectory Analysis</div>
+             <div className="flex items-center gap-2">
+               <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setActiveView("performance")} 
+                className={cn(
+                  "h-8 px-4 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all",
+                  activeView === 'performance' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-accent'
+                )}
+               >
+                 <LineChart className="w-3.5 h-3.5 mr-2" /> Precision
+               </Button>
+               <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setActiveView("volume")} 
+                className={cn(
+                  "h-8 px-4 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all",
+                  activeView === 'volume' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-accent'
+                )}
+               >
+                 <BarChart3 className="w-3.5 h-3.5 mr-2" /> Frequency
+               </Button>
+             </div>
           </div>
-          {activeView === "performance" ? MemoizedAreaChart : MemoizedBarChart}
+          
+          <div className="w-full h-[240px]">
+            {activeView === "performance" ? MemoizedAreaChart : MemoizedBarChart}
+          </div>
+
+          {stats.testsTaken === 0 && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm z-10 p-8 text-center">
+              <Layers className="w-12 h-12 text-muted-foreground/20 mb-4" />
+              <div className="text-sm font-bold text-foreground mb-1">No {stage} Data Found</div>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Archive a {stage} mock to initiate tracking</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
