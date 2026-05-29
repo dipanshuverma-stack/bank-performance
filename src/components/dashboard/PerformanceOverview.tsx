@@ -44,7 +44,17 @@ export function PerformanceOverview() {
 
   useEffect(() => {
     setMounted(true);
+    const savedStage = localStorage.getItem("elite-active-stage") as "Prelims" | "Mains";
+    if (savedStage) {
+      setStage(savedStage);
+    }
   }, []);
+
+  const handleStageChange = (val: "Prelims" | "Mains") => {
+    setStage(val);
+    localStorage.setItem("elite-active-stage", val);
+    window.dispatchEvent(new Event('elite-stage-changed'));
+  };
 
   useEffect(() => {
     if (!mounted) return;
@@ -53,7 +63,10 @@ export function PerformanceOverview() {
       const mockLogsRaw = localStorage.getItem("elite-mock-logs");
       const mockLogs = mockLogsRaw ? JSON.parse(mockLogsRaw) : [];
 
-      const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
+      // Re-read current stage from state which is updated by the tab
+      const currentStage = localStorage.getItem("elite-active-stage") as "Prelims" | "Mains" || stage;
+
+      const stageFiltered = mockLogs.filter((m: any) => m.stage === currentStage);
 
       if (stageFiltered.length > 0) {
         const sumScore = stageFiltered.reduce((acc: number, m: any) => acc + (m.score || 0), 0);
@@ -90,7 +103,11 @@ export function PerformanceOverview() {
 
     refreshData();
     window.addEventListener('storage', refreshData);
-    return () => window.removeEventListener('storage', refreshData);
+    window.addEventListener('elite-stage-changed', refreshData);
+    return () => {
+      window.removeEventListener('storage', refreshData);
+      window.removeEventListener('elite-stage-changed', refreshData);
+    };
   }, [mounted, stage, period]);
 
   const MemoizedAreaChart = useMemo(() => (
@@ -169,7 +186,7 @@ export function PerformanceOverview() {
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-            <Tabs value={stage} onValueChange={(val: any) => setStage(val)} className="w-full sm:w-[240px]">
+            <Tabs value={stage} onValueChange={(val: any) => handleStageChange(val)} className="w-full sm:w-[240px]">
               <TabsList className="grid grid-cols-2 w-full h-11 bg-primary/10 rounded-2xl p-1 border border-primary/20">
                 <TabsTrigger value="Prelims" className="text-[10px] font-black uppercase tracking-widest rounded-xl transition-all">
                   Prelims

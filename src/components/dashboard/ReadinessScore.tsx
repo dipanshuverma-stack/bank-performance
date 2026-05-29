@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,30 +9,46 @@ import { cn } from "@/lib/utils";
 export function ReadinessScore({ className }: { className?: string }) {
   const [score, setScore] = useState(0);
   const [status, setStatus] = useState("Analyzing");
+  const [activeStage, setActiveStage] = useState<"Prelims" | "Mains">("Prelims");
 
   useEffect(() => {
-    const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
-    const syllabus = JSON.parse(localStorage.getItem("elite-syllabus-v2") || "[]");
-    
-    let totalAcc = mockLogs.length > 0 ? mockLogs.reduce((acc: number, m: any) => acc + m.accuracy, 0) / mockLogs.length : 0;
-    
-    let totalSub = 0;
-    let doneSub = 0;
-    syllabus.forEach((s: any) => s.chapters.forEach((c: any) => c.subtopics.forEach((st: any) => {
-      totalSub++;
-      if (st.completed) doneSub++;
-    })));
-    let mastery = totalSub > 0 ? (doneSub / totalSub) * 100 : 0;
-    
-    let consistency = Math.min(mockLogs.length * 5, 20);
+    const calculateReadiness = () => {
+      const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+      const syllabus = JSON.parse(localStorage.getItem("elite-syllabus-v2") || "[]");
+      const savedStage = localStorage.getItem("elite-active-stage") as "Prelims" | "Mains" || "Prelims";
+      
+      setActiveStage(savedStage);
 
-    const finalScore = Math.round((totalAcc * 0.4) + (mastery * 0.4) + consistency);
-    setScore(finalScore);
+      // Filter logs by active stage for accuracy component
+      const stageLogs = mockLogs.filter((m: any) => m.stage === savedStage);
+      let totalAcc = stageLogs.length > 0 ? stageLogs.reduce((acc: number, m: any) => acc + m.accuracy, 0) / stageLogs.length : 0;
+      
+      let totalSub = 0;
+      let doneSub = 0;
+      syllabus.forEach((s: any) => s.chapters.forEach((c: any) => c.subtopics.forEach((st: any) => {
+        totalSub++;
+        if (st.completed) doneSub++;
+      })));
+      let mastery = totalSub > 0 ? (doneSub / totalSub) * 100 : 0;
+      
+      let consistency = Math.min(stageLogs.length * 5, 20);
 
-    if (finalScore < 40) setStatus("Beginner");
-    else if (finalScore < 70) setStatus("Improving");
-    else if (finalScore < 85) setStatus("Competitive");
-    else setStatus("Exam Ready");
+      const finalScore = Math.round((totalAcc * 0.4) + (mastery * 0.4) + consistency);
+      setScore(finalScore);
+
+      if (finalScore < 40) setStatus("Beginner");
+      else if (finalScore < 70) setStatus("Improving");
+      else if (finalScore < 85) setStatus("Competitive");
+      else setStatus("Exam Ready");
+    };
+
+    calculateReadiness();
+    window.addEventListener('storage', calculateReadiness);
+    window.addEventListener('elite-stage-changed', calculateReadiness);
+    return () => {
+      window.removeEventListener('storage', calculateReadiness);
+      window.removeEventListener('elite-stage-changed', calculateReadiness);
+    };
   }, []);
 
   return (
@@ -46,7 +63,7 @@ export function ReadinessScore({ className }: { className?: string }) {
             "text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border shadow-sm",
             score > 70 ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-orange-500/10 text-orange-500 border-orange-500/20"
           )}>
-            {status}
+            {activeStage}: {status}
           </div>
         </div>
       </CardHeader>
@@ -79,7 +96,7 @@ export function ReadinessScore({ className }: { className?: string }) {
           
           <div className="mt-8 flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-accent/30 px-4 py-1.5 rounded-full border border-border/50">
             <Zap className="w-3.5 h-3.5 text-success animate-pulse" />
-            Live Strategy Capacity
+            {activeStage} Protocol Active
           </div>
         </div>
         
