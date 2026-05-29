@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
   Play, Pause, RotateCcw, Save, Trash2, Plus, Target, BookOpen, Timer as TimerIcon
 } from "lucide-react";
