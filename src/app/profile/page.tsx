@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,17 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  User, Target, Save, ShieldCheck, History, Trash2, 
-  FileJson, Brain, Database, RefreshCcw, LogIn, LogOut, Cloud
+  User, Save, History, FileJson, Database, LogOut, Cloud, ShieldCheck
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { logAuditAction, type AuditLog } from "@/lib/audit-logger";
-import { useUser, useAuth, useFirestore } from "@/firebase";
+import { useUser, useAuth, useFirestore, useCollection, useDoc } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, query, orderBy, limit } from "firebase/firestore";
+import { useMemoFirebase } from "@/firebase/use-memo-firebase";
 
 export default function ProfilePage() {
   const { toast } = useToast();
@@ -24,7 +24,6 @@ export default function ProfilePage() {
   const auth = useAuth();
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [storageSize, setStorageSize] = useState("0 KB");
   const [profile, setProfile] = useState({
     name: "Dipanshu",
@@ -36,6 +35,27 @@ export default function ProfilePage() {
     strongSubjects: "Syllogism, English Grammar",
   });
 
+  // Cloud Data Integration
+  const userRef = useMemoFirebase(() => user ? doc(db, 'users', user.uid) : null, [db, user]);
+  const { data: cloudProfile } = useDoc(userRef);
+
+  const auditQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(db, 'users', user.uid, 'auditLogs'), orderBy('serverTimestamp', 'desc'), limit(50));
+  }, [db, user]);
+  const { data: cloudAuditLogs } = useCollection<AuditLog>(auditQuery);
+
+  const localAuditLogs = useMemo(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
+    } catch {
+      return [];
+    }
+  }, [mounted]);
+
+  const displayLogs = user ? cloudAuditLogs : localAuditLogs;
+
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("elite-user-profile");
@@ -43,30 +63,27 @@ export default function ProfilePage() {
       try { setProfile(JSON.parse(saved)); } catch (e) {}
     }
     
-    const loadLogs = () => {
-      const logs = localStorage.getItem("elite-audit-logs");
-      if (logs) {
-        try { setAuditLogs(JSON.parse(logs)); } catch (e) {}
+    // Sync local storage size
+    let total = 0;
+    for (let x in localStorage) {
+      if (localStorage.hasOwnProperty(x)) {
+        total += (localStorage[x].length + x.length) * 2;
       }
-      
-      let total = 0;
-      for (let x in localStorage) {
-        if (localStorage.hasOwnProperty(x)) {
-          total += (localStorage[x].length + x.length) * 2;
-        }
-      }
-      setStorageSize((total / 1024).toFixed(2) + " KB");
-    };
-
-    loadLogs();
-    window.addEventListener('elite-audit-updated', loadLogs);
-    return () => window.removeEventListener('elite-audit-updated', loadLogs);
+    }
+    setStorageSize((total / 1024).toFixed(2) + " KB");
   }, []);
+
+  // Update local profile when cloud profile changes
+  useEffect(() => {
+    if (cloudProfile?.profile) {
+      setProfile(cloudProfile.profile);
+      localStorage.setItem("elite-user-profile", JSON.stringify(cloudProfile.profile));
+    }
+  }, [cloudProfile]);
 
   const handleSave = () => {
     localStorage.setItem("elite-user-profile", JSON.stringify(profile));
     
-    // Sync to Firestore if logged in
     if (user && db) {
       const userRef = doc(db, 'users', user.uid);
       setDoc(userRef, { profile, lastUpdated: new Date() }, { merge: true });
@@ -105,7 +122,7 @@ export default function ProfilePage() {
       mistakes: JSON.parse(localStorage.getItem("elite-mistakes") || "[]"),
       accuracyLogs: JSON.parse(localStorage.getItem("accuracy-logs") || "[]"),
       syllabus: JSON.parse(localStorage.getItem("elite-syllabus-v2") || "[]"),
-      auditLogs,
+      auditLogs: displayLogs,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -225,9 +242,9 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[280px]">
-              {auditLogs.length > 0 ? (
+              {displayLogs.length > 0 ? (
                 <div className="divide-y divide-white/5">
-                  {auditLogs.map((log) => (
+                  {displayLogs.map((log) => (
                     <div key={log.id} className="p-5 hover:bg-white/[0.02] transition-colors">
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <div className="flex items-center gap-3">
@@ -255,3 +272,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+import { useMemo } from "react";
