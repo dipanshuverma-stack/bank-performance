@@ -16,8 +16,7 @@ export function QuickActions() {
     { name: "Update Syllabus", href: "/syllabus", icon: Target, color: "text-emerald-500 bg-emerald-500/10" },
   ];
 
-  // Using simple touch handling to avoid 300ms delay and hold-triggers
-  const handleToggle = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsOpen(!isOpen);
   };
@@ -50,7 +49,7 @@ export function QuickActions() {
 
       {/* Primary Toggle Floating Action Button */}
       <Button
-        onPointerDown={handleToggle}
+        onClick={handleToggle}
         size="icon"
         className={cn(
           "w-14 h-14 rounded-full shadow-2xl bg-primary text-primary-foreground transition-all duration-300 z-[101] shadow-primary/30",
@@ -64,7 +63,7 @@ export function QuickActions() {
       {isOpen && (
         <div
           className="fixed inset-0 z-[-1] bg-black/40 backdrop-blur-[2px]"
-          onPointerDown={() => setIsOpen(false)}
+          onClick={() => setIsOpen(false)}
         />
       )}
     </div>
