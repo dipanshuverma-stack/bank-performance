@@ -49,13 +49,14 @@ export default function ProfilePage() {
     };
     localStorage.setItem("elite-notifications", JSON.stringify([newNotification, ...notifications]));
     
-    // Trigger internal app sync
+    // Trigger internal app sync for the current window
     window.dispatchEvent(new Event('elite-new-notification'));
     
-    // Show visual toast
+    // Show visual toast immediately
     toast({
       title: "Diagnostic Alert Sent",
-      description: "Check the notification bell in the header.",
+      description: "Check the notification bell in the top header.",
+      variant: "default",
     });
   };
 
@@ -127,15 +128,15 @@ export default function ProfilePage() {
             <CardDescription className="text-xs">Verify the operational status of your notification and alert system.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={sendTestNotification} variant="outline" className="w-full rounded-xl h-12 font-bold border-2 border-dashed">
-              <BellRing className="w-4 h-4 mr-2 text-primary" />
+            <Button onClick={sendTestNotification} variant="outline" className="w-full rounded-xl h-12 font-bold border-2 border-dashed group hover:bg-primary/5 transition-all">
+              <BellRing className="w-4 h-4 mr-2 text-primary group-hover:animate-bounce" />
               Trigger Test Notification
             </Button>
           </CardContent>
         </Card>
         
         <div className="flex flex-col justify-center gap-4">
-          <Button onClick={handleSave} className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 w-full">
+          <Button onClick={handleSave} className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 w-full transition-all hover:scale-[1.02] active:scale-[0.98]">
             <Save className="w-5 h-5 mr-3" /> Save All Changes
           </Button>
         </div>

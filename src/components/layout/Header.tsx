@@ -23,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 interface Notification {
   id: string;
@@ -102,15 +103,23 @@ export function Header() {
         <Button 
           variant="outline" 
           size="icon" 
-          className={`rounded-2xl relative border border-border/60 hover:bg-accent transition-all group ${isMobile ? 'h-10 w-10' : 'h-12 w-12'}`}
+          className={cn(
+            "rounded-2xl relative border border-border/60 hover:bg-accent transition-all group",
+            isMobile ? 'h-10 w-10' : 'h-12 w-12',
+            unreadCount > 0 && "neon-glow ring-2 ring-primary/20"
+          )}
         >
-          <Bell className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-foreground group-hover:rotate-12 transition-transform`} />
+          <Bell className={cn(
+            isMobile ? 'w-4 h-4' : 'w-5 h-5',
+            "text-foreground group-hover:rotate-12 transition-transform",
+            unreadCount > 0 && "animate-pulse text-primary"
+          )} />
           {unreadCount > 0 && (
-            <span className="absolute top-2 right-2 w-3 h-3 bg-destructive rounded-full border-2 border-background shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse" />
+            <span className="absolute top-2 right-2 w-3 h-3 bg-destructive rounded-full border-2 border-background shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-bounce" />
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 rounded-3xl border-none shadow-2xl bg-card z-[100]" align="end">
+      <PopoverContent className="w-80 p-0 rounded-3xl border-none shadow-2xl bg-card z-[100] mt-2" align="end">
         <div className="p-4 border-b border-border/50 flex items-center justify-between">
           <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Alerts</h4>
           {notifications.length > 0 && (
@@ -123,9 +132,15 @@ export function Header() {
           {notifications.length > 0 ? (
             <div className="divide-y divide-border/30">
               {notifications.map((n) => (
-                <div key={n.id} className="p-4 group relative hover:bg-accent/30 transition-colors">
+                <div key={n.id} className={cn(
+                  "p-4 group relative hover:bg-accent/30 transition-colors",
+                  !n.read && "bg-primary/5"
+                )}>
                   <div className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${n.type === 'achievement' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                    <div className={cn(
+                      "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
+                      n.type === 'achievement' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
+                    )}>
                       {n.type === 'achievement' ? <Trophy className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 pr-6">
