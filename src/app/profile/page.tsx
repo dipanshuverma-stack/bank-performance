@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
   const [storageSize, setStorageSize] = useState("0 KB");
+  const [localAuditLogs, setLocalAuditLogs] = useState<AuditLog[]>([]);
   const [profile, setProfile] = useState({
     name: "Dipanshu",
     targetExam: "SBI PO",
@@ -44,16 +45,17 @@ export default function ProfilePage() {
   }, [db, user]);
   const { data: cloudAuditLogs } = useCollection<AuditLog>(auditQuery);
 
-  const localAuditLogs = useMemo(() => {
-    if (!mounted || typeof window === 'undefined') return [];
+  const refreshLocalLogs = useCallback(() => {
+    if (typeof window === 'undefined') return;
     try {
-      return JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
-    } catch {
-      return [];
+      const saved = localStorage.getItem("elite-audit-logs");
+      if (saved) {
+        setLocalAuditLogs(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.warn("Failed to load local audit logs");
     }
-  }, [mounted]);
-
-  const displayLogs = user ? cloudAuditLogs : localAuditLogs;
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -61,6 +63,8 @@ export default function ProfilePage() {
     if (saved) {
       try { setProfile(JSON.parse(saved)); } catch (e) {}
     }
+    
+    refreshLocalLogs();
     
     // Sync local storage size
     let total = 0;
@@ -70,7 +74,11 @@ export default function ProfilePage() {
       }
     }
     setStorageSize((total / 1024).toFixed(2) + " KB");
-  }, []);
+
+    // Listen for tactical audit updates
+    window.addEventListener('elite-audit-updated', refreshLocalLogs);
+    return () => window.removeEventListener('elite-audit-updated', refreshLocalLogs);
+  }, [refreshLocalLogs]);
 
   // Update local profile when cloud profile changes
   useEffect(() => {
@@ -79,6 +87,8 @@ export default function ProfilePage() {
       localStorage.setItem("elite-user-profile", JSON.stringify(cloudProfile.profile));
     }
   }, [cloudProfile]);
+
+  const displayLogs = user ? cloudAuditLogs : localAuditLogs;
 
   const handleSave = () => {
     localStorage.setItem("elite-user-profile", JSON.stringify(profile));
