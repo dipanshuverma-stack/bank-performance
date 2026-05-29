@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Zap, Brain, TrendingUp, Clock, Target } from "lucide-react";
+import { Sparkles, Zap, Brain, TrendingUp, Clock, Target, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -16,38 +16,69 @@ interface Insight {
 
 export function AiInsightsPanel({ className }: { className?: string }) {
   const [insights, setInsights] = useState<Insight[]>([]);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
-    // Simulated elite strategy analysis based on user performance vectors
-    const newInsights: Insight[] = [
-      {
+    const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+    const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
+    const profile = JSON.parse(localStorage.getItem("elite-user-profile") || "{}");
+
+    const newInsights: Insight[] = [];
+
+    if (mockLogs.length > 0) {
+      setHasData(true);
+      // 1. Accuracy Trend Insight
+      const latestAcc = mockLogs[0].accuracy;
+      const prevAcc = mockLogs[1]?.accuracy || latestAcc;
+      const diff = latestAcc - prevAcc;
+      
+      newInsights.push({
         category: "Tactical",
-        message: "Reasoning-First Attempt Protocol",
-        metric: "+12.4% Score Boost",
+        message: diff >= 0 ? `${mockLogs[0].examType} Precision Peak` : "Accuracy Stabilization Needed",
+        metric: diff >= 0 ? `+${diff}% Gain` : `${diff}% Drop`,
         icon: TrendingUp,
-        color: "text-emerald-500 bg-emerald-500/10"
-      },
-      {
+        color: diff >= 0 ? "text-emerald-500 bg-emerald-500/10" : "text-destructive bg-destructive/10"
+      });
+
+      // 2. Volume/Focus Insight
+      const mainsCount = mockLogs.filter((m: any) => m.stage === 'Mains').length;
+      newInsights.push({
         category: "Focus",
-        message: "Peak Cognitive Window: 08:00 - 11:00",
-        metric: "94% Accuracy Potential",
-        icon: Clock,
+        message: mainsCount > 0 ? "Mains Rigor Maintained" : "Prelims-Heavy Profile",
+        metric: `${mainsCount} Mains Logged`,
+        icon: Target,
         color: "text-blue-500 bg-blue-500/10"
-      },
-      {
+      });
+    }
+
+    if (accuracyLogs.length > 0) {
+      // 3. Speed Insight
+      const recentSession = accuracyLogs[0];
+      newInsights.push({
         category: "Momentum",
-        message: "DI Caselet solving speed stabilized",
-        metric: "14% Speed Increase",
+        message: `High Focus: ${recentSession.topic}`,
+        metric: "Active Unit",
         icon: Zap,
         color: "text-yellow-500 bg-yellow-500/10"
-      }
-    ];
+      });
+    }
 
-    setInsights(newInsights);
+    // Default Fallbacks if low data
+    if (newInsights.length < 3) {
+      newInsights.push({
+        category: "Revision",
+        message: profile.targetExam ? `${profile.targetExam} Strategy Active` : "Standard Exam Protocol",
+        metric: "Active Mode",
+        icon: ShieldAlert,
+        color: "text-indigo-500 bg-indigo-500/10"
+      });
+    }
+
+    setInsights(newInsights.slice(0, 3));
   }, []);
 
   return (
-    <Card className={cn("bento-card bg-card/50 flex flex-col border-primary/10 shadow-2xl", className)}>
+    <Card className={cn("bento-card bg-card/50 flex flex-col border-primary/10 shadow-2xl h-full", className)}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -57,7 +88,7 @@ export function AiInsightsPanel({ className }: { className?: string }) {
             <CardTitle className="text-xl font-headline font-black tracking-tight">Strategic Intel</CardTitle>
           </div>
           <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest text-primary border-primary/20 bg-primary/5">
-            Active Analysis
+            {hasData ? "Live Data" : "Protocol Mode"}
           </Badge>
         </div>
       </CardHeader>
