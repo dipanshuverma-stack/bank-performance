@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -39,63 +40,72 @@ export function PerformanceOverview() {
     growth: "0%",
   });
 
-  const [chartData, setChartData] = useState(EMPTY_CHART_DATA);
+  const [chartData, setChartData] = useState<any[]>(EMPTY_CHART_DATA);
 
   useEffect(() => {
     setMounted(true);
-    const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+  }, []);
 
-    // Filter by stage (Prelims vs Mains)
-    const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
+  useEffect(() => {
+    if (!mounted) return;
 
-    if (stageFiltered.length > 0) {
-      const sumScore = stageFiltered.reduce((acc: number, m: any) => acc + (m.score || 0), 0);
-      const sumAcc = stageFiltered.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0);
-      
-      const avgScore = (sumScore / stageFiltered.length).toFixed(1);
-      const avgAccuracy = (sumAcc / stageFiltered.length).toFixed(1);
+    const refreshData = () => {
+      const mockLogsRaw = localStorage.getItem("elite-mock-logs");
+      const mockLogs = mockLogsRaw ? JSON.parse(mockLogsRaw) : [];
 
-      // Simple time-based mapping for chart
-      const mappedChartData = stageFiltered.slice(-7).reverse().map((m: any) => ({
-        name: m.date.split('/')[0] + '/' + m.date.split('/')[1],
-        accuracy: m.accuracy,
-        score: m.score,
-        tests: 1
-      }));
+      // Filter by stage (Prelims vs Mains)
+      const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
 
-      setStats({
-        avgScore: parseFloat(avgScore),
-        avgAccuracy: parseFloat(avgAccuracy),
-        testsTaken: stageFiltered.length,
-        growth: "Active"
-      });
+      if (stageFiltered.length > 0) {
+        const sumScore = stageFiltered.reduce((acc: number, m: any) => acc + (m.score || 0), 0);
+        const sumAcc = stageFiltered.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0);
+        
+        const avgScore = (sumScore / stageFiltered.length).toFixed(1);
+        const avgAccuracy = (sumAcc / stageFiltered.length).toFixed(1);
 
-      if (mappedChartData.length > 0) {
-        setChartData(mappedChartData);
+        // Map data for chart (last 7 entries)
+        const mappedChartData = stageFiltered.slice(0, 7).reverse().map((m: any) => ({
+          name: m.date.split('/')[0] + '/' + m.date.split('/')[1],
+          accuracy: m.accuracy,
+          score: m.score,
+          tests: 1
+        }));
+
+        setStats({
+          avgScore: parseFloat(avgScore),
+          avgAccuracy: parseFloat(avgAccuracy),
+          testsTaken: stageFiltered.length,
+          growth: "Active"
+        });
+
+        setChartData(mappedChartData.length > 0 ? mappedChartData : EMPTY_CHART_DATA);
       } else {
+        setStats({
+          avgScore: 0,
+          avgAccuracy: 0,
+          testsTaken: 0,
+          growth: "No Data"
+        });
         setChartData(EMPTY_CHART_DATA);
       }
-    } else {
-      setStats({
-        avgScore: 0,
-        avgAccuracy: 0,
-        testsTaken: 0,
-        growth: "No Data"
-      });
-      setChartData(EMPTY_CHART_DATA);
-    }
-  }, [period, stage]);
+    };
+
+    refreshData();
+    // Listen for custom events or storage changes to refresh data
+    window.addEventListener('storage', refreshData);
+    return () => window.removeEventListener('storage', refreshData);
+  }, [mounted, stage, period]);
 
   const MemoizedAreaChart = useMemo(() => (
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
         <defs>
           <linearGradient id="colorAcc" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.25}/>
+            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
             <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" opacity={0.2} />
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" opacity={0.1} />
         <XAxis 
           dataKey="name" 
           axisLine={false} 
@@ -110,16 +120,17 @@ export function PerformanceOverview() {
           domain={[0, 100]} 
         />
         <Tooltip 
-          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', backgroundColor: 'hsl(var(--card))' }}
+          contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'hsl(var(--card))' }}
           itemStyle={{ fontSize: '11px', fontWeight: '800' }}
         />
         <Area 
-          isAnimationActive={false}
+          isAnimationActive={true}
+          animationDuration={1000}
           name="Accuracy %" 
           type="monotone" 
           dataKey="accuracy" 
           stroke="hsl(var(--primary))" 
-          strokeWidth={3} 
+          strokeWidth={4} 
           fillOpacity={1} 
           fill="url(#colorAcc)" 
         />
@@ -130,12 +141,14 @@ export function PerformanceOverview() {
   const MemoizedBarChart = useMemo(() => (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" opacity={0.2} />
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" opacity={0.1} />
         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700}} dy={10} />
         <YAxis axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700}} />
-        <Tooltip cursor={{ fill: 'hsl(var(--primary))', opacity: 0.05 }} contentStyle={{ borderRadius: '12px', border: 'none', backgroundColor: 'hsl(var(--card))' }} />
-        <Bar isAnimationActive={false} dataKey="tests" name="Tests Taken" radius={[4, 4, 0, 0]}>
-          {chartData.map((_, index) => <Cell key={`cell-${index}`} fill={index === chartData.length - 1 ? 'hsl(var(--primary))' : 'hsl(var(--primary)/0.3)'} />)}
+        <Tooltip cursor={{ fill: 'hsl(var(--primary))', opacity: 0.05 }} contentStyle={{ borderRadius: '16px', border: 'none', backgroundColor: 'hsl(var(--card))' }} />
+        <Bar isAnimationActive={true} dataKey="tests" name="Tests Taken" radius={[6, 6, 0, 0]}>
+          {chartData.map((_, index) => (
+            <Cell key={`cell-${index}`} fill={index === chartData.length - 1 ? 'hsl(var(--primary))' : 'hsl(var(--primary)/0.2)'} />
+          ))}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
@@ -153,28 +166,40 @@ export function PerformanceOverview() {
           </div>
           <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest ml-7">
             <Layers className="w-3.5 h-3.5" />
-            {stage} Analytics Mode
+            {stage} Phase Active
           </div>
         </div>
         
         <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-          {/* Stage Toggle */}
-          <Tabs value={stage} className="w-full md:w-auto" onValueChange={(val: any) => setStage(val)}>
-            <TabsList className="grid grid-cols-2 w-full md:w-[200px] h-10 bg-primary/10 rounded-xl p-1 border border-primary/20">
-              <TabsTrigger value="Prelims" className="text-[10px] font-black uppercase tracking-widest rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Prelims</TabsTrigger>
-              <TabsTrigger value="Mains" className="text-[10px] font-black uppercase tracking-widest rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Mains</TabsTrigger>
+          {/* Controlled Stage Toggle */}
+          <Tabs value={stage} onValueChange={(val: any) => setStage(val)} className="w-full md:w-auto">
+            <TabsList className="grid grid-cols-2 w-full md:w-[220px] h-10 bg-primary/10 rounded-xl p-1 border border-primary/20">
+              <TabsTrigger value="Prelims" className="text-[10px] font-black uppercase tracking-widest rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+                Prelims
+              </TabsTrigger>
+              <TabsTrigger value="Mains" className="text-[10px] font-black uppercase tracking-widest rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+                Mains
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 
-          {/* Period Toggle */}
-          <Tabs value={period} className="hidden lg:block" onValueChange={setPeriod}>
-            <TabsList className="grid grid-cols-4 w-[160px] h-9 bg-accent/20 rounded-xl p-1">
-              <TabsTrigger value="daily" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">D</TabsTrigger>
-              <TabsTrigger value="weekly" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">W</TabsTrigger>
-              <TabsTrigger value="15days" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">15D</TabsTrigger>
-              <TabsTrigger value="monthly" className="text-[9px] font-black uppercase tracking-tighter rounded-lg">M</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {/* Period Selection (Desktop only) */}
+          <div className="hidden lg:flex items-center gap-2 bg-accent/20 rounded-xl p-1 h-10">
+            {["daily", "weekly", "monthly"].map((p) => (
+              <Button 
+                key={p} 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setPeriod(p)}
+                className={cn(
+                  "h-8 px-3 text-[9px] font-black uppercase rounded-lg",
+                  period === p ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                )}
+              >
+                {p[0]}
+              </Button>
+            ))}
+          </div>
         </div>
       </CardHeader>
       
@@ -183,25 +208,25 @@ export function PerformanceOverview() {
           {[
             { label: "Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground", icon: TrendingUp },
             { label: "Avg Score", value: stats.avgScore, color: "text-primary", icon: Target },
-            { label: "Mocks Logged", value: stats.testsTaken, color: "text-emerald-500", icon: BarChart3 },
+            { label: "Tests Logged", value: stats.testsTaken, color: "text-emerald-500", icon: BarChart3 },
           ].map((stat, i) => (
-            <div key={i} className="swipe-item w-[75%] md:w-full flex flex-col p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40 group hover:border-primary/20 transition-all">
+            <div key={i} className="swipe-item w-[80%] md:w-full flex flex-col p-6 rounded-[2rem] bg-slate-50 dark:bg-white/5 border border-border/40 group hover:border-primary/20 transition-all shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">{stat.label}</span>
                 <stat.icon className="w-4 h-4 text-muted-foreground/30" />
               </div>
-              <span className={cn("text-3xl md:text-4xl font-headline font-black tabular-nums tracking-tighter", stat.color)}>
+              <span className={cn("text-4xl font-headline font-black tabular-nums tracking-tighter", stat.color)}>
                 {stat.value}
               </span>
               <div className="mt-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-                {stage} Phase Metrics
+                Current {stage} Metrics
               </div>
             </div>
           ))}
         </div>
 
-        <div className="h-[350px] w-full mt-4 bg-slate-50/20 dark:bg-white/[0.01] rounded-[2.5rem] p-6 border border-border/40 relative overflow-hidden group">
-          <div className="flex items-center justify-between mb-6">
+        <div className="h-[380px] w-full mt-4 bg-slate-50/20 dark:bg-white/[0.01] rounded-[2.5rem] p-6 border border-border/40 relative overflow-hidden group">
+          <div className="flex items-center justify-between mb-8">
              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Trajectory Analysis</div>
              <div className="flex items-center gap-2">
                <Button 
@@ -209,7 +234,7 @@ export function PerformanceOverview() {
                 size="sm" 
                 onClick={() => setActiveView("performance")} 
                 className={cn(
-                  "h-8 px-4 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all",
+                  "h-9 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
                   activeView === 'performance' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-accent'
                 )}
                >
@@ -220,7 +245,7 @@ export function PerformanceOverview() {
                 size="sm" 
                 onClick={() => setActiveView("volume")} 
                 className={cn(
-                  "h-8 px-4 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all",
+                  "h-9 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
                   activeView === 'volume' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-accent'
                 )}
                >
@@ -229,15 +254,17 @@ export function PerformanceOverview() {
              </div>
           </div>
           
-          <div className="w-full h-[240px]">
+          <div className="w-full h-[260px]">
             {activeView === "performance" ? MemoizedAreaChart : MemoizedBarChart}
           </div>
 
           {stats.testsTaken === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm z-10 p-8 text-center">
-              <Layers className="w-12 h-12 text-muted-foreground/20 mb-4" />
-              <div className="text-sm font-bold text-foreground mb-1">No {stage} Data Found</div>
-              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Archive a {stage} mock to initiate tracking</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-10 p-8 text-center transition-all duration-500">
+              <Layers className="w-14 h-14 text-primary/20 mb-4 animate-pulse" />
+              <div className="text-base font-black text-foreground mb-1 uppercase tracking-tight">Stage Data Missing</div>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest max-w-[200px] leading-relaxed">
+                Archive a {stage} mock test in the vault to initiate strategy tracking
+              </p>
             </div>
           )}
         </div>
