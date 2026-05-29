@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -29,8 +28,6 @@ import {
   Carousel, 
   CarouselContent, 
   CarouselItem, 
-  CarouselNext, 
-  CarouselPrevious,
   type CarouselApi
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
@@ -45,7 +42,6 @@ export default function Home() {
     daysLeft: 0,
   });
 
-  // Carousel APIs for auto-scroll
   const [intelApi, setIntelApi] = useState<CarouselApi>();
   const [readinessApi, setReadinessApi] = useState<CarouselApi>();
 
@@ -57,9 +53,8 @@ export default function Home() {
     const mockLogsSaved = localStorage.getItem("elite-mock-logs");
 
     let days = 0;
-    let prof = null;
     if (savedProfile) {
-      prof = JSON.parse(savedProfile);
+      const prof = JSON.parse(savedProfile);
       setProfile(prof);
       if (prof.targetDate) {
         const diff = new Date(prof.targetDate).getTime() - Date.now();
@@ -99,7 +94,6 @@ export default function Home() {
     });
   }, []);
 
-  // Auto-scroll logic for Strategic Intelligence
   useEffect(() => {
     if (!intelApi) return;
     const intervalId = setInterval(() => {
@@ -108,7 +102,6 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, [intelApi]);
 
-  // Auto-scroll logic for Readiness Architecture
   useEffect(() => {
     if (!readinessApi) return;
     const intervalId = setInterval(() => {
@@ -121,7 +114,6 @@ export default function Home() {
 
   return (
     <div className="space-y-10 pb-20">
-      {/* Hero Header Section */}
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 px-1">
         <div className="space-y-2">
           <div className="flex items-center gap-3 mb-2">
@@ -165,9 +157,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column - Intelligence & Primary Metrics */}
         <div className="lg:col-span-8 space-y-8">
           <PerformanceOverview />
           
@@ -197,7 +187,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Auto-scrolling Intelligence Carousel */}
             <Carousel 
               setApi={setIntelApi}
               opts={{ align: "start", loop: true }}
@@ -242,7 +231,6 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Right Column - Schedule & Milestones */}
         <div className="lg:col-span-4 space-y-8">
           <CountdownCard />
           
@@ -304,7 +292,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer Metrics Carousel */}
       <div className="mt-8 space-y-6">
         <div className="flex items-center justify-between px-2">
           <h3 className="text-xl font-bold font-headline flex items-center gap-3">

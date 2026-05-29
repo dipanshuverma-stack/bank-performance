@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trophy, Timer, AlertOctagon, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export function QuickActions() {
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const actions = [
     { name: "Log New Mock", href: "/mocks", icon: Trophy, color: "text-primary bg-primary/10" },
@@ -16,11 +21,12 @@ export function QuickActions() {
     { name: "Update Syllabus", href: "/syllabus", icon: Target, color: "text-emerald-500 bg-emerald-500/10" },
   ];
 
-  // Use a fast toggle that works instantly on touch
   const handleToggle = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     setIsOpen(!isOpen);
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-[100] flex flex-col items-end gap-3 pointer-events-none">
@@ -61,7 +67,7 @@ export function QuickActions() {
         <Plus className="w-7 h-7" />
       </Button>
 
-      {/* Simplified backdrop */}
+      {/* Backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 z-[-1] bg-black/40 backdrop-blur-[2px] pointer-events-auto"
