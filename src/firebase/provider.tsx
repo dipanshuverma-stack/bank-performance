@@ -6,12 +6,16 @@ import { Firestore } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
 
 interface FirebaseContextProps {
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
+  firebaseApp: FirebaseApp | null;
+  firestore: Firestore | null;
+  auth: Auth | null;
 }
 
-const FirebaseContext = createContext<FirebaseContextProps | undefined>(undefined);
+const FirebaseContext = createContext<FirebaseContextProps>({
+  firebaseApp: null,
+  firestore: null,
+  auth: null,
+});
 
 export function FirebaseProvider({
   children,
@@ -20,9 +24,9 @@ export function FirebaseProvider({
   auth,
 }: {
   children: ReactNode;
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
+  firebaseApp: FirebaseApp | null;
+  firestore: Firestore | null;
+  auth: Auth | null;
 }) {
   return (
     <FirebaseContext.Provider value={{ firebaseApp, firestore, auth }}>
@@ -32,19 +36,20 @@ export function FirebaseProvider({
 }
 
 export function useFirebase() {
-  const context = useContext(FirebaseContext);
-  if (!context) throw new Error('useFirebase must be used within a FirebaseProvider');
-  return context;
+  return useContext(FirebaseContext);
 }
 
 export function useFirebaseApp() {
-  return useFirebase().firebaseApp;
+  const { firebaseApp } = useFirebase();
+  return firebaseApp;
 }
 
 export function useFirestore() {
-  return useFirebase().firestore;
+  const { firestore } = useFirebase();
+  return firestore;
 }
 
 export function useAuth() {
-  return useFirebase().auth;
+  const { auth } = useFirebase();
+  return auth;
 }

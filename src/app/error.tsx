@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
-import { AlertTriangle, RefreshCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useEffect } from 'react';
 
 /**
- * @fileOverview Resilience module for standard runtime errors within the terminal UI.
+ * @fileOverview Hardened resilience module for standard runtime errors.
  */
 
 export default function Error({
@@ -16,34 +14,54 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log tactical failure for diagnostics
-    console.error('Terminal Runtime Exception:', error);
+    console.error('Terminal Fault:', error);
   }, [error]);
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center space-y-8 animate-in fade-in duration-500">
-      <div className="w-20 h-20 bg-destructive/10 rounded-[2rem] flex items-center justify-center text-destructive border border-destructive/20 shadow-inner">
-        <AlertTriangle className="w-10 h-10" />
-      </div>
-      
-      <div className="space-y-3">
-        <h2 className="text-3xl font-headline font-black tracking-tight text-foreground">Operational Fault</h2>
-        <p className="text-muted-foreground max-w-md mx-auto font-medium text-sm">
-          A module in the terminal has failed to execute. System integrity is being maintained.
-        </p>
-      </div>
-
-      <div className="p-5 rounded-2xl bg-accent/50 border border-border/50 font-mono text-[10px] text-left max-w-xl w-full overflow-auto shadow-sm">
-        <div className="text-destructive font-black uppercase mb-1.5 tracking-widest">Diagnostic Output:</div>
-        <div className="opacity-80 leading-relaxed whitespace-pre-wrap">{error.message || 'No detailed trace available.'}</div>
-      </div>
-
-      <Button
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#020617',
+      color: '#f8fafc',
+      padding: '24px',
+      textAlign: 'center',
+      fontFamily: 'sans-serif'
+    }}>
+      <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+      <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}>Operational Fault</h2>
+      <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px', maxWidth: '320px' }}>
+        A system sub-module has encountered an exception.
+      </p>
+      <pre style={{
+        padding: '16px',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: '12px',
+        fontSize: '10px',
+        color: '#ef4444',
+        maxWidth: '100%',
+        overflow: 'auto',
+        marginBottom: '24px'
+      }}>
+        {error.message || 'Unknown Exception'}
+      </pre>
+      <button
         onClick={() => reset()}
-        className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95"
+        style={{
+          padding: '12px 24px',
+          backgroundColor: '#6366f1',
+          color: 'white',
+          border: 'none',
+          borderRadius: '12px',
+          fontWeight: 900,
+          cursor: 'pointer',
+          textTransform: 'uppercase'
+        }}
       >
-        <RefreshCcw className="w-5 h-5 mr-2" /> Recover Module
-      </Button>
+        Reboot Module
+      </button>
     </div>
   );
 }
