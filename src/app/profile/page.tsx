@@ -66,11 +66,11 @@ export default function ProfilePage() {
   }, []);
 
   // Cloud Data Integration (Firestore linked via Supabase ID)
-  const userRef = useMemoFirebase(() => supabaseUser ? doc(db, 'users', supabaseUser.id) : null, [db, supabaseUser]);
+  const userRef = useMemoFirebase(() =>  supabaseUser && db ? doc(db, 'users', supabaseUser.id) : null, [db, supabaseUser]);
   const { data: cloudProfile } = useDoc(userRef);
 
   const auditQuery = useMemoFirebase(() => {
-    if (!supabaseUser) return null;
+    if (!db || !supabaseUser) return null;
     return query(collection(db, 'users', supabaseUser.id, 'auditLogs'), orderBy('serverTimestamp', 'desc'), limit(50));
   }, [db, supabaseUser]);
   const { data: cloudAuditLogs } = useCollection<AuditLog>(auditQuery);
