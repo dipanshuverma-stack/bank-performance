@@ -29,6 +29,7 @@ import {
   type CarouselApi
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -282,9 +283,11 @@ export default function Home() {
                 </div>
              </div>
              <p className="text-[10px] text-muted-foreground leading-relaxed mb-6 font-medium opacity-90">Analysis suggests high success probability based on recent metrics.</p>
-             <button className="w-full h-11 rounded-xl bg-accent/50 hover:bg-primary hover:text-primary-foreground transition-all text-[8px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 group/btn border border-transparent hover:shadow-lg">
-                Access Archives <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
-             </button>
+             <Link href="/mocks" className="block w-full">
+              <button className="w-full h-11 rounded-xl bg-accent/50 hover:bg-primary hover:text-primary-foreground transition-all text-[8px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 group/btn border border-transparent hover:shadow-lg">
+                  Access Archives <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+             </Link>
           </div>
         </div>
       </div>
