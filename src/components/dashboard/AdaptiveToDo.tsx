@@ -46,7 +46,6 @@ export function AdaptiveToDo() {
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Manual Input State
   const [newChapter, setNewChapter] = useState("");
   const [newSubject, setNewSubject] = useState("Reasoning");
   const [newTime, setNewTime] = useState("45");
@@ -115,13 +114,13 @@ export function AdaptiveToDo() {
         completed: false,
         isAiSuggested: true,
         isFallback: true,
-        reason: "Manual Weakness Target"
+        reason: "Strategic Weakness Target"
       });
     });
     const fillers = [
-      { subject: 'Quants', chapter: 'Data Interpretation (Table)', reason: 'High Exam Weightage' },
-      { subject: 'Reasoning', chapter: 'Puzzles (Floor & Flat)', reason: 'Core Scoring Pillar' },
-      { subject: 'Quants', chapter: 'Arithmetic core (Profit & Loss)', reason: 'Fundamental concept' }
+      { subject: 'Quants', chapter: 'Advanced Data Interpretation', reason: 'High Exam Weightage' },
+      { subject: 'Reasoning', chapter: 'Complex Puzzles & Arrangements', reason: 'Core Scoring Pillar' },
+      { subject: 'Quants', chapter: 'Arithmetic Core Mechanics', reason: 'Foundational Mastery' }
     ];
     fillers.slice(0, 4 - fallbackTasks.length).forEach(filler => {
       fallbackTasks.push({
@@ -145,7 +144,7 @@ export function AdaptiveToDo() {
     try {
       const result = await generateAdaptiveToDoList({
         weakAreas: weakAreas,
-        availableStudyTimeMinutes: 180
+        availableStudyTimeMinutes: 240
       });
       
       if (result.dailyToDoList && result.dailyToDoList.length > 0) {
@@ -159,15 +158,12 @@ export function AdaptiveToDo() {
           reason: item.reason
         }));
         setTasks(prev => [...newAiTasks, ...prev.filter(t => !t.isAiSuggested)]);
-        toast({ title: "Strategy Synchronized", description: "Roadmap updated via Gemini intelligence." });
+        toast({ title: "Strategy Synchronized", description: "Strategic roadmap updated via AI uplink." });
       }
     } catch (err: any) {
       const fallbackTasks = generateStrategicTasksLocally(weakAreas);
       setTasks(prev => [...fallbackTasks, ...prev.filter(t => !t.isAiSuggested)]);
-      toast({ 
-        title: "Strategic Fallback Active", 
-        description: "Gemini is busy. Using local operational logic to prioritize weak areas." 
-      });
+      toast({ title: "Strategic Fallback Active", description: "AI Uplink busy. Using local operational logic." });
     } finally {
       setLoading(false);
     }
@@ -176,91 +172,91 @@ export function AdaptiveToDo() {
   if (!mounted) return null;
 
   return (
-    <Card className="bento-card h-full flex flex-col bg-card">
-      <CardHeader className="flex flex-row items-center justify-between pb-4 bg-accent/5">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <ListTodo className="w-5 h-5" />
+    <Card className="bento-card h-full flex flex-col bg-card/60 backdrop-blur-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)]">
+      <CardHeader className="flex flex-row items-center justify-between p-10 bg-accent/5 border-b border-white/5">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-[1.25rem] bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+              <ListTodo className="w-7 h-7" />
             </div>
-            <CardTitle className="text-xl font-headline font-bold">Study Roadmap</CardTitle>
+            <CardTitle className="text-3xl font-headline font-black tracking-tight">Mission Roadmap</CardTitle>
           </div>
-          <CardDescription className="text-[10px] uppercase tracking-widest font-black text-muted-foreground ml-10">
-            Strategic Daily Execution
+          <CardDescription className="text-xs uppercase tracking-[0.4em] font-black text-muted-foreground ml-16 opacity-60">
+            Tactical Daily Execution
           </CardDescription>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-xl border-2 h-9 w-9 hover:bg-accent">
-                <Plus className="w-4 h-4" />
+              <Button variant="outline" size="icon" className="rounded-2xl border-2 h-12 w-12 hover:bg-white/5 shadow-lg">
+                <Plus className="w-6 h-6" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] rounded-3xl border-none shadow-2xl">
+            <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-none shadow-2xl p-10">
               <DialogHeader>
-                <DialogTitle className="text-xl font-headline font-bold">Manual Task Entry</DialogTitle>
+                <DialogTitle className="text-3xl font-headline font-black tracking-tight">Manual Mission Entry</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Topic Name</label>
-                  <Input placeholder="e.g. Percentage Basics" value={newChapter} onChange={(e) => setNewChapter(e.target.value)} className="rounded-xl h-11 bg-accent/30 font-bold" />
+              <div className="space-y-8 py-8">
+                <div className="space-y-3">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-2">Objective Name</label>
+                  <Input placeholder="e.g. Critical Thinking Unit" value={newChapter} onChange={(e) => setNewChapter(e.target.value)} className="rounded-2xl h-14 bg-accent/30 font-bold text-lg border-none shadow-inner" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Subject</label>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-2">Category</label>
                     <Select value={newSubject} onValueChange={setNewSubject}>
-                      <SelectTrigger className="rounded-xl h-11 bg-accent/30 font-bold"><SelectValue /></SelectTrigger>
-                      <SelectContent className="rounded-xl font-bold">
-                        <SelectItem value="Reasoning">Reasoning</SelectItem>
-                        <SelectItem value="Quants">Quants</SelectItem>
+                      <SelectTrigger className="rounded-2xl h-14 bg-accent/30 font-bold border-none shadow-inner"><SelectValue /></SelectTrigger>
+                      <SelectContent className="rounded-2xl font-bold">
+                        <SelectItem value="Reasoning" className="py-3">Reasoning</SelectItem>
+                        <SelectItem value="Quants" className="py-3">Quants</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Duration (Min)</label>
-                    <Input type="number" value={newTime} onChange={(e) => setNewTime(e.target.value)} className="rounded-xl h-11 bg-accent/30 font-bold text-center" />
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-2">Duration (Min)</label>
+                    <Input type="number" value={newTime} onChange={(e) => setNewTime(e.target.value)} className="rounded-2xl h-14 bg-accent/30 font-bold text-center text-lg border-none shadow-inner" />
                   </div>
                 </div>
-                <Button onClick={addTask} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-lg shadow-primary/20">Add to Roadmap</Button>
+                <Button onClick={addTask} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-sm tracking-widest shadow-2xl shadow-primary/30 mt-4 transition-all hover:scale-[1.02]">Archive to Roadmap</Button>
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant="outline" size="sm" onClick={getAiSuggestion} disabled={loading} className="rounded-xl border-2 bg-background h-9 shadow-sm group">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary mr-2" />}
-            <span className="font-black text-[10px] uppercase tracking-wider">Strategize</span>
+          <Button variant="outline" onClick={getAiSuggestion} disabled={loading} className="h-12 px-8 rounded-2xl border-2 bg-background shadow-xl group transition-all duration-500 hover:border-primary/40">
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 text-primary mr-3 group-hover:animate-pulse" />}
+            <span className="font-black text-xs uppercase tracking-widest">Strategize</span>
           </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 p-6 space-y-4 overflow-y-auto max-h-[400px] scrollbar-hide">
+      <CardContent className="flex-1 p-10 xl:p-14 space-y-6 overflow-y-auto max-h-[600px] scrollbar-hide">
         {tasks.length > 0 ? (
           tasks.map((task) => (
-            <div key={task.id} className={`group relative flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 ${task.completed ? 'opacity-60 grayscale bg-slate-50' : task.isAiSuggested ? 'bg-primary/[0.03] border-primary/20' : 'bg-card border-border/40 hover:border-primary/20'}`}>
-              <Checkbox id={task.id} checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="h-5 w-5 rounded-md border-2" />
+            <div key={task.id} className={`group relative flex items-center gap-8 p-8 rounded-[2rem] border-2 transition-all duration-500 ${task.completed ? 'opacity-40 grayscale bg-slate-50 dark:bg-white/5' : task.isAiSuggested ? 'bg-primary/[0.04] border-primary/30 shadow-lg shadow-primary/5' : 'bg-card border-border/60 hover:border-primary/30'}`}>
+              <Checkbox id={task.id} checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="h-8 w-8 rounded-xl border-2 transition-all duration-500 data-[state=checked]:bg-primary" />
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <label htmlFor={task.id} className={`text-sm font-bold truncate cursor-pointer ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.chapter}</label>
+                <div className="flex items-center gap-4 mb-1">
+                  <label htmlFor={task.id} className={`text-xl xl:text-2xl font-black truncate cursor-pointer transition-all duration-500 ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.chapter}</label>
                   {task.isAiSuggested && (
-                    <Badge variant="default" className="bg-primary/20 text-primary text-[7px] px-1.5 h-3.5 rounded-sm font-black uppercase tracking-tighter border-none shrink-0 flex items-center gap-1">
-                      {task.isFallback ? <ShieldCheck className="w-2.5 h-2.5" /> : <Sparkles className="w-2.5 h-2.5" />}
-                      {task.isFallback ? "Local Opt" : "AI Priority"}
+                    <Badge variant="default" className="bg-primary/20 text-primary text-[10px] px-3 py-1 rounded-md font-black uppercase tracking-widest border-none shrink-0 flex items-center gap-2">
+                      {task.isFallback ? <ShieldCheck className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
+                      {task.isFallback ? "Local Opt" : "AI Core"}
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-[10px] text-muted-foreground font-black uppercase">
-                  <span className="flex items-center gap-1"><Zap className={`w-3 h-3 ${task.subject === 'Quants' ? 'text-blue-500' : 'text-purple-500'}`} />{task.subject}</span>
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{task.time}m</span>
-                  {task.reason && <span className="text-primary italic normal-case truncate max-w-[150px]"> — {task.reason}</span>}
+                <div className="flex items-center gap-5 text-xs text-muted-foreground font-black uppercase tracking-widest opacity-60">
+                  <span className="flex items-center gap-2"><Zap className={`w-4 h-4 ${task.subject === 'Quants' ? 'text-blue-500' : 'text-purple-500'}`} />{task.subject}</span>
+                  <span className="flex items-center gap-2"><Clock className="w-4 h-4" />{task.time}M</span>
+                  {task.reason && <span className="text-primary italic normal-case truncate max-w-[250px] opacity-100">— {task.reason}</span>}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => removeTask(task.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 rounded-lg shrink-0"><Trash2 className="w-4 h-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => removeTask(task.id)} className="opacity-0 group-hover:opacity-100 transition-all text-destructive hover:bg-destructive/10 rounded-2xl h-12 w-12 duration-500"><Trash2 className="w-6 h-6" /></Button>
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground/30">
-            <Brain className="w-12 h-12 mb-4 opacity-20" />
-            <h4 className="font-bold text-sm text-foreground/40 uppercase tracking-widest">Roadmap Empty</h4>
-            <p className="text-[10px] font-black uppercase mt-1">Use "Strategize" to build your daily plan</p>
+          <div className="flex flex-col items-center justify-center py-32 text-center">
+            <Brain className="w-20 h-20 mb-8 opacity-10" />
+            <h4 className="font-black text-xl text-foreground/30 uppercase tracking-[0.4em]">Roadmap Inactive</h4>
+            <p className="text-[11px] font-black uppercase tracking-widest mt-3 opacity-20">Engage "Strategize" to generate mission parameters</p>
           </div>
         )}
       </CardContent>

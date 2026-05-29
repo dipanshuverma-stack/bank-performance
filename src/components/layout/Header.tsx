@@ -14,7 +14,6 @@ import {
   Trash2,
   AlertCircle,
   X,
-  Calendar,
   Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -88,12 +87,12 @@ export function Header() {
 
   const getPageTitle = () => {
     switch(pathname) {
-      case "/": return "Overview";
-      case "/mocks": return "Mock Analytics";
-      case "/accuracy": return "Accuracy Console";
-      case "/syllabus": return "Syllabus Roadmap";
-      case "/mistakes": return "Mistake Journal";
-      case "/profile": return "Profile Settings";
+      case "/": return "Command Overview";
+      case "/mocks": return "Mission Analytics";
+      case "/accuracy": return "Precision Console";
+      case "/syllabus": return "Knowledge Roadmap";
+      case "/mistakes": return "Tactical Journal";
+      case "/profile": return "Core Terminal Settings";
       default: return "Dashboard";
     }
   };
@@ -105,61 +104,61 @@ export function Header() {
           variant="outline" 
           size="icon" 
           className={cn(
-            "rounded-2xl relative border border-border/60 hover:bg-accent transition-all group overflow-visible",
-            isMobile ? 'h-10 w-10' : 'h-12 w-12',
+            "rounded-[1.25rem] relative border-2 border-border/40 hover:bg-accent transition-all group overflow-visible shadow-lg hover:shadow-xl",
+            isMobile ? 'h-12 w-12' : 'h-16 w-16',
             unreadCount > 0 && "neon-glow ring-2 ring-primary/40 scale-105"
           )}
         >
           <Bell className={cn(
-            isMobile ? 'w-4 h-4' : 'w-5 h-5',
-            "text-foreground group-hover:rotate-12 transition-transform",
+            isMobile ? 'w-5 h-5' : 'w-7 h-7',
+            "text-foreground group-hover:rotate-12 transition-transform duration-500",
             unreadCount > 0 && "animate-pulse text-primary"
           )} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="absolute -top-1 -right-1 flex h-6 w-6">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-destructive items-center justify-center text-[8px] font-black text-white">
+              <span className="relative inline-flex rounded-full h-6 w-6 bg-destructive items-center justify-center text-[10px] font-black text-white shadow-lg">
                 {unreadCount}
               </span>
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[320px] md:w-96 p-0 rounded-3xl border-none shadow-2xl bg-card z-[100] mt-4" align="end">
-        <div className="p-5 border-b border-border/50 flex items-center justify-between bg-accent/5 rounded-t-3xl">
-          <div className="flex flex-col">
-            <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Alerts</h4>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase">{unreadCount} New Signals Found</span>
+      <PopoverContent className="w-[350px] md:w-[450px] p-0 rounded-[2.5rem] border-none shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] bg-card z-[100] mt-6" align="end">
+        <div className="p-8 border-b border-border/50 flex items-center justify-between bg-accent/5 rounded-t-[2.5rem]">
+          <div className="flex flex-col gap-1">
+            <h4 className="text-lg font-black uppercase tracking-widest text-foreground leading-none">Operational Alerts</h4>
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">{unreadCount} New Signals Archived</span>
           </div>
           {notifications.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearNotifications} className="text-[10px] h-8 px-3 font-black uppercase text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl">
-              Purge All
+            <Button variant="ghost" size="sm" onClick={clearNotifications} className="text-[11px] h-10 px-4 font-black uppercase text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all">
+              Purge Logs
             </Button>
           )}
         </div>
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[500px]">
           {notifications.length > 0 ? (
             <div className="divide-y divide-border/30">
               {notifications.map((n) => (
                 <div key={n.id} className={cn(
-                  "p-5 group relative hover:bg-accent/30 transition-all duration-300",
-                  !n.read && "bg-primary/[0.03] border-l-4 border-l-primary"
+                  "p-8 group relative hover:bg-accent/30 transition-all duration-500 cursor-default",
+                  !n.read && "bg-primary/[0.04] border-l-4 border-l-primary"
                 )}>
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-6">
                     <div className={cn(
-                      "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
-                      n.type === 'achievement' ? 'bg-primary/10 text-primary' : 
-                      n.type === 'alert' ? 'bg-destructive/10 text-destructive' : 'bg-indigo-500/10 text-indigo-500'
+                      "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-xl transition-transform group-hover:scale-110 duration-500",
+                      n.type === 'achievement' ? 'bg-primary/10 text-primary shadow-primary/10' : 
+                      n.type === 'alert' ? 'bg-destructive/10 text-destructive shadow-destructive/10' : 'bg-indigo-500/10 text-indigo-500 shadow-indigo-500/10'
                     )}>
-                      {n.type === 'achievement' ? <Trophy className="w-5 h-5" /> : 
-                       n.type === 'alert' ? <AlertCircle className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
+                      {n.type === 'achievement' ? <Trophy className="w-7 h-7" /> : 
+                       n.type === 'alert' ? <AlertCircle className="w-7 h-7" /> : <Zap className="w-7 h-7" />}
                     </div>
-                    <div className="flex-1 pr-6">
-                      <div className="text-sm font-bold text-foreground mb-1 leading-tight">{n.title}</div>
-                      <div className="text-[11px] text-muted-foreground leading-relaxed font-medium">{n.description}</div>
-                      <div className="flex items-center gap-2 mt-3">
-                        <div className="w-1 h-1 bg-border rounded-full" />
-                        <div className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">{n.date}</div>
+                    <div className="flex-1 pr-8">
+                      <div className="text-base font-black text-foreground mb-2 leading-tight tracking-tight">{n.title}</div>
+                      <div className="text-sm text-muted-foreground leading-relaxed font-medium opacity-90">{n.description}</div>
+                      <div className="flex items-center gap-3 mt-5">
+                        <div className="w-1.5 h-1.5 bg-border rounded-full" />
+                        <div className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">{n.date}</div>
                       </div>
                     </div>
                   </div>
@@ -167,20 +166,20 @@ export function Header() {
                     variant="ghost" 
                     size="icon" 
                     onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
-                    className="absolute top-5 right-3 h-8 w-8 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all rounded-xl"
+                    className="absolute top-8 right-6 h-10 w-10 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all rounded-xl duration-500"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </Button>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="h-[350px] flex flex-col items-center justify-center p-10 text-center text-muted-foreground/20">
-              <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mb-4">
-                <Bell className="w-8 h-8 opacity-20" />
+            <div className="h-[400px] flex flex-col items-center justify-center p-12 text-center">
+              <div className="w-24 h-24 rounded-full bg-accent/20 flex items-center justify-center mb-6 opacity-30 shadow-inner">
+                <Bell className="w-10 h-10" />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">Silence in the Vault</p>
-              <p className="text-[9px] font-bold uppercase tracking-wider opacity-60">All operational systems are clear</p>
+              <p className="text-xs font-black uppercase tracking-[0.4em] mb-2 opacity-40">Static Silence</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider opacity-30">All systems operational and clear</p>
             </div>
           )}
         </ScrollArea>
@@ -193,38 +192,38 @@ export function Header() {
   return (
     <>
       {/* Mobile Top Header */}
-      <header className="md:hidden flex items-center justify-between p-4 bg-card border-b sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-lg">
-            <Activity className="w-6 h-6" />
+      <header className="md:hidden flex items-center justify-between p-6 bg-card border-b sticky top-0 z-50 shadow-md">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40">
+            <Activity className="w-7 h-7" />
           </div>
-          <span className="font-headline font-black text-lg text-foreground tracking-tighter">Elite<span className="text-primary italic">Perf</span></span>
+          <span className="font-headline font-black text-2xl text-foreground tracking-tighter leading-none">Elite<span className="text-primary italic">Perf</span></span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <NotificationPopover isMobile={true} />
           <ThemeToggle />
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <Menu className="w-6 h-6" />
+              <Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 hover:bg-white/5">
+                <Menu className="w-8 h-8" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[85vw] p-0 border-r-0">
+            <SheetContent side="left" className="w-[85vw] p-0 border-r-0 shadow-2xl">
               <SheetHeader className="sr-only">
-                <SheetTitle>Navigation Menu</SheetTitle>
-                <SheetDescription>Access all features of the Elite Performance Terminal</SheetDescription>
+                <SheetTitle>Tactical Navigation</SheetTitle>
+                <SheetDescription>Access terminal protocols</SheetDescription>
               </SheetHeader>
-               <div className="flex flex-col h-full p-8 bg-card">
-                  <div className="flex items-center gap-4 mb-12">
-                    <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-xl">
-                      <Activity className="w-7 h-7" />
+               <div className="flex flex-col h-full p-10 bg-card">
+                  <div className="flex items-center gap-6 mb-16">
+                    <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40">
+                      <Activity className="w-9 h-9" />
                     </div>
                     <div>
-                      <span className="font-headline font-black text-2xl block text-foreground tracking-tight">Elite Perf</span>
-                      <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Aspirant Terminal</span>
+                      <span className="font-headline font-black text-3xl block text-foreground tracking-tight leading-none mb-1">Elite Perf</span>
+                      <span className="text-xs text-primary font-black uppercase tracking-widest opacity-80">Mission Control</span>
                     </div>
                   </div>
-                  <nav className="flex-1 space-y-4">
+                  <nav className="flex-1 space-y-6">
                     {[
                       { name: "Overview", href: "/", icon: LayoutDashboard },
                       { name: "Mocks", href: "/mocks", icon: Trophy },
@@ -236,9 +235,12 @@ export function Header() {
                         key={item.name}
                         variant="ghost" 
                         asChild 
-                        className={pathname === item.href ? "w-full justify-start text-primary bg-primary/5 h-14 text-lg font-bold rounded-2xl" : "w-full justify-start text-muted-foreground h-14 text-lg font-semibold rounded-2xl"}
+                        className={cn(
+                          "w-full justify-start h-20 text-xl font-black rounded-3xl transition-all duration-500",
+                          pathname === item.href ? "text-primary bg-primary/10 border-2 border-primary/20 shadow-lg" : "text-muted-foreground hover:text-foreground"
+                        )}
                       >
-                        <Link href={item.href}><item.icon className="w-6 h-6 mr-4" /> {item.name}</Link>
+                        <Link href={item.href}><item.icon className="w-8 h-8 mr-6" /> {item.name}</Link>
                       </Button>
                     ))}
                   </nav>
@@ -249,34 +251,34 @@ export function Header() {
       </header>
 
       {/* Desktop Global Navigation */}
-      <header className="hidden md:flex items-center justify-between px-8 lg:px-14 py-8 bg-background/50 backdrop-blur-md sticky top-0 z-40">
-         <div className="flex items-center gap-8">
-            <div className="flex flex-col">
-               <h2 className="text-2xl font-headline font-black tracking-tight text-foreground">{getPageTitle()}</h2>
-               <div className="flex items-center gap-2 mt-1">
-                  <div className="h-1 w-4 bg-primary rounded-full" />
-                  <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Active Core Terminal</span>
+      <header className="hidden md:flex items-center justify-between px-10 xl:px-16 py-12 bg-background/40 backdrop-blur-3xl sticky top-0 z-40 transition-all border-b border-white/5">
+         <div className="flex items-center gap-12">
+            <div className="flex flex-col gap-2">
+               <h2 className="text-4xl xl:text-5xl font-headline font-black tracking-tight text-foreground leading-none">{getPageTitle()}</h2>
+               <div className="flex items-center gap-4 mt-2">
+                  <div className="h-1.5 w-10 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.6)]" />
+                  <span className="text-xs text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">System Protocol Active</span>
                </div>
             </div>
             
-            <div className="hidden lg:flex items-center bg-card/80 border rounded-[1.25rem] px-5 py-3 shadow-sm focus-within:ring-2 ring-primary/20 transition-all border-border/60">
-              <Search className="w-4 h-4 text-muted-foreground mr-3" />
-              <input placeholder="Search performance logs..." className="bg-transparent border-none outline-none text-sm w-40 lg:w-64 font-bold text-foreground placeholder:text-muted-foreground/60" />
+            <div className="hidden xl:flex items-center bg-card/60 border-2 border-border/40 rounded-[1.75rem] px-8 py-4 shadow-inner focus-within:ring-4 ring-primary/10 transition-all group min-w-[400px]">
+              <Search className="w-5 h-5 text-muted-foreground mr-5 group-focus-within:text-primary transition-colors" />
+              <input placeholder="Search tactical archives..." className="bg-transparent border-none outline-none text-base w-full font-black text-foreground placeholder:text-muted-foreground/40 placeholder:uppercase placeholder:tracking-widest" />
             </div>
          </div>
 
-         <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full border border-primary/10">
-               <Sparkles className="w-3.5 h-3.5 text-primary" />
-               <span className="text-[10px] font-black text-primary uppercase tracking-widest">Operational Ready</span>
+         <div className="flex items-center gap-8">
+            <div className="hidden xl:flex items-center gap-4 px-8 py-3 bg-primary/5 rounded-[1.5rem] border-2 border-primary/20 shadow-sm">
+               <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+               <span className="text-xs font-black text-primary uppercase tracking-[0.3em]">Operational Readiness 98%</span>
             </div>
             
             <ThemeToggle />
             
             <NotificationPopover />
             
-            <Button asChild className="rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 shadow-xl shadow-primary/20 font-black uppercase text-[10px] tracking-widest transition-all hover:-translate-y-0.5 active:translate-y-0">
-               <Link href="/mocks">Quick Log</Link>
+            <Button asChild className="rounded-[1.5rem] bg-primary hover:bg-primary/90 text-primary-foreground h-16 px-10 shadow-2xl shadow-primary/30 font-black uppercase text-xs tracking-[0.3em] transition-all hover:-translate-y-1 active:translate-y-0 duration-500">
+               <Link href="/mocks">Quick Log Mission</Link>
             </Button>
          </div>
       </header>
