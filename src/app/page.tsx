@@ -46,6 +46,24 @@ export default function Home() {
       const avgAcc = mockLogs.reduce((acc: number, m: any) => acc + m.accuracy, 0) / mockLogs.length;
       setMetrics(prev => ({ ...prev, avgAccuracy: Math.round(avgAcc), mocksCount: mockLogs.length }));
     }
+
+    // Auto-Welcome Notification for test visibility
+    const hasSeenWelcome = localStorage.getItem("elite-welcome-notif");
+    if (!hasSeenWelcome) {
+      const saved = localStorage.getItem("elite-notifications") || "[]";
+      const notifications = JSON.parse(saved);
+      const welcomeNotif = {
+        id: "welcome-" + Date.now(),
+        title: "Elite Terminal Operational",
+        description: "Your performance tracking environment is now active. Log your first mock or start a precision session to begin analytics.",
+        date: new Date().toLocaleDateString(),
+        type: 'achievement',
+        read: false
+      };
+      localStorage.setItem("elite-notifications", JSON.stringify([welcomeNotif, ...notifications]));
+      localStorage.setItem("elite-welcome-notif", "true");
+      window.dispatchEvent(new Event('elite-new-notification'));
+    }
   }, []);
 
   if (!mounted) return null;

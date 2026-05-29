@@ -104,9 +104,9 @@ export function Header() {
           variant="outline" 
           size="icon" 
           className={cn(
-            "rounded-2xl relative border border-border/60 hover:bg-accent transition-all group",
+            "rounded-2xl relative border border-border/60 hover:bg-accent transition-all group overflow-visible",
             isMobile ? 'h-10 w-10' : 'h-12 w-12',
-            unreadCount > 0 && "neon-glow ring-2 ring-primary/20"
+            unreadCount > 0 && "neon-glow ring-2 ring-primary/40 scale-105"
           )}
         >
           <Bell className={cn(
@@ -115,55 +115,69 @@ export function Header() {
             unreadCount > 0 && "animate-pulse text-primary"
           )} />
           {unreadCount > 0 && (
-            <span className="absolute top-2 right-2 w-3 h-3 bg-destructive rounded-full border-2 border-background shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-bounce" />
+            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-destructive items-center justify-center text-[8px] font-black text-white">
+                {unreadCount}
+              </span>
+            </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 rounded-3xl border-none shadow-2xl bg-card z-[100] mt-2" align="end">
-        <div className="p-4 border-b border-border/50 flex items-center justify-between">
-          <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Alerts</h4>
+      <PopoverContent className="w-[320px] md:w-96 p-0 rounded-3xl border-none shadow-2xl bg-card z-[100] mt-4" align="end">
+        <div className="p-5 border-b border-border/50 flex items-center justify-between bg-accent/5 rounded-t-3xl">
+          <div className="flex flex-col">
+            <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Alerts</h4>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase">{unreadCount} New Signals Found</span>
+          </div>
           {notifications.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearNotifications} className="text-[10px] h-7 px-2 font-black uppercase text-muted-foreground hover:text-destructive">
-              Clear All
+            <Button variant="ghost" size="sm" onClick={clearNotifications} className="text-[10px] h-8 px-3 font-black uppercase text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl">
+              Purge All
             </Button>
           )}
         </div>
-        <ScrollArea className="h-[350px]">
+        <ScrollArea className="h-[400px]">
           {notifications.length > 0 ? (
             <div className="divide-y divide-border/30">
               {notifications.map((n) => (
                 <div key={n.id} className={cn(
-                  "p-4 group relative hover:bg-accent/30 transition-colors",
-                  !n.read && "bg-primary/5"
+                  "p-5 group relative hover:bg-accent/30 transition-all duration-300",
+                  !n.read && "bg-primary/[0.03] border-l-4 border-l-primary"
                 )}>
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-4">
                     <div className={cn(
-                      "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
+                      "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
                       n.type === 'achievement' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
                     )}>
-                      {n.type === 'achievement' ? <Trophy className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                      {n.type === 'achievement' ? <Trophy className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                     </div>
                     <div className="flex-1 pr-6">
-                      <div className="text-xs font-bold text-foreground mb-0.5">{n.title}</div>
-                      <div className="text-[10px] text-muted-foreground leading-relaxed">{n.description}</div>
-                      <div className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest mt-2">{n.date}</div>
+                      <div className="text-sm font-bold text-foreground mb-1 leading-tight">{n.title}</div>
+                      <div className="text-[11px] text-muted-foreground leading-relaxed font-medium">{n.description}</div>
+                      <div className="flex items-center gap-2 mt-3">
+                        <div className="w-1 h-1 bg-border rounded-full" />
+                        <div className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">{n.date}</div>
+                      </div>
                     </div>
                   </div>
                   <Button 
                     variant="ghost" 
                     size="icon" 
                     onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
-                    className="absolute top-4 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+                    className="absolute top-5 right-3 h-8 w-8 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all rounded-xl"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="h-[300px] flex flex-col items-center justify-center p-8 text-center text-muted-foreground/20">
-              <Bell className="w-12 h-12 mb-3 opacity-10" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em]">All Systems Clear</p>
+            <div className="h-[350px] flex flex-col items-center justify-center p-10 text-center text-muted-foreground/20">
+              <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mb-4">
+                <Bell className="w-8 h-8 opacity-20" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">Silence in the Vault</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider opacity-60">All operational systems are clear</p>
             </div>
           )}
         </ScrollArea>
