@@ -51,7 +51,7 @@ export function PersonalBests() {
       icon: Target, 
       color: "text-emerald-400", 
       bg: "bg-emerald-500/10",
-      description: "All-time mock peak"
+      description: "Mock peak"
     },
     { 
       label: "Best Quant Speed", 
@@ -59,7 +59,7 @@ export function PersonalBests() {
       icon: Zap, 
       color: "text-blue-400", 
       bg: "bg-blue-500/10",
-      description: "Fastest Quant unit"
+      description: "Fastest unit"
     },
     { 
       label: "Active Days", 
@@ -67,7 +67,7 @@ export function PersonalBests() {
       icon: Flame, 
       color: "text-orange-400", 
       bg: "bg-orange-500/10",
-      description: "Consistency log"
+      description: "Activity log"
     },
     { 
       label: "Fastest Mock", 
@@ -75,32 +75,32 @@ export function PersonalBests() {
       icon: Timer, 
       color: "text-purple-400", 
       bg: "bg-purple-500/10",
-      description: "Full mock record"
+      description: "Full record"
     },
   ];
 
   return (
-    <Card className="bento-card border-none bg-slate-950/40 backdrop-blur-xl shadow-2xl overflow-hidden group">
-      <CardHeader className="pb-2">
+    <Card className="bento-card border-none bg-slate-950/40 backdrop-blur-xl shadow-xl overflow-hidden group min-w-0">
+      <CardHeader className="pb-2 p-5 xl:p-6">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-yellow-500/10 rounded-lg">
-            <Trophy className="w-5 h-5 text-yellow-500" />
+          <div className="p-1.5 bg-yellow-500/10 rounded-lg shrink-0">
+            <Trophy className="w-4 h-4 text-yellow-500" />
           </div>
-          <CardTitle className="text-lg font-headline font-bold text-white tracking-tight">Personal Bests</CardTitle>
+          <CardTitle className="text-base font-headline font-bold text-white tracking-tight truncate">Personal Bests</CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="p-5 xl:p-6 pt-0">
+        <div className="grid grid-cols-2 gap-3 xl:gap-4">
           {records.map((record, i) => (
-            <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/[0.08] transition-all duration-300">
-              <div className="flex items-center gap-3 mb-2">
-                <div className={`p-1.5 rounded-lg ${record.bg}`}>
-                  <record.icon className={`w-3.5 h-3.5 ${record.color}`} />
+            <div key={i} className="p-3 xl:p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/[0.08] transition-all duration-300 min-w-0">
+              <div className="flex items-center gap-2 mb-1.5 overflow-hidden">
+                <div className={`p-1 rounded-md shrink-0 ${record.bg}`}>
+                  <record.icon className={`w-3 h-3 ${record.color}`} />
                 </div>
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{record.label}</span>
+                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 truncate">{record.label}</span>
               </div>
-              <div className="text-xl font-headline font-black text-white">{record.value}</div>
-              <div className="text-[8px] font-bold text-slate-500 mt-1 uppercase tracking-tighter">{record.description}</div>
+              <div className="text-lg xl:text-xl font-headline font-black text-white truncate">{record.value}</div>
+              <div className="text-[7px] font-bold text-slate-500 mt-0.5 uppercase tracking-tighter truncate">{record.description}</div>
             </div>
           ))}
         </div>
