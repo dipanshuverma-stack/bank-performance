@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
-import '@/app/globals.css'
+import { Plus_Jakarta_Sans, Outfit } from 'next/font/google';
+import '@/app/globals.css';
 
 /**
  * @fileOverview Global fatal error boundary. 
@@ -12,26 +12,26 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-plus-jakarta',
   display: 'swap',
-})
+});
 
 const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit',
   display: 'swap',
-})
+});
 
-export default function GlobalError({
+export default function GlobalSystemError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`}>
       <body className="font-body bg-background text-foreground flex min-h-screen flex-col items-center justify-center p-8 text-center">
         <div className="max-w-md w-full space-y-10">
-          <div className="inline-block p-5 bg-primary/10 rounded-[2.5rem] mb-2 shadow-inner">
+          <div className="inline-block p-5 bg-primary/10 rounded-[2.5rem] mb-2 shadow-inner border border-primary/20">
              <div className="w-16 h-16 bg-primary rounded-[2rem] flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40">
                 <span className="font-black text-3xl">!</span>
              </div>
@@ -65,5 +65,5 @@ export default function GlobalError({
         </div>
       </body>
     </html>
-  )
+  );
 }
