@@ -2,11 +2,6 @@
 
 import React from 'react';
 
-/**
- * @fileOverview Failsafe kernel-level error boundary.
- * Must include its own <html> and <body> tags.
- */
-
 export default function GlobalError({
   error,
   reset,

@@ -202,7 +202,7 @@ export default function Home() {
             >
               <CarouselContent className="-ml-4">
                 <CarouselItem className="pl-4 md:basis-1/2 flex min-w-0">
-                  <AiInsightsPanel className="w-full min-h-[320px]" />
+                 <AiInsightsPanel className="w-full min-h-[320px]" />
                 </CarouselItem>
                 <CarouselItem className="pl-4 md:basis-1/2 flex min-w-0">
                   <ReadinessScore className="w-full min-h-[320px]" />

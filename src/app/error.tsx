@@ -2,10 +2,6 @@
 
 import React, { useEffect } from 'react';
 
-/**
- * @fileOverview Hardened resilience module for standard runtime errors.
- */
-
 export default function Error({
   error,
   reset,
@@ -14,7 +10,6 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Only log error in development or as a tactical audit
     console.error('Terminal Runtime Exception:', error);
   }, [error]);
 
