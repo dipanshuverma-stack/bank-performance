@@ -26,14 +26,15 @@ import {
   Trash2,
   Award,
   BarChart3,
-  X
+  X,
+  Target,
+  ChevronRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { logAuditAction } from "@/lib/audit-logger";
-import { useUser, useFirestore, useCollection } from "@/firebase";
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, collection, deleteDoc, query, orderBy } from "firebase/firestore";
-import { useMemoFirebase } from "@/firebase/use-memo-firebase";
 import { ADDA247_SYLLABUS } from "@/lib/syllabus";
 
 interface MockLog {
@@ -70,6 +71,7 @@ export function MockTestConsole() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeStage, setActiveStage] = useState<"Prelims" | "Mains">("Prelims");
   
+  // Logger State
   const [mockName, setMockName] = useState("");
   const [examType, setExamType] = useState("SBI PO");
   const [stage, setStage] = useState<'Prelims' | 'Mains'>('Prelims');
@@ -98,12 +100,12 @@ export function MockTestConsole() {
     }
   }, []);
 
-  const mocks = user ? (cloudMocks || []) : localMocks;
+  const mocks = (user && cloudMocks && cloudMocks.length > 0) ? cloudMocks : localMocks;
   const filteredMocks = mocks.filter(m => m.stage === activeStage);
 
   const addMock = () => {
     if (!mockName || !score || !correct || !wrong) {
-      toast({ variant: "destructive", title: "Missing Metrics", description: "Fill core details." });
+      toast({ variant: "destructive", title: "Missing Metrics", description: "All primary performance metrics are required." });
       return;
     }
 
@@ -138,14 +140,14 @@ export function MockTestConsole() {
 
     if (user && db) {
       const mockRef = doc(db, 'users', user.uid, 'mocks', newMock.id);
-      setDoc(mockRef, { ...newMock, serverTimestamp: new Date() });
+      setDoc(mockRef, { ...newMock, serverTimestamp: new Date() }, { merge: true });
     }
 
     setIsDialogOpen(false);
-    logAuditAction("Performance", "Mock Archived", `${examType} - ${newMock.accuracy}% Accuracy`);
-    toast({ title: "Performance Synchronized", description: "Data logged to Hybrid Vault." });
+    logAuditAction("Performance", "Mock Archived", `${examType} (${stage}) - ${newMock.accuracy}% accuracy recorded.`);
+    toast({ title: "Performance Secured", description: "Mock unit archived in Hybrid Vault." });
     
-    // Reset
+    // Reset Logger
     setMockName(""); setScore(""); setCorrect(""); setWrong(""); 
     setWeakTopics([]); setQScore(""); setRScore(""); setEScore(""); setGAScore("");
   };
@@ -159,197 +161,223 @@ export function MockTestConsole() {
       const mockRef = doc(db, 'users', user.uid, 'mocks', id);
       deleteDoc(mockRef);
     }
-    logAuditAction("Performance", "Mock Removed", "Entry purged from vault.");
+    logAuditAction("Performance", "Mock Purged", "Operational record removed from archives.");
+    toast({ title: "Record Purged", description: "Performance unit removed from vault." });
   };
 
-  const filteredSyllabus = ADDA247_SYLLABUS.filter(subject => {
+  const currentSyllabus = ADDA247_SYLLABUS.filter(subject => {
     if (stage === 'Prelims') {
       return subject.name !== 'General Awareness';
     }
     return true;
   });
 
-  const handleTopicAdd = (topic: string) => {
-    if (!weakTopics.includes(topic)) {
-      setWeakTopics([...weakTopics, topic]);
-    }
-  };
-
-  const handleTopicRemove = (topic: string) => {
-    setWeakTopics(weakTopics.filter(t => t !== topic));
-  };
-
   if (!mounted) return null;
 
   return (
-    <div className="space-y-6">
-      <Card className="bento-card border-none bg-slate-50/50 dark:bg-white/5 shadow-xl">
-        <CardHeader className="bg-accent/5 py-6 border-b border-border/50">
+    <div className="space-y-8">
+      <Card className="bento-card border-none bg-card/40 backdrop-blur-3xl shadow-2xl overflow-hidden">
+        <CardHeader className="bg-accent/5 p-6 lg:p-8 border-b border-border/40">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <BarChart3 className="w-6 h-6" />
-              </div>
-              <CardTitle className="text-xl font-headline font-bold">Mock Analytics Vault</CardTitle>
-            </div>
             <div className="flex items-center gap-4">
-               <Tabs value={activeStage} onValueChange={(val: any) => setActiveStage(val)} className="w-[200px]">
-                <TabsList className="grid grid-cols-2 w-full h-11 bg-primary/10 rounded-2xl p-1 border border-primary/20">
-                  <TabsTrigger value="Prelims" className="text-[10px] font-black uppercase tracking-widest rounded-xl">Prelims</TabsTrigger>
-                  <TabsTrigger value="Mains" className="text-[10px] font-black uppercase tracking-widest rounded-xl">Mains</TabsTrigger>
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                <Award className="w-6 h-6" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-headline font-black tracking-tight">Mission Analytics</CardTitle>
+                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mt-1 opacity-60">Phase: {activeStage} Operation</div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+               <Tabs value={activeStage} onValueChange={(val: any) => setActiveStage(val)} className="w-full sm:w-[240px]">
+                <TabsList className="grid grid-cols-2 w-full h-12 bg-primary/10 rounded-2xl p-1.5 border border-primary/20">
+                  <TabsTrigger value="Prelims" className="text-[10px] font-black uppercase tracking-widest rounded-xl transition-all data-[state=active]:bg-card">Prelims</TabsTrigger>
+                  <TabsTrigger value="Mains" className="text-[10px] font-black uppercase tracking-widest rounded-xl transition-all data-[state=active]:bg-card">Mains</TabsTrigger>
                 </TabsList>
               </Tabs>
+              
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="rounded-2xl bg-primary text-primary-foreground font-bold h-12 px-6 shadow-xl shadow-primary/20">
-                    <Plus className="w-4 h-4 mr-2" /> Log New Mock
+                  <Button className="w-full sm:w-auto rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-widest h-12 px-8 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
+                    <Plus className="w-4 h-4 mr-3" /> Log Mock Unit
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px] rounded-[2rem] border-none shadow-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader><DialogTitle className="text-2xl font-headline font-bold">Metric Logger</DialogTitle></DialogHeader>
+                <DialogContent className="sm:max-w-[650px] rounded-[2.5rem] border-none shadow-2xl max-h-[90vh] overflow-y-auto bg-card">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-headline font-black tracking-tight">Strategic Logger</DialogTitle>
+                  </DialogHeader>
                   <div className="space-y-6 py-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Exam Category</label>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Category</label>
                         <Select value={examType} onValueChange={setExamType}>
-                          <SelectTrigger className="rounded-2xl h-11 bg-accent/30 font-bold border-none"><SelectValue /></SelectTrigger>
-                          <SelectContent className="rounded-2xl">
-                            {EXAM_TYPES.map((type) => (<SelectItem key={type} value={type}>{type}</SelectItem>))}
+                          <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold"><SelectValue /></SelectTrigger>
+                          <SelectContent className="rounded-xl border-none shadow-2xl">
+                            {EXAM_TYPES.map((type) => (<SelectItem key={type} value={type} className="font-bold">{type}</SelectItem>))}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Exam Stage</label>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Phase</label>
                         <Select value={stage} onValueChange={(val: any) => { setStage(val); setWeakTopics([]); }}>
-                          <SelectTrigger className="rounded-2xl h-11 bg-accent/30 font-bold border-none"><SelectValue /></SelectTrigger>
-                          <SelectContent className="rounded-2xl">
-                            <SelectItem value="Prelims">Prelims</SelectItem>
-                            <SelectItem value="Mains">Mains</SelectItem>
+                          <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold"><SelectValue /></SelectTrigger>
+                          <SelectContent className="rounded-xl border-none shadow-2xl">
+                            <SelectItem value="Prelims" className="font-bold">Prelims</SelectItem>
+                            <SelectItem value="Mains" className="font-bold">Mains</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
+                    
                     <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mock Identification</label>
-                      <Input placeholder="e.g. SBI PO Mock 1" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-2xl h-11 bg-accent/30 font-bold border-none shadow-inner" />
+                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Name</label>
+                      <Input placeholder="e.g. SBI PO Mock 1" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-xl h-12 bg-accent/30 border-none font-bold" />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-primary ml-1">Final Score</label>
-                        <Input type="number" placeholder="Score" value={score} onChange={(e) => setScore(e.target.value)} className="rounded-2xl h-11 bg-primary/5 border-primary/20 font-bold" />
+                        <label className="text-[9px] font-black uppercase tracking-widest text-primary ml-1">Aggregate Score</label>
+                        <Input type="number" placeholder="Score" value={score} onChange={(e) => setScore(e.target.value)} className="rounded-xl h-12 bg-primary/5 border-2 border-primary/20 font-bold" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Total Marks</label>
-                        <Input type="number" placeholder="Total" value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className="rounded-2xl h-11 bg-accent/30 border-none shadow-inner font-bold" />
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Max Marks</label>
+                        <Input type="number" placeholder="Total" value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className="rounded-xl h-12 bg-accent/30 border-none font-bold" />
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-accent/10 border border-border/40 space-y-4">
-                      <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Subject-Wise Diagnostics (Optional)</div>
+                    <div className="p-5 rounded-3xl bg-accent/10 border border-border/40 space-y-4 shadow-inner">
+                      <div className="flex items-center justify-between">
+                         <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Diagnostic Drill-Down (Optional)</div>
+                         <Badge variant="outline" className="text-[8px] font-bold uppercase tracking-widest opacity-60">Accuracy Engine</Badge>
+                      </div>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-muted-foreground">Quants</label>
-                          <Input type="number" value={qScore} onChange={(e) => setQScore(e.target.value)} className="h-9 rounded-xl bg-background border-none text-xs font-bold" />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-muted-foreground">Reasoning</label>
-                          <Input type="number" value={rScore} onChange={(e) => setRScore(e.target.value)} className="h-9 rounded-xl bg-background border-none text-xs font-bold" />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-muted-foreground">English</label>
-                          <Input type="number" value={eScore} onChange={(e) => setEScore(e.target.value)} className="h-9 rounded-xl bg-background border-none text-xs font-bold" />
-                        </div>
-                        {stage === 'Mains' && (
-                          <div className="space-y-1">
-                            <label className="text-[8px] font-black uppercase text-muted-foreground">GA</label>
-                            <Input type="number" value={gaScore} onChange={(e) => setGAScore(e.target.value)} className="h-9 rounded-xl bg-background border-none text-xs font-bold" />
-                          </div>
-                        )}
+                        {['quants', 'reasoning', 'english', 'ga'].map((sub) => {
+                          if (sub === 'ga' && stage === 'Prelims') return null;
+                          const val = sub === 'quants' ? qScore : sub === 'reasoning' ? rScore : sub === 'english' ? eScore : gaScore;
+                          const setter = sub === 'quants' ? setQScore : sub === 'reasoning' ? setRScore : sub === 'english' ? setEScore : setGAScore;
+                          return (
+                            <div key={sub} className="space-y-1">
+                              <label className="text-[8px] font-black uppercase text-muted-foreground ml-1">{sub}</label>
+                              <Input type="number" value={val} onChange={(e) => setter(e.target.value)} className="h-10 rounded-xl bg-background border-none text-xs font-bold text-center" />
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tactical Weak Areas</label>
-                      <Select onValueChange={handleTopicAdd}>
-                        <SelectTrigger className="rounded-2xl h-11 bg-accent/30 font-bold border-none"><SelectValue placeholder="Identify struggle zones..." /></SelectTrigger>
-                        <SelectContent className="rounded-2xl max-h-[300px]">
-                          {filteredSyllabus.map((subject) => (
+                    <div className="space-y-3">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                        <Target className="w-3 h-3" /> Struggle Zones (Syllabus Select)
+                      </label>
+                      <Select onValueChange={(topic) => { if (!weakTopics.includes(topic)) setWeakTopics([...weakTopics, topic]); }}>
+                        <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold"><SelectValue placeholder="Identify sub-topic gaps..." /></SelectTrigger>
+                        <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
+                          {currentSyllabus.map((subject) => (
                             <SelectGroup key={subject.name}>
-                              <SelectLabel className="text-[8px] font-black uppercase text-primary px-4 py-2 bg-primary/5">{subject.name}</SelectLabel>
+                              <SelectLabel className="text-[8px] font-black uppercase text-primary px-4 py-2 bg-primary/5 flex items-center gap-2">
+                                <ChevronRight className="w-2.5 h-2.5" /> {subject.name}
+                              </SelectLabel>
                               {subject.chapters.flatMap(ch => ch.subtopics).map((sub) => (
-                                <SelectItem key={sub.id} value={sub.name} className="text-xs font-bold">{sub.name}</SelectItem>
+                                <SelectItem key={sub.id} value={sub.name} className="text-xs font-bold transition-colors">{sub.name}</SelectItem>
                               ))}
                             </SelectGroup>
                           ))}
                         </SelectContent>
                       </Select>
-                      <div className="flex flex-wrap gap-2 mt-3">
+                      <div className="flex flex-wrap gap-2 pt-2">
                         {weakTopics.map(topic => (
-                          <Badge key={topic} variant="secondary" className="pl-3 pr-1 py-1 rounded-xl bg-primary/10 text-primary border-primary/20 flex items-center gap-1">
-                            <span className="text-[10px] font-bold">{topic}</span>
-                            <button onClick={() => handleTopicRemove(topic)} className="hover:bg-primary/20 rounded-full p-0.5"><X className="w-3 h-3" /></button>
+                          <Badge key={topic} variant="secondary" className="pl-3 pr-1 py-1.5 rounded-xl bg-primary/10 text-primary border-primary/20 flex items-center gap-2 group/tag cursor-default">
+                            <span className="text-[9px] font-black uppercase">{topic}</span>
+                            <button onClick={() => setWeakTopics(weakTopics.filter(t => t !== topic))} className="hover:bg-primary/20 rounded-full p-0.5 transition-colors">
+                              <X className="w-3 h-3" />
+                            </button>
                           </Badge>
                         ))}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 border-t border-border/20 pt-6">
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-black uppercase tracking-widest text-success ml-1">Correct Hits</label>
-                        <Input type="number" placeholder="Correct" value={correct} onChange={(e) => setCorrect(e.target.value)} className="rounded-2xl h-11 bg-success/5 border-success/20 font-bold" />
+                        <Input type="number" placeholder="Count" value={correct} onChange={(e) => setCorrect(e.target.value)} className="rounded-xl h-12 bg-success/5 border-2 border-success/20 font-bold" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-destructive ml-1">Wrong Hits</label>
-                        <Input type="number" placeholder="Wrong" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-2xl h-11 bg-destructive/5 border-destructive/20 font-bold" />
+                        <label className="text-[9px] font-black uppercase tracking-widest text-destructive ml-1">Errors</label>
+                        <Input type="number" placeholder="Count" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-xl h-12 bg-destructive/5 border-2 border-destructive/20 font-bold" />
                       </div>
                     </div>
-                    <Button onClick={addMock} className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-[1.02]">Archive to Vault</Button>
+                    <Button onClick={addMock} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-[0.2em] shadow-2xl shadow-primary/30 mt-4 active:scale-[0.98] transition-all">Archive Unit to Vault</Button>
                   </div>
                 </DialogContent>
               </Dialog>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-8">
+        
+        <CardContent className="p-6 lg:p-10">
           {filteredMocks.length > 0 ? (
-            filteredMocks.map((mock) => (
-              <div key={mock.id} className="group relative p-6 rounded-3xl border-2 border-border/40 bg-card hover:border-primary/30 transition-all duration-300 mb-4 shadow-sm hover:shadow-lg">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-inner shrink-0"><Award className="w-6 h-6" /></div>
-                    <div>
-                      <div className="font-black text-xl tracking-tight">{mock.name}</div>
-                      <div className="flex flex-wrap items-center gap-3 mt-1">
-                        <Badge variant="outline" className="text-[9px] font-black uppercase border-primary/20 bg-primary/5 text-primary">{mock.examType}</Badge>
-                        <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{mock.date} • {mock.score}/{mock.totalMarks} Marks</span>
+            <div className="space-y-4">
+              {filteredMocks.map((mock) => (
+                <div key={mock.id} className="group relative p-6 rounded-3xl border-2 border-border/40 bg-card/60 hover:border-primary/40 transition-all duration-500 shadow-sm hover:shadow-xl">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-primary/5 text-primary flex items-center justify-center shadow-inner group-hover:bg-primary/10 transition-colors shrink-0">
+                        <Award className="w-7 h-7" />
                       </div>
+                      <div>
+                        <div className="font-black text-xl tracking-tight text-foreground leading-tight">{mock.name}</div>
+                        <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                          <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-primary/20 bg-primary/5 text-primary h-5">{mock.examType}</Badge>
+                          <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest opacity-60">{mock.date} • {mock.score}/{mock.totalMarks} Marks</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-10">
+                      <div className="text-right">
+                        <div className="text-4xl font-headline font-black text-primary tracking-tighter tabular-nums leading-none">{mock.accuracy}%</div>
+                        <div className="text-[9px] text-muted-foreground uppercase font-black tracking-[0.2em] mt-1 opacity-60 text-right">Precision</div>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => removeMock(mock.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive h-12 w-12 transition-all hover:bg-destructive/10 rounded-2xl shrink-0"><Trash2 className="w-5 h-5" /></Button>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-8">
-                    <div className="text-right">
-                      <div className="text-3xl font-headline font-black text-primary tracking-tighter">{mock.accuracy}%</div>
-                      <div className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Precision</div>
+                  {(mock.weakTopics && mock.weakTopics.length > 0) || mock.subjectScores ? (
+                    <div className="mt-6 pt-6 border-t border-border/40 space-y-4">
+                      {mock.subjectScores && (
+                         <div className="flex flex-wrap gap-4">
+                            {Object.entries(mock.subjectScores).map(([key, val]) => val !== undefined && (
+                              <div key={key} className="flex flex-col">
+                                <span className="text-[7px] font-black uppercase text-muted-foreground tracking-widest">{key}</span>
+                                <span className="text-xs font-bold text-foreground">{val}</span>
+                              </div>
+                            ))}
+                         </div>
+                      )}
+                      {mock.weakTopics && mock.weakTopics.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {mock.weakTopics.map(topic => (
+                            <Badge key={topic} variant="secondary" className="text-[8px] font-black text-muted-foreground uppercase tracking-wider bg-accent/40 rounded-lg px-2.5 py-1">
+                              {topic}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeMock(mock.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive h-10 w-10 transition-all hover:bg-destructive/10 rounded-xl"><Trash2 className="w-4 h-4" /></Button>
-                  </div>
+                  ) : null}
                 </div>
-                {mock.weakTopics && mock.weakTopics.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-border/40 flex flex-wrap gap-2">
-                    {mock.weakTopics.map(topic => (
-                      <Badge key={topic} variant="ghost" className="text-[9px] font-black text-muted-foreground uppercase tracking-wider bg-accent/40 rounded-lg px-3 py-1">
-                        {topic}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
-            <div className="py-20 text-center text-muted-foreground/20 uppercase tracking-[0.3em] font-black flex flex-col items-center gap-4">
-               <BarChart3 className="w-16 h-16 opacity-5" />
-               No Archived Units Found
+            <div className="py-24 text-center flex flex-col items-center gap-6">
+               <div className="w-20 h-20 rounded-[2rem] bg-accent/20 flex items-center justify-center opacity-30 shadow-inner">
+                 <BarChart3 className="w-10 h-10" />
+               </div>
+               <div>
+                 <p className="text-xs font-black uppercase tracking-[0.4em] text-muted-foreground/30">Vault Segment Empty</p>
+                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/20 mt-2">Log a {activeStage} performance unit to activate analytics</p>
+               </div>
             </div>
           )}
         </CardContent>

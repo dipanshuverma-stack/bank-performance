@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, AlertCircle, CheckCircle2, Search, BookOpen, AlertOctagon, Brain } from "lucide-react";
+import { Trash2, Plus, AlertCircle, CheckCircle2, Search, BookOpen, AlertOctagon, Brain, Filter, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,7 +48,10 @@ export default function MistakesPage() {
   }, [mistakes, mounted]);
 
   const addMistake = () => {
-    if (!newTopic || !newNote) return;
+    if (!newTopic.trim() || !newNote.trim()) {
+      toast({ variant: "destructive", title: "Metadata Missing", description: "Topic and Analysis are required for archival." });
+      return;
+    }
     const mistake: Mistake = {
       id: Math.random().toString(36).substr(2, 9),
       topic: newTopic,
@@ -61,17 +64,17 @@ export default function MistakesPage() {
     setMistakes([mistake, ...mistakes]);
     setIsDialogOpen(false);
     
-    logAuditAction("Journal", "Mistake Archived", `${newTopic} (${newType}) entry created.`);
+    logAuditAction("Journal", "Mistake Archived", `${newTopic} (${newType}) unit archived in journal.`);
     
     setNewTopic(""); setNewNote(""); setNewCorrectMethod("");
-    toast({ title: "Mistake Archived", description: "Strategic correction unit saved to journal." });
+    toast({ title: "Mistake Archived", description: "Strategic correction unit secured in Tactical Journal." });
   };
 
   const toggleResolved = (id: string) => {
     const updated = mistakes.map(m => {
       if (m.id === id) {
         const newState = !m.resolved;
-        logAuditAction("Journal", "Mistake Protocol Updated", `${m.topic} marked as ${newState ? 'Resolved' : 'Active'}`);
+        logAuditAction("Journal", "Status Update", `${m.topic} marked as ${newState ? 'Resolved' : 'Active'}`);
         return { ...m, resolved: newState };
       }
       return m;
@@ -80,11 +83,9 @@ export default function MistakesPage() {
   };
 
   const deleteMistake = (id: string) => {
-    const mistake = mistakes.find(m => m.id === id);
-    if (mistake) {
-      logAuditAction("Journal", "Mistake Entry Purged", `${mistake.topic} removed from archives.`);
-    }
     setMistakes(mistakes.filter(m => m.id !== id));
+    logAuditAction("Journal", "Record Purged", "Mistake unit removed from Tactical Journal.");
+    toast({ title: "Record Purged", description: "Operational error entry removed from archives." });
   };
 
   const filteredMistakes = mistakes.filter(m => {
@@ -103,32 +104,36 @@ export default function MistakesPage() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-10 pb-32">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <span className="text-[10px] text-primary font-black uppercase tracking-widest">Growth Analytics</span>
-          <h2 className="text-2xl md:text-4xl font-headline font-extrabold tracking-tight text-foreground">Mistake Intelligence</h2>
-          <p className="text-muted-foreground max-w-xl">Archive your errors to prevent repetition. Elite performance is built on analyzed failures.</p>
+          <div className="flex items-center gap-3">
+             <div className="h-1 w-8 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.6)]" />
+             <span className="text-[10px] text-primary font-black uppercase tracking-[0.3em]">Operational Readiness</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-headline font-black tracking-tighter text-foreground leading-none">Tactical <span className="text-primary italic">Journal</span></h2>
+          <p className="text-muted-foreground max-w-xl font-medium text-sm mt-2 leading-relaxed">Elite performance is built on analyzed failures. Archive every error to prevent strategic repetition.</p>
         </div>
+        
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-2xl h-14 px-8 bg-destructive text-destructive-foreground font-black uppercase tracking-widest shadow-xl shadow-destructive/20 transition-all hover:scale-[1.02]">
+            <Button className="rounded-[1.5rem] h-16 px-10 bg-destructive text-destructive-foreground font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl shadow-destructive/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
               <Plus className="w-5 h-5 mr-3" /> Archive Error
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl border-none shadow-2xl max-w-2xl overflow-y-auto max-h-[90vh]">
-            <DialogHeader><DialogTitle className="text-2xl font-bold">Strategic Correction Unit</DialogTitle></DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Topic/Chapter</label>
-                  <Input value={newTopic} onChange={(e) => setNewTopic(e.target.value)} placeholder="e.g. Syllogism Possibility" className="rounded-xl h-11 bg-accent/30 font-bold" />
+          <DialogContent className="rounded-[2.5rem] border-none shadow-2xl max-w-2xl bg-card overflow-y-auto max-h-[90vh]">
+            <DialogHeader><DialogTitle className="text-3xl font-headline font-black tracking-tight">Struggle Archive</DialogTitle></DialogHeader>
+            <div className="space-y-8 py-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Topic / Chapter</label>
+                  <Input value={newTopic} onChange={(e) => setNewTopic(e.target.value)} placeholder="e.g. Syllogism Possibility" className="rounded-2xl h-14 bg-accent/30 border-none font-bold shadow-inner" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Error Nature</label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Error Classification</label>
                   <Select value={newType} onValueChange={setNewType}>
-                    <SelectTrigger className="rounded-xl h-11 bg-accent/30 font-bold"><SelectValue /></SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectTrigger className="rounded-2xl h-14 bg-accent/30 border-none font-bold shadow-inner"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-2xl border-none shadow-2xl font-bold">
                       <SelectItem value="Silly">Silly Mistake</SelectItem>
                       <SelectItem value="Concept">Conceptual Error</SelectItem>
                       <SelectItem value="Time">Time Pressure</SelectItem>
@@ -137,88 +142,98 @@ export default function MistakesPage() {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Error Analysis</label>
-                <Textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="What went wrong specifically?" className="rounded-xl min-h-[80px] bg-accent/30 font-bold" />
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-destructive ml-1">Problem Analysis</label>
+                <Textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="What went wrong specifically? Document the logic gap." className="rounded-2xl min-h-[100px] bg-destructive/5 border-2 border-destructive/10 font-bold shadow-inner py-4" />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-success">Correct Strategic Method</label>
-                <Textarea value={newCorrectMethod} onChange={(e) => setNewCorrectMethod(e.target.value)} placeholder="How to solve this correctly next time?" className="rounded-xl min-h-[80px] bg-success/5 border-success/20 font-bold" />
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-success ml-1">Corrective Strategy</label>
+                <Textarea value={newCorrectMethod} onChange={(e) => setNewCorrectMethod(e.target.value)} placeholder="How to solve this correctly next time? Define the protocol." className="rounded-2xl min-h-[100px] bg-success/5 border-2 border-success/10 font-bold shadow-inner py-4" />
               </div>
-              <Button onClick={addMistake} className="w-full h-14 bg-primary text-primary-foreground font-black uppercase tracking-widest rounded-2xl mt-4 shadow-xl shadow-primary/20">Archive in Journal</Button>
+              <Button onClick={addMistake} className="w-full h-16 bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-[0.2em] rounded-2xl mt-4 shadow-2xl shadow-primary/30 transition-all active:scale-[0.98]">Commit to Journal</Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Silly Mistakes", val: analytics.silly, color: "text-blue-500 bg-blue-500/10" },
-          { label: "Concept Gaps", val: analytics.concept, color: "text-purple-500 bg-purple-500/10" },
-          { label: "Time Pressure", val: analytics.time, color: "text-orange-500 bg-orange-500/10" },
-          { label: "Calc Errors", val: analytics.calc, color: "text-rose-500 bg-rose-500/10" },
+          { label: "Silly Hits", val: analytics.silly, color: "text-blue-500 bg-blue-500/5 border-blue-500/20" },
+          { label: "Concept Gaps", val: analytics.concept, color: "text-purple-500 bg-purple-500/5 border-purple-500/20" },
+          { label: "Time Pressure", val: analytics.time, color: "text-orange-500 bg-orange-500/5 border-orange-500/20" },
+          { label: "Calc Errors", val: analytics.calc, color: "text-rose-500 bg-rose-500/5 border-rose-500/20" },
         ].map((stat, i) => (
-          <div key={i} className={`p-4 rounded-3xl border ${stat.color} border-current/10 flex flex-col items-center justify-center text-center`}>
-            <div className="text-2xl font-black">{stat.val}</div>
-            <div className="text-[9px] font-black uppercase tracking-widest opacity-80">{stat.label}</div>
+          <div key={i} className={`p-6 rounded-[2rem] border-2 ${stat.color} flex flex-col items-center justify-center text-center shadow-sm group hover:scale-[1.02] transition-all`}>
+            <div className="text-4xl font-headline font-black tracking-tighter mb-1 tabular-nums">{stat.val}</div>
+            <div className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60 leading-none">{stat.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center">
+      <div className="flex flex-col lg:flex-row gap-6 items-center">
         <div className="relative w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search journal..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-12 rounded-2xl h-12 bg-card/50" />
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-40" />
+          <Input placeholder="Search archives for topics or notes..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-14 rounded-2xl h-14 bg-card/60 backdrop-blur-xl border-border/40 font-bold focus:ring-4 ring-primary/10 shadow-lg" />
         </div>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-full md:w-[200px] rounded-2xl h-12 bg-card/50 font-bold"><SelectValue /></SelectTrigger>
-          <SelectContent className="rounded-xl font-bold">
-            <SelectItem value="All">All Types</SelectItem>
-            <SelectItem value="Silly">Silly</SelectItem>
-            <SelectItem value="Concept">Concept</SelectItem>
-            <SelectItem value="Time">Time</SelectItem>
-            <SelectItem value="Calculation">Calculation</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="bg-card/60 backdrop-blur-xl rounded-2xl border-2 border-border/40 p-1.5 flex items-center h-14 shadow-lg shrink-0">
+             <Filter className="w-4 h-4 text-muted-foreground ml-3 mr-2 opacity-40" />
+             <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-[180px] border-none font-black uppercase text-[10px] tracking-widest focus:ring-0 shadow-none"><SelectValue /></SelectTrigger>
+              <SelectContent className="rounded-2xl font-black uppercase text-[10px] tracking-widest border-none shadow-2xl">
+                <SelectItem value="All">All Anomalies</SelectItem>
+                <SelectItem value="Silly">Silly Mistakes</SelectItem>
+                <SelectItem value="Concept">Conceptual Gaps</SelectItem>
+                <SelectItem value="Time">Time Violations</SelectItem>
+                <SelectItem value="Calculation">Calc Failures</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          { (searchQuery || filterType !== 'All') && (
+            <Button variant="ghost" onClick={() => { setSearchQuery(""); setFilterType("All"); }} className="h-14 w-14 rounded-2xl bg-card/60 border-2 border-border/40 text-muted-foreground hover:text-foreground shrink-0"><X className="w-5 h-5" /></Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         {filteredMistakes.length > 0 ? (
           filteredMistakes.map((m) => (
-            <Card key={m.id} className={`group bento-card border-2 transition-all duration-300 ${m.resolved ? 'bg-success/5 border-success/20 opacity-60' : 'bg-card border-border/40 hover:border-primary/30 shadow-lg'}`}>
-              <CardContent className="p-6 md:p-8">
-                <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                  <div className="flex gap-5 flex-1">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${m.resolved ? 'bg-success/20 text-success' : 'bg-destructive/10 text-destructive'}`}>
-                      {m.resolved ? <CheckCircle2 className="w-6 h-6" /> : <AlertOctagon className="w-6 h-6" />}
+            <Card key={m.id} className={`group bento-card border-2 transition-all duration-500 ${m.resolved ? 'bg-success/5 border-success/10 opacity-60 scale-[0.98]' : 'bg-card/60 border-border/40 hover:border-primary/40 shadow-xl'}`}>
+              <CardContent className="p-6 md:p-10">
+                <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
+                  <div className="flex gap-8 flex-1">
+                    <div className={`w-16 h-16 rounded-3xl flex items-center justify-center shrink-0 shadow-inner transition-transform duration-700 group-hover:scale-105 ${m.resolved ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
+                      {m.resolved ? <CheckCircle2 className="w-8 h-8" /> : <AlertOctagon className="w-8 h-8 animate-pulse" />}
                     </div>
-                    <div className="space-y-4 flex-1">
+                    <div className="space-y-6 flex-1 min-w-0">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-xl">{m.topic}</span>
-                          <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest">{m.type}</Badge>
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                          <span className="font-black text-2xl tracking-tight text-foreground">{m.topic}</span>
+                          <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.2em] h-5 px-3 bg-accent/60 border-none">{m.type}</Badge>
                         </div>
-                        <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{m.date}</div>
+                        <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-60">{m.date} Archive Unit</div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="p-4 rounded-2xl bg-accent/30 border border-border/50">
-                           <div className="text-[9px] font-black text-destructive uppercase tracking-widest mb-2 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Problem Analysis</div>
-                           <p className="text-sm font-medium italic">"{m.note}"</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
+                        <div className="p-6 rounded-[2rem] bg-destructive/[0.03] border-2 border-destructive/5 relative overflow-hidden group/box">
+                           <div className="text-[9px] font-black text-destructive uppercase tracking-[0.3em] mb-3 flex items-center gap-2 relative z-10"><AlertCircle className="w-3.5 h-3.5" /> Problem Analysis</div>
+                           <p className="text-sm font-bold italic leading-relaxed text-foreground/80 relative z-10">"{m.note}"</p>
+                           <AlertOctagon className="absolute bottom-[-20px] right-[-20px] w-32 h-32 text-destructive/5 rotate-12 transition-transform duration-1000 group-hover/box:scale-110" />
                         </div>
-                        <div className="p-4 rounded-2xl bg-success/5 border border-success/20">
-                           <div className="text-[9px] font-black text-success uppercase tracking-widest mb-2 flex items-center gap-1"><Brain className="w-3 h-3" /> Corrective Strategy</div>
-                           <p className="text-sm font-bold text-foreground">{m.correctMethod || "No method recorded."}</p>
+                        <div className="p-6 rounded-[2rem] bg-success/[0.03] border-2 border-success/5 relative overflow-hidden group/box">
+                           <div className="text-[9px] font-black text-success uppercase tracking-[0.3em] mb-3 flex items-center gap-2 relative z-10"><Brain className="w-3.5 h-3.5" /> Corrective Protocol</div>
+                           <p className="text-sm font-black text-foreground relative z-10 leading-relaxed">{m.correctMethod || "Method not archived."}</p>
+                           <ShieldCheck className="absolute bottom-[-20px] right-[-20px] w-32 h-32 text-success/5 rotate-12 transition-transform duration-1000 group-hover/box:scale-110" />
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-                    <Button variant="outline" onClick={() => toggleResolved(m.id)} className={`rounded-xl h-10 px-4 font-black uppercase tracking-widest text-[10px] border-2 ${m.resolved ? 'text-success border-success/20' : 'text-primary border-primary/20'}`}>
-                      {m.resolved ? "Resolved" : "Active Error"}
+                  <div className="flex items-center gap-4 w-full lg:w-auto justify-end">
+                    <Button variant="outline" onClick={() => toggleResolved(m.id)} className={`rounded-2xl h-12 px-6 font-black uppercase tracking-widest text-[10px] border-2 transition-all active:scale-95 ${m.resolved ? 'text-success border-success/20 bg-success/5' : 'text-primary border-primary/20 bg-primary/5 hover:bg-primary/10'}`}>
+                      {m.resolved ? "Unit Resolved" : "Active Anomaly"}
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteMistake(m.id)} className="text-muted-foreground hover:text-destructive transition-colors rounded-xl h-10 w-10">
-                      <Trash2 className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" onClick={() => deleteLog(m.id)} className="text-muted-foreground hover:text-destructive transition-colors rounded-2xl h-12 w-12 hover:bg-destructive/10 shrink-0">
+                      <Trash2 className="w-5 h-5" />
                     </Button>
                   </div>
                 </div>
@@ -226,9 +241,14 @@ export default function MistakesPage() {
             </Card>
           ))
         ) : (
-          <div className="py-24 text-center text-muted-foreground/20 uppercase tracking-[0.3em] font-black flex flex-col items-center gap-4">
-             <BookOpen className="w-16 h-16 opacity-10" />
-             Journal entries not found
+          <div className="py-40 text-center flex flex-col items-center gap-8">
+             <div className="w-24 h-24 rounded-[2.5rem] bg-accent/20 flex items-center justify-center opacity-30 shadow-inner">
+                <BookOpen className="w-10 h-10" />
+             </div>
+             <div>
+               <p className="text-sm font-black uppercase tracking-[0.5em] text-muted-foreground/30">Journal Exhausted</p>
+               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/20 mt-4 max-w-xs leading-relaxed">No tactical anomalies detected for the current filter criteria.</p>
+             </div>
           </div>
         )}
       </div>
