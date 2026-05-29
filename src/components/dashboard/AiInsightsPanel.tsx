@@ -15,10 +15,12 @@ interface Insight {
 }
 
 export function AiInsightsPanel({ className }: { className?: string }) {
+  const [mounted, setMounted] = useState(false);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
     const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
     const profile = JSON.parse(localStorage.getItem("elite-user-profile") || "{}");
@@ -72,6 +74,14 @@ export function AiInsightsPanel({ className }: { className?: string }) {
 
     setInsights(newInsights.slice(0, 3));
   }, []);
+
+  if (!mounted) return (
+    <Card className={cn("bento-card bg-card/40 flex flex-col border-white/5 shadow-2xl h-full backdrop-blur-sm min-h-[320px]", className)}>
+       <CardContent className="flex items-center justify-center h-full">
+         <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+       </CardContent>
+    </Card>
+  );
 
   return (
     <Card className={cn("bento-card bg-card/40 flex flex-col border-white/5 shadow-2xl h-full backdrop-blur-sm", className)}>

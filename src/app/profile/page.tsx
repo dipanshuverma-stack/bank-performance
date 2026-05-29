@@ -45,7 +45,7 @@ export default function ProfilePage() {
   const { data: cloudAuditLogs } = useCollection<AuditLog>(auditQuery);
 
   const localAuditLogs = useMemo(() => {
-    if (typeof window === 'undefined') return [];
+    if (!mounted || typeof window === 'undefined') return [];
     try {
       return JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
     } catch {
@@ -115,6 +115,7 @@ export default function ProfilePage() {
   };
 
   const handleExport = () => {
+    if (typeof window === 'undefined') return;
     const data = {
       profile,
       mocks: JSON.parse(localStorage.getItem("elite-mock-logs") || "[]"),

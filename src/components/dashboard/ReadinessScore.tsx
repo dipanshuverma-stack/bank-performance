@@ -6,11 +6,13 @@ import { ShieldCheck, TrendingUp, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ReadinessScore({ className }: { className?: string }) {
+  const [mounted, setMounted] = useState(false);
   const [score, setScore] = useState(0);
   const [status, setStatus] = useState("Analyzing");
   const [activeStage, setActiveStage] = useState<"Prelims" | "Mains">("Prelims");
 
   useEffect(() => {
+    setMounted(true);
     const calculateReadiness = () => {
       const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
       const syllabus = JSON.parse(localStorage.getItem("elite-syllabus-v2") || "[]");
@@ -49,6 +51,14 @@ export function ReadinessScore({ className }: { className?: string }) {
       window.removeEventListener('elite-stage-changed', calculateReadiness);
     };
   }, []);
+
+  if (!mounted) return (
+    <Card className={cn("bento-card border-none bg-primary/5 border border-primary/20 overflow-hidden group flex flex-col min-h-[320px]", className)}>
+       <CardContent className="flex items-center justify-center h-full">
+         <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+       </CardContent>
+    </Card>
+  );
 
   return (
     <Card className={cn("bento-card border-none bg-primary/5 border border-primary/20 overflow-hidden group flex flex-col", className)}>
