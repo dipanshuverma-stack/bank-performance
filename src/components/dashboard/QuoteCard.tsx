@@ -6,6 +6,7 @@ import { generateMotivationalQuote } from "@/ai/flows/personalized-motivational-
 import { Card, CardContent } from "@/components/ui/card";
 import { Quote, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 type QuoteData = {
   quote: string;
@@ -13,7 +14,7 @@ type QuoteData = {
   dateFetched?: string;
 };
 
-export function QuoteCard() {
+export function QuoteCard({ className }: { className?: string }) {
   const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
 
   useEffect(() => {
@@ -50,8 +51,8 @@ export function QuoteCard() {
   }, []);
 
   return (
-    <Card className="bento-card border-none bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/10">
-      <CardContent className="p-6 h-full flex flex-col justify-between">
+    <Card className={cn("bento-card border-none bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/10 flex flex-col", className)}>
+      <CardContent className="p-6 flex-1 flex flex-col justify-between">
         <div className="flex items-center justify-between mb-2">
           <Quote className="w-8 h-8 opacity-40 rotate-180" />
           <Sparkles className="w-4 h-4 opacity-50 animate-pulse" />

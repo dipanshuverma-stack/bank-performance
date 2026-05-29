@@ -201,7 +201,7 @@ export function PerformanceOverview() {
       </CardHeader>
       
       <CardContent className="p-4 md:p-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
             { label: "Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground", icon: TrendingUp },
             { label: "Avg Score", value: stats.avgScore, color: "text-primary", icon: Target },

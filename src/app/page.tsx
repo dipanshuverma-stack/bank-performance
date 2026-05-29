@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -143,13 +144,13 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex items-center gap-6 bg-card/40 backdrop-blur-xl border rounded-[2rem] p-6 shadow-2xl hover:border-primary/30 transition-all group lg:min-w-[320px]">
-           <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
-             <Activity className="w-8 h-8" />
+        <div className="flex items-center gap-4 md:gap-6 bg-card/40 backdrop-blur-xl border rounded-[2rem] p-4 md:p-6 shadow-2xl hover:border-primary/30 transition-all group lg:min-w-[320px]">
+           <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500 shrink-0">
+             <Activity className="w-7 h-7 md:w-8 md:h-8" />
            </div>
            <div className="space-y-1">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Global Accuracy</div>
-              <div className="text-3xl font-headline font-black tracking-tighter">{metrics.avgAccuracy}%</div>
+              <div className="text-2xl md:text-3xl font-headline font-black tracking-tighter">{metrics.avgAccuracy}%</div>
               <div className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1">
                 <Zap className="w-3 h-3" /> High Performance
               </div>
@@ -192,15 +193,15 @@ export default function Home() {
               opts={{ align: "start", loop: true }}
               className="w-full"
             >
-              <CarouselContent className="-ml-4">
-                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px]">
-                  <AiInsightsPanel />
+              <CarouselContent className="-ml-4 flex items-stretch">
+                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px] flex">
+                  <AiInsightsPanel className="h-full w-full" />
                 </CarouselItem>
-                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px]">
-                  <ReadinessScore />
+                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px] flex">
+                  <ReadinessScore className="h-full w-full" />
                 </CarouselItem>
-                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px]">
-                  <QuoteCard />
+                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px] flex">
+                  <QuoteCard className="h-full w-full" />
                 </CarouselItem>
               </CarouselContent>
             </Carousel>
@@ -323,14 +324,14 @@ export default function Home() {
           opts={{ align: "start", loop: true }}
           className="w-full"
         >
-          <CarouselContent className="-ml-4 pb-4">
+          <CarouselContent className="-ml-4 pb-4 flex items-stretch">
             {[
               { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10", desc: "Adda247 Matrix Progress" },
               { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10", desc: "All-time Precision Score" },
               { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500", bg: "bg-purple-500/10", desc: "Operational Units Completed" },
             ].map((item, i) => (
-              <CarouselItem key={i} className="pl-4 basis-[85%] md:basis-1/3">
-                <div className="p-10 rounded-[3rem] bg-card border border-border/40 group hover:-translate-y-2 transition-all duration-500 shadow-xl hover:shadow-primary/5 h-full">
+              <CarouselItem key={i} className="pl-4 basis-[85%] md:basis-1/3 flex">
+                <div className="p-10 rounded-[3rem] bg-card border border-border/40 group hover:-translate-y-2 transition-all duration-500 shadow-xl hover:shadow-primary/5 h-full w-full flex flex-col">
                   <div className="flex justify-between items-start mb-6">
                     <div className={cn("p-4 rounded-[1.25rem] transition-transform duration-500 group-hover:scale-110", item.bg)}>
                       <item.icon className={cn("w-8 h-8", item.color)} />
@@ -338,7 +339,7 @@ export default function Home() {
                     <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{item.label}</div>
                   </div>
                   <div className="text-5xl font-headline font-black tracking-tighter text-foreground mb-2">{item.val}</div>
-                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">{item.desc}</div>
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60 mt-auto">{item.desc}</div>
                 </div>
               </CarouselItem>
             ))}

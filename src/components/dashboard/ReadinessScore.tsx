@@ -7,7 +7,7 @@ import { ShieldCheck, TrendingUp, Info } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
-export function ReadinessScore() {
+export function ReadinessScore({ className }: { className?: string }) {
   const [score, setScore] = useState(0);
   const [status, setStatus] = useState("Analyzing");
 
@@ -40,7 +40,7 @@ export function ReadinessScore() {
   }, []);
 
   return (
-    <Card className="bento-card border-none bg-primary/5 border border-primary/10 overflow-hidden group">
+    <Card className={cn("bento-card border-none bg-primary/5 border border-primary/10 overflow-hidden group flex flex-col", className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -55,8 +55,8 @@ export function ReadinessScore() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="flex flex-col items-center justify-center py-4">
+      <CardContent className="p-6 flex-1 flex flex-col justify-between">
+        <div className="flex flex-col items-center justify-center py-4 flex-1">
           <div className="relative w-32 h-32 flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90">
               <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-primary/10" />

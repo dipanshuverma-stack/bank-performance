@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Zap, Brain, TrendingUp, Clock, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface Insight {
   category: "Productivity" | "Strategy" | "Revision" | "Speed";
@@ -13,7 +14,7 @@ interface Insight {
   color: string;
 }
 
-export function AiInsightsPanel() {
+export function AiInsightsPanel({ className }: { className?: string }) {
   const [insights, setInsights] = useState<Insight[]>([]);
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export function AiInsightsPanel() {
   }, []);
 
   return (
-    <Card className="bento-card bg-card/50">
+    <Card className={cn("bento-card bg-card/50 flex flex-col", className)}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -62,7 +63,7 @@ export function AiInsightsPanel() {
           <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest text-primary border-primary/20">AI Analytics active</Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1">
         {insights.map((insight, idx) => (
           <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl bg-accent/20 border border-border/40 group hover:border-primary/20 transition-all">
             <div className={`p-2 rounded-xl shrink-0 ${insight.color}`}>
