@@ -37,13 +37,17 @@ export default function ProfilePage() {
 
   // Supabase Auth Integration
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check for existing session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSupabaseUser(session?.user ?? null);
       if (session?.user) {
         localStorage.setItem("cloud-sync-active", "true");
       }
-    });
+    };
+    getInitialSession();
 
+    // Listen for auth state transitions
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSupabaseUser(session?.user ?? null);
       if (session?.user) {
@@ -109,7 +113,7 @@ export default function ProfilePage() {
     }
   }, [cloudProfile]);
 
-  const displayLogs = supabaseUser ? cloudAuditLogs : localAuditLogs;
+  const displayLogs = supabaseUser ? (cloudAuditLogs && cloudAuditLogs.length > 0 ? cloudAuditLogs : localAuditLogs) : localAuditLogs;
 
   const handleSave = () => {
     localStorage.setItem("elite-user-profile", JSON.stringify(profile));
@@ -185,7 +189,7 @@ export default function ProfilePage() {
             <>
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary border-2 border-primary/40 overflow-hidden">
                 {supabaseUser.user_metadata?.avatar_url ? (
-                  <img src={supabaseUser.user_metadata.avatar_url} alt="User" />
+                  <img src={supabaseUser.user_metadata.avatar_url} alt="User" referrerPolicy="no-referrer" />
                 ) : (
                   <UserIcon className="w-6 h-6" />
                 )}
