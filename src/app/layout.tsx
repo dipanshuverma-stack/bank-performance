@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { Toaster } from '@/components/ui/toaster';
 import { AchievementMonitor } from '@/components/dashboard/AchievementMonitor';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { InteractionTracker } from '@/components/layout/InteractionTracker';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -55,6 +56,7 @@ export default function RootLayout({
         </div>
         <QuickActions />
         <AchievementMonitor />
+        <InteractionTracker />
         <Toaster />
       </body>
     </html>
