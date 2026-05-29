@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  RotateCcw, Save, Trash2, BookOpen, Timer as TimerIcon, Zap, Clock
+  RotateCcw, Save, Trash2, BookOpen, Timer as TimerIcon, Zap, Clock, Play, Pause
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { logAuditAction } from "@/lib/audit-logger";
 import { useUser, useFirestore, useCollection } from "@/firebase";
@@ -32,7 +31,6 @@ export function AccuracyTimer() {
   const [localLogs, setLocalLogs] = useState<AccuracyLog[]>([]);
   const [currentSubject, setCurrentSubject] = useState("Reasoning");
   const [currentTopic, setCurrentTopic] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const timerRef = useRef<any>(null);
 
   // Cloud Sync Logic
@@ -97,7 +95,6 @@ export function AccuracyTimer() {
     // Reset Terminal State
     setTime(0); 
     setIsActive(false); 
-    setIsDialogOpen(false);
     setCurrentTopic("");
   };
 
@@ -119,99 +116,101 @@ export function AccuracyTimer() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-6">
-      <Card className="bento-card border-none shadow-xl bg-card/40 backdrop-blur-sm">
-        <CardHeader className="bg-accent/5 py-6 border-b border-border/50">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-[1.25rem] bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                <BookOpen className="w-6 h-6" />
-              </div>
-              <div>
-                <CardTitle className="text-xl md:text-2xl font-headline font-black tracking-tight">Precision Console</CardTitle>
-                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Active Mission Control</div>
-              </div>
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-widest h-14 px-8 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                  <TimerIcon className="w-4 h-4 mr-3" /> Initiate Live Unit
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] border-none shadow-2xl bg-card">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-headline font-black text-center pt-4">Operational Precision</DialogTitle>
-                </DialogHeader>
-                <div className="flex flex-col items-center py-6 px-4">
-                  <div className="relative mb-10">
-                    <div className="text-8xl font-headline font-black text-primary tracking-tighter tabular-nums drop-shadow-2xl">
-                      {formatTime(time)}
-                    </div>
-                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
-                       <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">{isActive ? "Unit in Progress" : "Terminal Paused"}</span>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 w-full mb-10">
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Strategic Subject</label>
-                      <Select value={currentSubject} onValueChange={(v) => setCurrentSubject(v)}>
-                        <SelectTrigger className="rounded-2xl h-12 bg-accent/30 border-none font-bold shadow-inner"><SelectValue /></SelectTrigger>
-                        <SelectContent className="rounded-2xl font-bold">
-                          <SelectItem value="Reasoning">Reasoning</SelectItem>
-                          <SelectItem value="Quants">Quants</SelectItem>
-                          <SelectItem value="English">English</SelectItem>
-                          <SelectItem value="GA">General Awareness</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tactical Topic</label>
-                      <Input 
-                        placeholder="e.g. Data Interpretation" 
-                        value={currentTopic} 
-                        onChange={(e) => setCurrentTopic(e.target.value)} 
-                        className="rounded-2xl h-12 bg-accent/30 border-none font-bold shadow-inner"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 w-full mb-6">
-                    <Button 
-                      className="flex-1 rounded-[1.5rem] h-16 font-black uppercase text-xs tracking-[0.2em] shadow-lg" 
-                      onClick={() => setIsActive(!isActive)} 
-                      variant={isActive ? "outline" : "default"}
-                    >
-                      {isActive ? "Hold Protocol" : "Engage Unit"}
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => {setIsActive(false); setTime(0);}} 
-                      className="rounded-[1.5rem] h-16 w-16 hover:bg-accent border-2 transition-transform active:rotate-180 duration-500"
-                    >
-                      <RotateCcw className="w-5 h-5" />
-                    </Button>
-                  </div>
-                  
-                  <Button 
-                    className="w-full bg-success text-success-foreground rounded-[1.5rem] h-16 font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-success/20 transition-all hover:scale-[1.02]" 
-                    onClick={handleSaveLog} 
-                    disabled={time === 0 || !currentTopic}
-                  >
-                    <Save className="w-5 h-5 mr-3" /> Archive to Hybrid Vault
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Precision Control Terminal */}
+      <Card className="lg:col-span-1 bento-card border-none shadow-2xl bg-card/60 backdrop-blur-xl h-fit sticky top-24">
+        <CardHeader className="bg-primary/5 py-6 border-b border-border/50">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                <TimerIcon className="w-5 h-5" />
+             </div>
+             <div>
+                <CardTitle className="text-xl font-headline font-black tracking-tight">Initiate Unit</CardTitle>
+                <div className="text-[9px] font-black uppercase tracking-widest text-primary opacity-80">Precision Control</div>
+             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-4 md:p-8">
+        <CardContent className="p-8 space-y-8">
+          <div className="flex flex-col items-center justify-center py-4">
+             <div className="text-7xl font-headline font-black text-foreground tracking-tighter tabular-nums mb-2">
+               {formatTime(time)}
+             </div>
+             <div className="flex items-center gap-2 px-3 py-1 bg-accent/50 rounded-full border border-border/50">
+                <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'}`} />
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{isActive ? "Unit in Progress" : "Standby Mode"}</span>
+             </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Strategic Subject</label>
+              <Select value={currentSubject} onValueChange={(v) => setCurrentSubject(v)}>
+                <SelectTrigger className="rounded-xl h-11 bg-accent/30 border-none font-bold shadow-inner"><SelectValue /></SelectTrigger>
+                <SelectContent className="rounded-xl font-bold">
+                  <SelectItem value="Reasoning">Reasoning</SelectItem>
+                  <SelectItem value="Quants">Quants</SelectItem>
+                  <SelectItem value="English">English</SelectItem>
+                  <SelectItem value="GA">General Awareness</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tactical Topic</label>
+              <Input 
+                placeholder="e.g. Circular Arrangement" 
+                value={currentTopic} 
+                onChange={(e) => setCurrentTopic(e.target.value)} 
+                className="rounded-xl h-11 bg-accent/30 border-none font-bold shadow-inner"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+             <Button 
+                onClick={() => setIsActive(!isActive)}
+                className={`flex-1 h-14 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
+             >
+                {isActive ? <><Pause className="w-4 h-4 mr-2" /> Pause</> : <><Play className="w-4 h-4 mr-2" /> Start</>}
+             </Button>
+             <Button 
+                variant="outline" 
+                onClick={() => {setIsActive(false); setTime(0);}}
+                className="w-14 h-14 rounded-2xl border-2 hover:bg-accent transition-transform active:rotate-180"
+             >
+                <RotateCcw className="w-5 h-5" />
+             </Button>
+          </div>
+
+          <Button 
+            disabled={time === 0 || !currentTopic}
+            onClick={handleSaveLog}
+            className="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-500/20"
+          >
+            <Save className="w-4 h-4 mr-2" /> Archive Unit
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Accuracy Vault Logs */}
+      <Card className="lg:col-span-2 bento-card border-none shadow-xl bg-card/40 backdrop-blur-sm">
+        <CardHeader className="bg-accent/5 py-6 border-b border-border/50">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <BookOpen className="w-5 h-5" />
+             </div>
+             <div>
+                <CardTitle className="text-xl font-headline font-black tracking-tight">Accuracy Vault</CardTitle>
+                <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Historical Precision Data</div>
+             </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-8">
           {displayLogs.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-4">
               {displayLogs.map((log) => (
-                <div key={log.id} className="group relative flex items-center justify-between p-6 rounded-[2rem] border-2 border-border/40 bg-card hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl">
+                <div key={log.id} className="group relative flex items-center justify-between p-6 rounded-3xl border-2 border-border/40 bg-card hover:border-primary/30 transition-all duration-300 shadow-sm">
                   <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center text-muted-foreground group-hover:scale-110 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-500">
+                    <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all duration-500">
                       {log.subject === 'Quants' ? <Zap className="w-6 h-6" /> : <BookOpen className="w-6 h-6" />}
                     </div>
                     <div>
@@ -229,7 +228,7 @@ export function AccuracyTimer() {
                         <Clock className="w-4 h-4 opacity-40" />
                         <span className="font-headline font-black text-3xl tracking-tighter tabular-nums">{formatTime(log.time)}</span>
                       </div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1 opacity-50">Unit Time</span>
+                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1 opacity-50">Duration</span>
                     </div>
                     <Button 
                       variant="ghost" 

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -83,7 +82,7 @@ export function MockTestConsole() {
     }
   }, []);
 
-  const mocks = user ? cloudMocks : localMocks;
+  const mocks = user ? (cloudMocks || []) : localMocks;
   const filteredMocks = mocks.filter(m => m.stage === activeStage);
 
   const addMock = () => {
@@ -124,6 +123,9 @@ export function MockTestConsole() {
     setIsDialogOpen(false);
     logAuditAction("Performance", "Mock Archived", `${examType} - ${newMock.accuracy}% Accuracy`);
     toast({ title: "Performance Synchronized", description: "Data logged to Hybrid Vault." });
+    
+    // Clear inputs
+    setMockName(""); setScore(""); setCorrect(""); setWrong("");
   };
 
   const removeMock = (id: string) => {
@@ -149,7 +151,7 @@ export function MockTestConsole() {
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                 <BarChart3 className="w-6 h-6" />
               </div>
-              <CardTitle className="text-xl font-headline font-bold">Analytics Vault</CardTitle>
+              <CardTitle className="text-xl font-headline font-bold">Mock Analytics Vault</CardTitle>
             </div>
             <div className="flex items-center gap-4">
                <Tabs value={activeStage} onValueChange={(val: any) => setActiveStage(val)} className="w-[200px]">
@@ -160,38 +162,59 @@ export function MockTestConsole() {
               </Tabs>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="rounded-2xl bg-primary text-primary-foreground font-bold h-12 px-6 shadow-lg shadow-primary/20">
-                    <Plus className="w-4 h-4 mr-2" /> Log Mock
+                  <Button className="rounded-2xl bg-primary text-primary-foreground font-bold h-12 px-6 shadow-xl shadow-primary/20">
+                    <Plus className="w-4 h-4 mr-2" /> Log New Mock
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px] rounded-3xl border-none shadow-2xl">
                   <DialogHeader><DialogTitle className="text-2xl font-headline font-bold">Metric Logger</DialogTitle></DialogHeader>
                   <div className="space-y-6 py-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <Select value={examType} onValueChange={setExamType}>
-                        <SelectTrigger className="rounded-2xl h-11 bg-accent/30 font-bold"><SelectValue /></SelectTrigger>
-                        <SelectContent className="rounded-2xl">
-                          {EXAM_TYPES.map((type) => (<SelectItem key={type} value={type}>{type}</SelectItem>))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={stage} onValueChange={(val: any) => setStage(val)}>
-                        <SelectTrigger className="rounded-2xl h-11 bg-accent/30 font-bold"><SelectValue /></SelectTrigger>
-                        <SelectContent className="rounded-2xl">
-                          <SelectItem value="Prelims">Prelims</SelectItem>
-                          <SelectItem value="Mains">Mains</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Exam Category</label>
+                        <Select value={examType} onValueChange={setExamType}>
+                          <SelectTrigger className="rounded-2xl h-11 bg-accent/30 font-bold shadow-inner border-none"><SelectValue /></SelectTrigger>
+                          <SelectContent className="rounded-2xl">
+                            {EXAM_TYPES.map((type) => (<SelectItem key={type} value={type}>{type}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Exam Stage</label>
+                        <Select value={stage} onValueChange={(val: any) => setStage(val)}>
+                          <SelectTrigger className="rounded-2xl h-11 bg-accent/30 font-bold shadow-inner border-none"><SelectValue /></SelectTrigger>
+                          <SelectContent className="rounded-2xl">
+                            <SelectItem value="Prelims">Prelims</SelectItem>
+                            <SelectItem value="Mains">Mains</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <Input placeholder="Mock Name" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-2xl h-11 bg-accent/30 font-bold" />
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mock Identification</label>
+                      <Input placeholder="e.g. SBI PO Mock 1" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-2xl h-11 bg-accent/30 font-bold border-none shadow-inner" />
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <Input type="number" placeholder="Score" value={score} onChange={(e) => setScore(e.target.value)} className="rounded-2xl h-11 bg-primary/5 border-primary/20" />
-                      <Input type="number" placeholder="Total" value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className="rounded-2xl h-11 bg-accent/30" />
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Obtained Score</label>
+                        <Input type="number" placeholder="Score" value={score} onChange={(e) => setScore(e.target.value)} className="rounded-2xl h-11 bg-primary/5 border-primary/20 font-bold" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Maximum Marks</label>
+                        <Input type="number" placeholder="Total" value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className="rounded-2xl h-11 bg-accent/30 border-none shadow-inner font-bold" />
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <Input type="number" placeholder="Correct" value={correct} onChange={(e) => setCorrect(e.target.value)} className="rounded-2xl h-11 bg-success/5 border-success/20" />
-                      <Input type="number" placeholder="Wrong" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-2xl h-11 bg-destructive/5 border-destructive/20" />
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-success ml-1">Correct Hits</label>
+                        <Input type="number" placeholder="Correct" value={correct} onChange={(e) => setCorrect(e.target.value)} className="rounded-2xl h-11 bg-success/5 border-success/20 font-bold" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-destructive ml-1">Wrong Hits</label>
+                        <Input type="number" placeholder="Wrong" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-2xl h-11 bg-destructive/5 border-destructive/20 font-bold" />
+                      </div>
                     </div>
-                    <Button onClick={addMock} className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20">Archive to Vault</Button>
+                    <Button onClick={addMock} className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-[1.02]">Archive to Vault</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -201,27 +224,30 @@ export function MockTestConsole() {
         <CardContent className="p-8">
           {filteredMocks.length > 0 ? (
             filteredMocks.map((mock) => (
-              <div key={mock.id} className="group relative p-6 rounded-3xl border-2 border-border/40 bg-card hover:border-primary/30 transition-all duration-300 mb-4">
+              <div key={mock.id} className="group relative p-6 rounded-3xl border-2 border-border/40 bg-card hover:border-primary/30 transition-all duration-300 mb-4 shadow-sm hover:shadow-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><Award className="w-5 h-5" /></div>
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-inner"><Award className="w-5 h-5" /></div>
                     <div>
-                      <div className="font-bold">{mock.name} ({mock.examType})</div>
-                      <div className="text-[10px] text-muted-foreground uppercase font-black">{mock.date} • {mock.score}/{mock.totalMarks} Marks</div>
+                      <div className="font-bold text-lg tracking-tight">{mock.name} ({mock.examType})</div>
+                      <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-0.5">{mock.date} • {mock.score}/{mock.totalMarks} Marks</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-8">
                     <div className="text-right">
-                      <div className="text-xl font-headline font-bold text-primary">{mock.accuracy}%</div>
-                      <div className="text-[10px] text-muted-foreground uppercase font-black">Accuracy</div>
+                      <div className="text-2xl font-headline font-black text-primary tracking-tighter">{mock.accuracy}%</div>
+                      <div className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Accuracy</div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeMock(mock.id)} className="opacity-0 group-hover:opacity-100 text-destructive h-10 w-10 transition-opacity"><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => removeMock(mock.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive h-10 w-10 transition-all hover:bg-destructive/10 rounded-xl"><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="py-20 text-center text-muted-foreground/20 uppercase tracking-[0.3em] font-black">No Archived Units Found</div>
+            <div className="py-20 text-center text-muted-foreground/20 uppercase tracking-[0.3em] font-black flex flex-col items-center gap-4">
+               <BarChart3 className="w-16 h-16 opacity-5" />
+               No Archived Units Found
+            </div>
           )}
         </CardContent>
       </Card>
