@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from 'next/dynamic';
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
 import { CountdownCard } from "@/components/dashboard/CountdownCard";
 import { QuoteCard } from "@/components/dashboard/QuoteCard";
@@ -10,7 +11,6 @@ import { ReadinessScore } from "@/components/dashboard/ReadinessScore";
 import { AiInsightsPanel } from "@/components/dashboard/AiInsightsPanel";
 import { 
   Activity, 
-  Trophy, 
   Sparkles, 
   Calendar, 
   ArrowRight, 
@@ -19,7 +19,8 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  Wifi
+  Wifi,
+  Trophy
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -46,52 +48,57 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     
-    const savedProfile = localStorage.getItem("elite-user-profile");
-    const syllabusSaved = localStorage.getItem("elite-syllabus-v2");
-    const mockLogsSaved = localStorage.getItem("elite-mock-logs");
+    // Performance optimization: batch reads from localStorage
+    const loadTelemetry = () => {
+      const savedProfile = localStorage.getItem("elite-user-profile");
+      const syllabusSaved = localStorage.getItem("elite-syllabus-v2");
+      const mockLogsSaved = localStorage.getItem("elite-mock-logs");
 
-    let days = 0;
-    if (savedProfile) {
-      try {
-        const prof = JSON.parse(savedProfile);
-        setProfile(prof);
-        if (prof.targetDate) {
-          const diff = new Date(prof.targetDate).getTime() - Date.now();
-          days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-        }
-      } catch(e) {}
-    }
+      let days = 0;
+      if (savedProfile) {
+        try {
+          const prof = JSON.parse(savedProfile);
+          setProfile(prof);
+          if (prof.targetDate) {
+            const diff = new Date(prof.targetDate).getTime() - Date.now();
+            days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+          }
+        } catch(e) {}
+      }
 
-    let mastery = 0;
-    if (syllabusSaved) {
-      try {
-        const syllabus = JSON.parse(syllabusSaved);
-        let total = 0; let done = 0;
-        syllabus.forEach((s: any) => s.chapters.forEach((c: any) => c.subtopics.forEach((st: any) => {
-          total++; if (st.completed) done++;
-        })));
-        mastery = total > 0 ? Math.round((done / total) * 100) : 0;
-      } catch (e) {}
-    }
+      let mastery = 0;
+      if (syllabusSaved) {
+        try {
+          const syllabus = JSON.parse(syllabusSaved);
+          let total = 0; let done = 0;
+          syllabus.forEach((s: any) => s.chapters.forEach((c: any) => c.subtopics.forEach((st: any) => {
+            total++; if (st.completed) done++;
+          })));
+          mastery = total > 0 ? Math.round((done / total) * 100) : 0;
+        } catch (e) {}
+      }
 
-    let avgAcc = 0;
-    let mockCount = 0;
-    if (mockLogsSaved) {
-      try {
-        const mockLogs = JSON.parse(mockLogsSaved);
-        if (mockLogs.length > 0) {
-          avgAcc = Math.round(mockLogs.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / mockLogs.length);
-          mockCount = mockLogs.length;
-        }
-      } catch (e) {}
-    }
+      let avgAcc = 0;
+      let mockCount = 0;
+      if (mockLogsSaved) {
+        try {
+          const mockLogs = JSON.parse(mockLogsSaved);
+          if (mockLogs.length > 0) {
+            avgAcc = Math.round(mockLogs.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / mockLogs.length);
+            mockCount = mockLogs.length;
+          }
+        } catch (e) {}
+      }
 
-    setMetrics({
-      syllabusMastery: mastery,
-      avgAccuracy: avgAcc,
-      mocksCount: mockCount,
-      daysLeft: days
-    });
+      setMetrics({
+        syllabusMastery: mastery,
+        avgAccuracy: avgAcc,
+        mocksCount: mockCount,
+        daysLeft: days
+      });
+    };
+
+    loadTelemetry();
   }, []);
 
   useEffect(() => {
@@ -102,7 +109,15 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, [intelApi]);
 
-  if (!mounted) return null;
+  if (!mounted) return (
+    <div className="space-y-8 py-10">
+      <Skeleton className="h-20 w-3/4 bg-card" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <Skeleton className="lg:col-span-8 h-[500px] bg-card rounded-[2rem]" />
+        <Skeleton className="lg:col-span-4 h-[500px] bg-card rounded-[2rem]" />
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-8 pb-24">

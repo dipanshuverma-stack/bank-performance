@@ -5,10 +5,8 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { Toaster } from '@/components/ui/toaster';
-import { AchievementMonitor } from '@/components/dashboard/AchievementMonitor';
-import { QuickActions } from '@/components/dashboard/QuickActions';
-import { InteractionTracker } from '@/components/layout/InteractionTracker';
 import { FirebaseClientProvider } from '@/firebase';
+import { ClientSideWrappers } from '@/components/layout/ClientSideWrappers';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -42,6 +40,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`} style={{ colorScheme: 'light dark' }}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://firestore.googleapis.com" />
+      </head>
       <body className="font-body antialiased bg-background text-foreground">
         <FirebaseClientProvider>
           <div className="main-shell bg-background relative">
@@ -56,9 +58,7 @@ export default function RootLayout({
               <BottomNav />
             </div>
           </div>
-          <QuickActions />
-          <AchievementMonitor />
-          <InteractionTracker />
+          <ClientSideWrappers />
           <Toaster />
         </FirebaseClientProvider>
       </body>
