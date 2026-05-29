@@ -8,7 +8,8 @@ import { QuoteCard } from "@/components/dashboard/QuoteCard";
 import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
 import { PersonalBests } from "@/components/dashboard/PersonalBests";
 import { ReadinessScore } from "@/components/dashboard/ReadinessScore";
-import { Activity, ShieldCheck, Trophy, Sparkles, BookOpen, AlertCircle } from "lucide-react";
+import { AiInsightsPanel } from "@/components/dashboard/AiInsightsPanel";
+import { Activity, ShieldCheck, Trophy, Sparkles, BookOpen, AlertCircle, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
     syllabusMastery: 0,
     avgAccuracy: 0,
     mocksCount: 0,
+    daysLeft: 0,
   });
 
   useEffect(() => {
@@ -25,7 +27,15 @@ export default function Home() {
     
     // Profile
     const savedProfile = localStorage.getItem("elite-user-profile");
-    if (savedProfile) setProfile(JSON.parse(savedProfile));
+    let days = 0;
+    if (savedProfile) {
+      const p = JSON.parse(savedProfile);
+      setProfile(p);
+      if (p.targetDate) {
+        const diff = new Date(p.targetDate).getTime() - new Date().getTime();
+        days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      }
+    }
 
     // Syllabus
     const syllabusSaved = localStorage.getItem("elite-syllabus-v2");
@@ -44,10 +54,10 @@ export default function Home() {
     const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
     if (mockLogs.length > 0) {
       const avgAcc = mockLogs.reduce((acc: number, m: any) => acc + m.accuracy, 0) / mockLogs.length;
-      setMetrics(prev => ({ ...prev, avgAccuracy: Math.round(avgAcc), mocksCount: mockLogs.length }));
+      setMetrics(prev => ({ ...prev, avgAccuracy: Math.round(avgAcc), mocksCount: mockLogs.length, daysLeft: days }));
     }
 
-    // Auto-Welcome Notification for test visibility
+    // Auto-Welcome Notification
     const hasSeenWelcome = localStorage.getItem("elite-welcome-notif");
     if (!hasSeenWelcome) {
       const saved = localStorage.getItem("elite-notifications") || "[]";
@@ -55,7 +65,7 @@ export default function Home() {
       const welcomeNotif = {
         id: "welcome-" + Date.now(),
         title: "Elite Terminal Operational",
-        description: "Your performance tracking environment is now active. Log your first mock or start a precision session to begin analytics.",
+        description: "Your performance tracking environment is now active. Log your first mock to begin strategic analysis.",
         date: new Date().toLocaleDateString(),
         type: 'achievement',
         read: false
@@ -76,29 +86,38 @@ export default function Home() {
              <span className="h-1 w-8 bg-primary rounded-full" />
              <span className="text-[10px] text-primary font-black uppercase tracking-[0.3em] flex items-center gap-2">
                <Sparkles className="w-3.5 h-3.5" />
-               Operational Terminal
+               Strategic Command active
              </span>
           </div>
           <h1 className="text-3xl md:text-6xl font-headline font-black tracking-tighter text-foreground">
             {profile?.name ? `Welcome, ${profile.name}` : "Elite Command"} <span className="text-primary italic">Center</span>
           </h1>
           <div className="text-muted-foreground mt-2 max-w-md font-medium">
-            Real-time performance intelligence for <Badge variant="outline" className="text-primary border-primary/20">{profile?.targetExam || "SBI/IBPS PO"}</Badge> candidates.
+            <div className="flex items-center gap-2">
+              <span>Targeting</span>
+              <Badge variant="outline" className="text-primary border-primary/20">{profile?.targetExam || "SBI/IBPS PO"}</Badge>
+              {metrics.daysLeft > 0 && (
+                <span className="flex items-center gap-1 text-xs text-indigo-500 font-bold ml-2">
+                  <Calendar className="w-3 h-3" />
+                  {metrics.daysLeft} days remaining
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3 bg-card border rounded-3xl p-4 shadow-sm">
            <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center text-primary"><Activity className="w-5 h-5" /></div>
            <div>
-              <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Session Status</div>
-              <div className="text-sm font-bold">Ready for Deployment</div>
+              <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">System Status</div>
+              <div className="text-sm font-bold">Readiness {metrics.avgAccuracy}%</div>
            </div>
         </div>
       </header>
 
-      {/* Hero Cluster */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <PerformanceOverview />
+          <AiInsightsPanel />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <AdaptiveToDo />
             <ReadinessScore />
@@ -115,18 +134,17 @@ export default function Home() {
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                 <AlertCircle className="w-6 h-6" />
               </div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400">AI Warning</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Streak Status</div>
             </div>
             <div>
-              <h3 className="text-lg font-bold mb-2">Subject Displacement</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">You've studied Reasoning for 85% of your total time this week. Quants readiness is dropping.</p>
+              <h3 className="text-lg font-bold mb-2">Consistency Warning</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">You haven't logged a precision session today. Complete one unit to maintain your 9-day study streak.</p>
             </div>
             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl" />
           </div>
         </div>
       </div>
 
-      {/* Detailed Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-8">
         <div className="p-8 rounded-[2.5rem] bg-slate-50 dark:bg-white/[0.02] border border-border/40 group transition-all duration-500">
           <div className="flex justify-between items-start mb-4">
@@ -155,10 +173,6 @@ export default function Home() {
           <div className="text-5xl font-headline font-bold tracking-tighter text-foreground">{metrics.mocksCount}</div>
         </div>
       </div>
-
-      <footer className="mt-24 pt-12 border-t border-border/40 text-center text-sm text-muted-foreground font-medium">
-        <p>&copy; 2025 Elite Performance Terminal. Engineered for the Competitive Edge.</p>
-      </footer>
     </div>
   );
 }
