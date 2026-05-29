@@ -39,14 +39,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`}>
-      <body className="font-body antialiased bg-background text-foreground">
+    <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <body className="font-body antialiased bg-background text-foreground min-h-screen overflow-x-hidden">
         <FirebaseClientProvider>
-          <div className="main-shell bg-background relative">
+          <div className="main-shell bg-background relative flex min-h-screen w-full">
             <Sidebar />
             <div className="flex-1 flex flex-col min-w-0 relative">
               <Header />
-              <main className="scroll-viewport px-4 md:px-8 lg:px-14">
+              <main className="scroll-viewport px-4 md:px-8 lg:px-14 flex-1">
                 <div className="max-w-[1600px] mx-auto page-transition w-full py-6 pb-32 md:pb-12">
                   {children}
                 </div>
