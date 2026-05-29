@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Target, Save, ShieldCheck, History, Trash2, FileJson, UserCircle, Brain } from "lucide-react";
+import { User, Target, Save, ShieldCheck, History, Trash2, FileJson, UserCircle, Brain, Database, ShieldAlert, RefreshCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,6 +17,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [storageSize, setStorageSize] = useState("0 KB");
   const [profile, setProfile] = useState({
     name: "Dipanshu",
     targetExam: "SBI PO",
@@ -38,6 +40,15 @@ export default function ProfilePage() {
       if (logs) {
         try { setAuditLogs(JSON.parse(logs)); } catch (e) {}
       }
+      
+      // Calculate storage usage
+      let total = 0;
+      for (let x in localStorage) {
+        if (localStorage.hasOwnProperty(x)) {
+          total += (localStorage[x].length + x.length) * 2;
+        }
+      }
+      setStorageSize((total / 1024).toFixed(2) + " KB");
     };
 
     loadLogs();
@@ -59,6 +70,8 @@ export default function ProfilePage() {
       profile,
       mocks: JSON.parse(localStorage.getItem("elite-mock-logs") || "[]"),
       mistakes: JSON.parse(localStorage.getItem("elite-mistakes") || "[]"),
+      accuracyLogs: JSON.parse(localStorage.getItem("accuracy-logs") || "[]"),
+      syllabus: JSON.parse(localStorage.getItem("elite-syllabus-v2") || "[]"),
       auditLogs,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -75,6 +88,14 @@ export default function ProfilePage() {
     setAuditLogs([]);
     localStorage.removeItem("elite-audit-logs");
     toast({ title: "Audit Vault Purged", description: "Operational logs have been cleared." });
+  };
+
+  const handleResetTerminal = () => {
+    if (confirm("CRITICAL ACTION: This will purge all local data including logs, profile, and progress. Proceed?")) {
+      localStorage.clear();
+      logAuditAction("Security", "Terminal Reset", "Global data purge executed.");
+      window.location.reload();
+    }
   };
 
   if (!mounted) return null;
@@ -150,24 +171,57 @@ export default function ProfilePage() {
         </Card>
       </div>
 
-      <Card className="bento-card border-none bg-card/40 backdrop-blur-md shadow-xl">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-             <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-500 shadow-inner"><Brain className="w-5 h-5" /></div>
-             <CardTitle className="text-xl font-headline font-bold">AI Strategy Anchors</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-destructive ml-1">Weak Sub-topics (AI Priority)</label>
-            <Textarea value={profile.weakSubjects} onChange={(e) => setProfile({...profile, weakSubjects: e.target.value})} placeholder="e.g. Mensuration, Critical Reasoning" className="rounded-2xl min-h-[120px] bg-accent/20 border-border/40 font-bold text-sm" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-success ml-1">Strong Pillars (Strategy Anchor)</label>
-            <Textarea value={profile.strongSubjects} onChange={(e) => setProfile({...profile, strongSubjects: e.target.value})} placeholder="e.g. Syllogism, Data Interpretation" className="rounded-2xl min-h-[120px] bg-accent/20 border-border/40 font-bold text-sm" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2 bento-card border-none bg-card/40 backdrop-blur-md shadow-xl">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-500 shadow-inner"><Brain className="w-5 h-5" /></div>
+              <CardTitle className="text-xl font-headline font-bold">AI Strategy Anchors</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-destructive ml-1">Weak Sub-topics (AI Priority)</label>
+              <Textarea value={profile.weakSubjects} onChange={(e) => setProfile({...profile, weakSubjects: e.target.value})} placeholder="e.g. Mensuration, Critical Reasoning" className="rounded-2xl min-h-[120px] bg-accent/20 border-border/40 font-bold text-sm" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-success ml-1">Strong Pillars (Strategy Anchor)</label>
+              <Textarea value={profile.strongSubjects} onChange={(e) => setProfile({...profile, strongSubjects: e.target.value})} placeholder="e.g. Syllogism, Data Interpretation" className="rounded-2xl min-h-[120px] bg-accent/20 border-border/40 font-bold text-sm" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-1 bento-card border-none bg-slate-900 shadow-2xl overflow-hidden group">
+          <CardHeader className="pb-2">
+             <div className="flex items-center gap-3">
+               <div className="p-2.5 bg-primary/20 rounded-xl text-primary"><Database className="w-5 h-5" /></div>
+               <CardTitle className="text-lg font-headline font-bold text-white tracking-tight">Data Integrity Vault</CardTitle>
+             </div>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-4">
+             <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                <div className="flex justify-between items-center">
+                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Current Mode</span>
+                   <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[8px] font-black px-2">LOCAL STORAGE</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Vault Weight</span>
+                   <span className="text-xs font-bold text-white">{storageSize}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Privacy Status</span>
+                   <span className="text-[9px] font-bold text-emerald-400 uppercase">FULLY ENCRYPTED</span>
+                </div>
+             </div>
+             <p className="text-[10px] text-slate-500 leading-relaxed italic">
+               All performance logs and profile data are stored locally in your browser to ensure maximum privacy and offline readiness.
+             </p>
+             <Button onClick={handleResetTerminal} variant="ghost" className="w-full h-11 rounded-xl text-destructive hover:bg-destructive/10 text-[10px] font-black uppercase tracking-widest group">
+                <RefreshCcw className="w-4 h-4 mr-2 group-hover:rotate-180 transition-transform duration-500" /> Reset Terminal Vault
+             </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-4">
