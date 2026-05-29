@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface Insight {
-  category: "Productivity" | "Strategy" | "Revision" | "Speed";
+  category: "Tactical" | "Focus" | "Revision" | "Momentum";
   message: string;
+  metric?: string;
   icon: any;
   color: string;
 }
@@ -18,32 +18,26 @@ export function AiInsightsPanel({ className }: { className?: string }) {
   const [insights, setInsights] = useState<Insight[]>([]);
 
   useEffect(() => {
-    // Simulated deep behavior analysis based on local logs
-    const mockLogs = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
-    const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
-    
+    // Simulated elite strategy analysis based on user performance vectors
     const newInsights: Insight[] = [
       {
-        category: "Strategy",
-        message: "Attempting Reasoning first has historically increased your score by 12%.",
+        category: "Tactical",
+        message: "Reasoning-First Attempt Protocol",
+        metric: "+12.4% Score Boost",
         icon: TrendingUp,
         color: "text-emerald-500 bg-emerald-500/10"
       },
       {
-        category: "Productivity",
-        message: "Your focus intensity peaks between 8 AM - 11 AM. Schedule hard Quants then.",
+        category: "Focus",
+        message: "Peak Cognitive Window: 08:00 - 11:00",
+        metric: "94% Accuracy Potential",
         icon: Clock,
         color: "text-blue-500 bg-blue-500/10"
       },
       {
-        category: "Revision",
-        message: "Arithmetic revision for Profit & Loss is overdue by 3 days based on mock trends.",
-        icon: Brain,
-        color: "text-purple-500 bg-purple-500/10"
-      },
-      {
-        category: "Speed",
-        message: "DI solving speed in Caselets improved 14% this week. Maintain current momentum.",
+        category: "Momentum",
+        message: "DI Caselet solving speed stabilized",
+        metric: "14% Speed Increase",
         icon: Zap,
         color: "text-yellow-500 bg-yellow-500/10"
       }
@@ -53,28 +47,43 @@ export function AiInsightsPanel({ className }: { className?: string }) {
   }, []);
 
   return (
-    <Card className={cn("bento-card bg-card/50 flex flex-col", className)}>
-      <CardHeader>
+    <Card className={cn("bento-card bg-card/50 flex flex-col border-primary/10 shadow-2xl", className)}>
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <CardTitle className="text-xl font-headline font-bold">Deep Strategic Insights</CardTitle>
+            <div className="p-2 bg-primary/10 rounded-xl">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <CardTitle className="text-xl font-headline font-black tracking-tight">Strategic Intel</CardTitle>
           </div>
-          <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest text-primary border-primary/20">AI Analytics active</Badge>
+          <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest text-primary border-primary/20 bg-primary/5">
+            Active Analysis
+          </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 flex-1">
+      <CardContent className="space-y-3 flex-1">
         {insights.map((insight, idx) => (
-          <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl bg-accent/20 border border-border/40 group hover:border-primary/20 transition-all">
-            <div className={`p-2 rounded-xl shrink-0 ${insight.color}`}>
+          <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-accent/30 to-transparent border border-white/5 hover:border-primary/20 transition-all group">
+            <div className={cn("p-2.5 rounded-xl shrink-0 group-hover:scale-110 transition-transform duration-300", insight.color)}>
               <insight.icon className="w-5 h-5" />
             </div>
-            <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{insight.category}</div>
-              <p className="text-sm font-bold leading-relaxed text-foreground">{insight.message}</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{insight.category}</span>
+                {insight.metric && (
+                  <span className="text-[9px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-full">
+                    {insight.metric}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-bold truncate text-foreground">{insight.message}</p>
             </div>
           </div>
         ))}
+        <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center gap-2">
+           <Brain className="w-3.5 h-3.5 text-primary" />
+           <span className="text-[10px] font-black uppercase tracking-widest text-primary/70">Continuous Strategy Recalibration</span>
+        </div>
       </CardContent>
     </Card>
   );
