@@ -1,0 +1,901 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@genkit-ai/ai": {
+      "name": "@genkit-ai/ai",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@genkit-ai/core",
+        "uuid"
+      ],
+      "effects": [
+        "genkit"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@genkit-ai/ai"
+      ],
+      "fixAvailable": false
+    },
+    "@genkit-ai/core": {
+      "name": "@genkit-ai/core",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@genkit-ai/firebase",
+        "@opentelemetry/sdk-node"
+      ],
+      "effects": [
+        "@genkit-ai/ai"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@genkit-ai/core"
+      ],
+      "fixAvailable": false
+    },
+    "@genkit-ai/firebase": {
+      "name": "@genkit-ai/firebase",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@genkit-ai/google-cloud",
+        "@google-cloud/firestore",
+        "firebase-admin",
+        "genkit"
+      ],
+      "effects": [
+        "@genkit-ai/core"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@genkit-ai/firebase"
+      ],
+      "fixAvailable": false
+    },
+    "@genkit-ai/google-cloud": {
+      "name": "@genkit-ai/google-cloud",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@google-cloud/logging-winston",
+        "@google-cloud/opentelemetry-cloud-monitoring-exporter",
+        "@opentelemetry/auto-instrumentations-node",
+        "@opentelemetry/sdk-node",
+        "genkit"
+      ],
+      "effects": [
+        "@genkit-ai/firebase"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@genkit-ai/google-cloud"
+      ],
+      "fixAvailable": false
+    },
+    "@genkit-ai/google-genai": {
+      "name": "@genkit-ai/google-genai",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "genkit"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/@genkit-ai/google-genai"
+      ],
+      "fixAvailable": false
+    },
+    "@genkit-ai/telemetry-server": {
+      "name": "@genkit-ai/telemetry-server",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@genkit-ai/tools-common",
+        "@google-cloud/firestore",
+        "@opentelemetry/sdk-node"
+      ],
+      "effects": [],
+      "range": ">=0.9.0-dev.1",
+      "nodes": [
+        "node_modules/@genkit-ai/telemetry-server"
+      ],
+      "fixAvailable": true
+    },
+    "@genkit-ai/tools-common": {
+      "name": "@genkit-ai/tools-common",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "uuid"
+      ],
+      "effects": [
+        "genkit-cli"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@genkit-ai/tools-common"
+      ],
+      "fixAvailable": {
+        "name": "genkit-cli",
+        "version": "0.0.2",
+        "isSemVerMajor": true
+      }
+    },
+    "@google-cloud/common": {
+      "name": "@google-cloud/common",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "retry-request",
+        "teeny-request"
+      ],
+      "effects": [
+        "@google-cloud/logging"
+      ],
+      "range": "0.32.1 - 5.0.2",
+      "nodes": [
+        "node_modules/@google-cloud/common"
+      ],
+      "fixAvailable": true
+    },
+    "@google-cloud/firestore": {
+      "name": "@google-cloud/firestore",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "google-gax"
+      ],
+      "effects": [
+        "@genkit-ai/firebase",
+        "firebase-admin"
+      ],
+      "range": "7.5.0-pre.0 || 7.6.0 - 7.11.6",
+      "nodes": [
+        "node_modules/@google-cloud/firestore"
+      ],
+      "fixAvailable": false
+    },
+    "@google-cloud/logging": {
+      "name": "@google-cloud/logging",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@google-cloud/common",
+        "eventid",
+        "uuid"
+      ],
+      "effects": [
+        "@google-cloud/logging-winston"
+      ],
+      "range": ">=0.8.0",
+      "nodes": [
+        "node_modules/@google-cloud/logging"
+      ],
+      "fixAvailable": true
+    },
+    "@google-cloud/logging-winston": {
+      "name": "@google-cloud/logging-winston",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@google-cloud/logging"
+      ],
+      "effects": [],
+      "range": ">=4.1.2",
+      "nodes": [
+        "node_modules/@google-cloud/logging-winston"
+      ],
+      "fixAvailable": true
+    },
+    "@google-cloud/opentelemetry-cloud-monitoring-exporter": {
+      "name": "@google-cloud/opentelemetry-cloud-monitoring-exporter",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "googleapis"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/@google-cloud/opentelemetry-cloud-monitoring-exporter"
+      ],
+      "fixAvailable": true
+    },
+    "@google-cloud/storage": {
+      "name": "@google-cloud/storage",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "retry-request",
+        "teeny-request",
+        "uuid"
+      ],
+      "effects": [
+        "firebase-admin"
+      ],
+      "range": "2.2.0 - 2.5.0 || >=5.19.0",
+      "nodes": [
+        "node_modules/@google-cloud/storage"
+      ],
+      "fixAvailable": false
+    },
+    "@opentelemetry/auto-instrumentations-node": {
+      "name": "@opentelemetry/auto-instrumentations-node",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "@opentelemetry/sdk-node",
+        {
+          "source": 1117941,
+          "name": "@opentelemetry/auto-instrumentations-node",
+          "dependency": "@opentelemetry/auto-instrumentations-node",
+          "title": "Prometheus exporter process crash via malformed HTTP request",
+          "url": "https://github.com/advisories/GHSA-q7rr-3cgh-j5r3",
+          "severity": "high",
+          "cwe": [
+            "CWE-755"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<0.75.0"
+        }
+      ],
+      "effects": [
+        "@genkit-ai/google-cloud"
+      ],
+      "range": "<=0.74.0",
+      "nodes": [
+        "node_modules/@opentelemetry/auto-instrumentations-node"
+      ],
+      "fixAvailable": false
+    },
+    "@opentelemetry/sdk-node": {
+      "name": "@opentelemetry/sdk-node",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1117942,
+          "name": "@opentelemetry/sdk-node",
+          "dependency": "@opentelemetry/sdk-node",
+          "title": "Prometheus exporter process crash via malformed HTTP request",
+          "url": "https://github.com/advisories/GHSA-q7rr-3cgh-j5r3",
+          "severity": "high",
+          "cwe": [
+            "CWE-755"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<0.217.0"
+        }
+      ],
+      "effects": [
+        "@genkit-ai/core",
+        "@genkit-ai/telemetry-server",
+        "@opentelemetry/auto-instrumentations-node"
+      ],
+      "range": "<0.217.0",
+      "nodes": [
+        "node_modules/@opentelemetry/sdk-node"
+      ],
+      "fixAvailable": false
+    },
+    "eventid": {
+      "name": "eventid",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "uuid"
+      ],
+      "effects": [
+        "@google-cloud/logging"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/eventid"
+      ],
+      "fixAvailable": true
+    },
+    "firebase-admin": {
+      "name": "firebase-admin",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@google-cloud/firestore",
+        "@google-cloud/storage"
+      ],
+      "effects": [
+        "@genkit-ai/firebase"
+      ],
+      "range": ">=11.0.0",
+      "nodes": [
+        "node_modules/firebase-admin"
+      ],
+      "fixAvailable": false
+    },
+    "gaxios": {
+      "name": "gaxios",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "uuid"
+      ],
+      "effects": [],
+      "range": "6.4.0 - 6.7.1",
+      "nodes": [
+        "node_modules/gaxios"
+      ],
+      "fixAvailable": true
+    },
+    "genkit": {
+      "name": "genkit",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "@genkit-ai/ai",
+        "@genkit-ai/core",
+        "uuid"
+      ],
+      "effects": [
+        "@genkit-ai/firebase",
+        "@genkit-ai/google-cloud",
+        "@genkit-ai/google-genai"
+      ],
+      "range": "<=0.5.0-rc.12 || 0.6.0-dev.2 - 1.0.0-rc.19 || >=1.0.4",
+      "nodes": [
+        "node_modules/genkit"
+      ],
+      "fixAvailable": false
+    },
+    "genkit-cli": {
+      "name": "genkit-cli",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "@genkit-ai/telemetry-server",
+        "@genkit-ai/tools-common"
+      ],
+      "effects": [],
+      "range": ">=0.9.0-dev.1",
+      "nodes": [
+        "node_modules/genkit-cli"
+      ],
+      "fixAvailable": {
+        "name": "genkit-cli",
+        "version": "0.0.2",
+        "isSemVerMajor": true
+      }
+    },
+    "google-gax": {
+      "name": "google-gax",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "retry-request",
+        "uuid"
+      ],
+      "effects": [
+        "@google-cloud/firestore"
+      ],
+      "range": "4.0.5-experimental - 4.6.1",
+      "nodes": [
+        "node_modules/google-gax"
+      ],
+      "fixAvailable": false
+    },
+    "googleapis": {
+      "name": "googleapis",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "googleapis-common"
+      ],
+      "effects": [
+        "@google-cloud/opentelemetry-cloud-monitoring-exporter"
+      ],
+      "range": "33.0.0 - 149.0.0",
+      "nodes": [
+        "node_modules/googleapis"
+      ],
+      "fixAvailable": true
+    },
+    "googleapis-common": {
+      "name": "googleapis-common",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "uuid"
+      ],
+      "effects": [
+        "googleapis"
+      ],
+      "range": "<=7.2.0",
+      "nodes": [
+        "node_modules/googleapis-common"
+      ],
+      "fixAvailable": true
+    },
+    "next": {
+      "name": "next",
+      "severity": "critical",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1105462,
+          "name": "next",
+          "dependency": "next",
+          "title": "Information exposure in Next.js dev server due to lack of origin verification",
+          "url": "https://github.com/advisories/GHSA-3h52-269p-cp9r",
+          "severity": "low",
+          "cwe": [
+            "CWE-1385"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=15.0.0 <15.2.2"
+        },
+        {
+          "source": 1107228,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js Affected by Cache Key Confusion for Image Optimization API Routes",
+          "url": "https://github.com/advisories/GHSA-g5qg-72qw-gw5v",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-524"
+          ],
+          "cvss": {
+            "score": 6.2,
+            "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": ">=15.0.0 <=15.4.4"
+        },
+        {
+          "source": 1107514,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js Content Injection Vulnerability for Image Optimization",
+          "url": "https://github.com/advisories/GHSA-xv57-4mr9-wg8v",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-20"
+          ],
+          "cvss": {
+            "score": 4.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:N"
+          },
+          "range": ">=15.0.0 <=15.4.4"
+        },
+        {
+          "source": 1107515,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js Improper Middleware Redirect Handling Leads to SSRF",
+          "url": "https://github.com/advisories/GHSA-4342-x723-ch2f",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 6.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:N"
+          },
+          "range": ">=15.0.0-canary.0 <15.4.7"
+        },
+        {
+          "source": 1112593,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js self-hosted applications vulnerable to DoS via Image Optimizer remotePatterns configuration",
+          "url": "https://github.com/advisories/GHSA-9g9p-9gw9-jx7f",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-400",
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=10.0.0 <15.5.10"
+        },
+        {
+          "source": 1112652,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js HTTP request deserialization can lead to DoS when using insecure React Server Components",
+          "url": "https://github.com/advisories/GHSA-h25m-26qc-wcjf",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-502"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=15.1.1-canary.0 <15.1.12"
+        },
+        {
+          "source": 1113688,
+          "name": "next",
+          "dependency": "next",
+          "title": "Authorization Bypass in Next.js Middleware",
+          "url": "https://github.com/advisories/GHSA-f82v-jwr5-mffw",
+          "severity": "critical",
+          "cwe": [
+            "CWE-285",
+            "CWE-863"
+          ],
+          "cvss": {
+            "score": 9.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          },
+          "range": ">=15.0.0 <15.2.3"
+        },
+        {
+          "source": 1114897,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js: HTTP request smuggling in rewrites",
+          "url": "https://github.com/advisories/GHSA-ggv3-7p47-pfv8",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-444"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=9.5.0 <15.5.13"
+        },
+        {
+          "source": 1114940,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js: Unbounded next/image disk cache growth can exhaust storage",
+          "url": "https://github.com/advisories/GHSA-3x4c-7xq6-9pq8",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-400"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=10.0.0 <15.5.14"
+        },
+        {
+          "source": 1116376,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js has a Denial of Service with Server Components",
+          "url": "https://github.com/advisories/GHSA-q4gf-8mx6-v5v3",
+          "severity": "high",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=13.0.0 <15.5.15"
+        },
+        {
+          "source": 1117931,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js Vulnerable to Denial of Service with Server Components",
+          "url": "https://github.com/advisories/GHSA-8h8q-6873-q5fj",
+          "severity": "high",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=13.0.0 <15.5.16"
+        },
+        {
+          "source": 1118942,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js's Middleware / Proxy redirects can be cache-poisoned",
+          "url": "https://github.com/advisories/GHSA-3g8h-86w9-wvmq",
+          "severity": "low",
+          "cwe": [
+            "CWE-349"
+          ],
+          "cvss": {
+            "score": 3.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          },
+          "range": ">=12.2.0 <15.5.16"
+        },
+        {
+          "source": 1118944,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js vulnerable to cross-site scripting in App Router applications using CSP nonces",
+          "url": "https://github.com/advisories/GHSA-ffhc-5mcf-pf4q",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 4.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": ">=13.4.0 <15.5.16"
+        },
+        {
+          "source": 1118946,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js vulnerable to cache poisoning via collisions in React Server Component cache-busting",
+          "url": "https://github.com/advisories/GHSA-vfv6-92ff-j949",
+          "severity": "low",
+          "cwe": [
+            "CWE-328"
+          ],
+          "cvss": {
+            "score": 3.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": ">=13.4.6 <15.5.16"
+        },
+        {
+          "source": 1118948,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js has cross-site scripting in beforeInteractive scripts with untrusted input",
+          "url": "https://github.com/advisories/GHSA-gx5p-jg67-6x7h",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 6.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": ">=13.0.0 <15.5.16"
+        },
+        {
+          "source": 1118950,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js vulnerable to Denial of Service via connection exhaustion in applications using Cache Components",
+          "url": "https://github.com/advisories/GHSA-mg66-mrh9-m8jx",
+          "severity": "high",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=15.0.0 <15.5.16"
+        },
+        {
+          "source": 1118952,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js has a Denial of Service in the Image Optimization API",
+          "url": "https://github.com/advisories/GHSA-h64f-5h5j-jqjh",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=10.0.0 <15.5.16"
+        },
+        {
+          "source": 1118954,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js vulnerable to server-side request forgery in applications using WebSocket upgrades",
+          "url": "https://github.com/advisories/GHSA-c4j6-fc7j-m34r",
+          "severity": "high",
+          "cwe": [
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 8.6,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N"
+          },
+          "range": ">=13.4.13 <15.5.16"
+        },
+        {
+          "source": 1118958,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js vulnerable to cache poisoning in React Server Component responses",
+          "url": "https://github.com/advisories/GHSA-wfc6-r584-vfw7",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-436"
+          ],
+          "cvss": {
+            "score": 5.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:N/I:L/A:L"
+          },
+          "range": ">=14.2.0 <15.5.16"
+        },
+        {
+          "source": 1118962,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js has a Middleware / Proxy bypass in Pages Router applications using i18n",
+          "url": "https://github.com/advisories/GHSA-36qx-fr4f-26g5",
+          "severity": "high",
+          "cwe": [
+            "CWE-863"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": ">=12.2.0 <15.5.16"
+        },
+        "postcss"
+      ],
+      "effects": [],
+      "range": "9.3.4-canary.0 - 16.3.0-canary.5",
+      "nodes": [
+        "node_modules/next"
+      ],
+      "fixAvailable": {
+        "name": "next",
+        "version": "15.5.18",
+        "isSemVerMajor": false
+      }
+    },
+    "postcss": {
+      "name": "postcss",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1117015,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+          "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 6.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": "<8.5.10"
+        }
+      ],
+      "effects": [
+        "next"
+      ],
+      "range": "<8.5.10",
+      "nodes": [
+        "node_modules/next/node_modules/postcss"
+      ],
+      "fixAvailable": {
+        "name": "next",
+        "version": "15.5.18",
+        "isSemVerMajor": false
+      }
+    },
+    "retry-request": {
+      "name": "retry-request",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "teeny-request"
+      ],
+      "effects": [
+        "@google-cloud/common",
+        "@google-cloud/storage",
+        "google-gax"
+      ],
+      "range": "7.0.0 - 7.0.2",
+      "nodes": [
+        "node_modules/retry-request"
+      ],
+      "fixAvailable": false
+    },
+    "teeny-request": {
+      "name": "teeny-request",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "uuid"
+      ],
+      "effects": [
+        "@google-cloud/common",
+        "@google-cloud/storage",
+        "retry-request"
+      ],
+      "range": "3.9.1 - 9.0.0",
+      "nodes": [
+        "node_modules/teeny-request"
+      ],
+      "fixAvailable": false
+    },
+    "uuid": {
+      "name": "uuid",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1119441,
+          "name": "uuid",
+          "dependency": "uuid",
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-787",
+            "CWE-1285"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": "<11.1.1"
+        }
+      ],
+      "effects": [
+        "@genkit-ai/ai",
+        "@genkit-ai/tools-common",
+        "@google-cloud/logging",
+        "@google-cloud/storage",
+        "eventid",
+        "gaxios",
+        "genkit",
+        "google-gax",
+        "googleapis-common",
+        "teeny-request"
+      ],
+      "range": "<11.1.1",
+      "nodes": [
+        "node_modules/@genkit-ai/ai/node_modules/uuid",
+        "node_modules/@google-cloud/storage/node_modules/uuid",
+        "node_modules/eventid/node_modules/uuid",
+        "node_modules/genkit/node_modules/uuid",
+        "node_modules/uuid"
+      ],
+      "fixAvailable": false
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 18,
+      "high": 9,
+      "critical": 1,
+      "total": 28
+    },
+    "dependencies": {
+      "prod": 654,
+      "dev": 160,
+      "optional": 208,
+      "peer": 37,
+      "peerOptional": 0,
+      "total": 994
+    }
+  }
+}
