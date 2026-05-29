@@ -51,7 +51,11 @@ export function AccuracyTimer() {
     setMounted(true);
     const saved = localStorage.getItem("accuracy-logs");
     if (saved) {
-      try { setLocalLogs(JSON.parse(saved)); } catch (e) { console.error("Failed to parse local accuracy logs"); }
+      try { 
+        setLocalLogs(JSON.parse(saved)); 
+      } catch (e) { 
+        console.error("Failed to parse local accuracy logs"); 
+      }
     }
   }, []);
 
@@ -64,7 +68,8 @@ export function AccuracyTimer() {
     return () => clearInterval(timerRef.current);
   }, [isActive]);
 
-  const displayLogs = user ? (cloudLogs || []) : localLogs;
+  // Display logic: Prefer cloud logs if logged in, otherwise use local
+  const displayLogs = user && cloudLogs.length > 0 ? cloudLogs : localLogs;
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -84,10 +89,12 @@ export function AccuracyTimer() {
       wrong: wrong ? parseInt(wrong) : undefined,
     };
     
+    // 1. Optimistic Local Update
     const updated = [newLog, ...localLogs];
     setLocalLogs(updated);
     localStorage.setItem("accuracy-logs", JSON.stringify(updated));
 
+    // 2. Cloud Uplink
     if (user && db) {
       const logRef = doc(db, 'users', user.uid, 'accuracyLogs', newLog.id);
       setDoc(logRef, { 
@@ -96,7 +103,10 @@ export function AccuracyTimer() {
       }).catch(err => console.warn("Cloud Sync Delay:", err));
     }
 
+    // 3. System Feedback
     logAuditAction("Performance", "Practice Archived", `${currentTopic} - ${formatTime(time)}`);
+    
+    // Reset Terminal State
     setTime(0); 
     setIsActive(false); 
     setCurrentTopic("");
@@ -130,7 +140,7 @@ export function AccuracyTimer() {
              </div>
              <div>
                 <CardTitle className="text-xl font-headline font-black tracking-tight">Precision Terminal</CardTitle>
-                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-primary opacity-80 mt-1">Status: Active Unit</div>
+                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-primary opacity-80 mt-1">Status: {isActive ? "Recording" : "Standby"}</div>
              </div>
           </div>
         </CardHeader>
@@ -141,13 +151,13 @@ export function AccuracyTimer() {
              </div>
              <div className="flex items-center gap-3 px-3 py-1 bg-accent/40 rounded-full border border-white/10">
                 <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_#10B981]' : 'bg-muted-foreground'}`} />
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{isActive ? "Executing" : "Standby"}</span>
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{isActive ? "Executing" : "Idle"}</span>
              </div>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Subject</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Category</label>
               <Select value={currentSubject} onValueChange={(v) => setCurrentSubject(v)}>
                 <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold shadow-inner"><SelectValue /></SelectTrigger>
                 <SelectContent className="rounded-xl border-none shadow-2xl font-bold">
@@ -159,9 +169,9 @@ export function AccuracyTimer() {
               </Select>
             </div>
             <div className="space-y-1">
-              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Objective</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Objective Topic</label>
               <Input 
-                placeholder="e.g. Mixed Puzzle Set B" 
+                placeholder="e.g. Circular Arrangement Set 1" 
                 value={currentTopic} 
                 onChange={(e) => setCurrentTopic(e.target.value)} 
                 className="rounded-xl h-12 bg-accent/30 border-none font-bold shadow-inner"
@@ -172,7 +182,7 @@ export function AccuracyTimer() {
                 <label className="text-[9px] font-black uppercase tracking-widest text-emerald-500 ml-1">Correct Hits</label>
                 <Input 
                   type="number"
-                  placeholder="Optional" 
+                  placeholder="Count" 
                   value={correct} 
                   onChange={(e) => setCorrect(e.target.value)} 
                   className="rounded-xl h-12 bg-emerald-500/5 border-emerald-500/20 font-bold shadow-inner"
@@ -182,7 +192,7 @@ export function AccuracyTimer() {
                 <label className="text-[9px] font-black uppercase tracking-widest text-destructive ml-1">Wrong Hits</label>
                 <Input 
                   type="number"
-                  placeholder="Optional" 
+                  placeholder="Count" 
                   value={wrong} 
                   onChange={(e) => setWrong(e.target.value)} 
                   className="rounded-xl h-12 bg-destructive/5 border-destructive/20 font-bold shadow-inner"
@@ -196,7 +206,7 @@ export function AccuracyTimer() {
                 onClick={() => setIsActive(!isActive)}
                 className={`flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
              >
-                {isActive ? <><Pause className="w-4 h-4 mr-2" /> Stop</> : <><Play className="w-4 h-4 mr-2" /> Engage</>}
+                {isActive ? <><Pause className="w-4 h-4 mr-2" /> Stop Session</> : <><Play className="w-4 h-4 mr-2" /> Start Unit</>}
              </Button>
              <Button 
                 variant="outline" 
@@ -226,13 +236,13 @@ export function AccuracyTimer() {
                   <BookOpen className="w-5 h-5" />
                </div>
                <div>
-                  <CardTitle className="text-xl font-headline font-bold">Mission Vault</CardTitle>
-                  <div className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60 mt-1">Intelligence History</div>
+                  <CardTitle className="text-xl font-headline font-bold">Practice Archives</CardTitle>
+                  <div className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60 mt-1">Operational History</div>
                </div>
             </div>
             <div className="flex items-center gap-3 px-4 py-2 bg-primary/5 rounded-xl border border-primary/10">
                <Activity className="w-4 h-4 text-primary" />
-               <span className="text-[10px] font-black uppercase tracking-widest text-primary">{displayLogs.length} Units Archived</span>
+               <span className="text-[10px] font-black uppercase tracking-widest text-primary">{displayLogs.length} Units Logged</span>
             </div>
           </div>
         </CardHeader>
@@ -256,7 +266,7 @@ export function AccuracyTimer() {
                           <span className="text-[8px] text-primary font-black uppercase tracking-widest">{log.subject}</span>
                           {accuracy !== null && (
                             <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${accuracy >= 85 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
-                              {accuracy}% Accuracy
+                              {accuracy}% Precision
                             </span>
                           )}
                         </div>
@@ -268,7 +278,7 @@ export function AccuracyTimer() {
                           <Clock className="w-4 h-4 opacity-30" />
                           <span className="font-headline font-black text-2xl tracking-tighter tabular-nums">{formatTime(log.time)}</span>
                         </div>
-                        <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mt-0.5 opacity-50">Operational Time</span>
+                        <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mt-0.5 opacity-50">Archive Time</span>
                       </div>
                       <Button 
                         variant="ghost" 
@@ -286,7 +296,7 @@ export function AccuracyTimer() {
           ) : (
             <div className="py-20 text-center flex flex-col items-center">
                <TimerIcon className="w-12 h-12 mb-6 opacity-10" />
-               <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground/30">Vault is Empty: Initiate Protocol</p>
+               <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground/30">Vault Empty: Log Session to Begin</p>
             </div>
           )}
         </CardContent>
