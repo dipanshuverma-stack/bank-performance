@@ -182,7 +182,7 @@ export function MockTestConsole() {
                     Log New Mock
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] rounded-3xl border-none shadow-2xl overflow-y-auto max-h-[90vh]">
+                <DialogContent className="sm:max-w-[500px] rounded-3xl border-none shadow-2xl overflow-y-auto max-h-[90vh] z-50">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-headline font-bold">Deep Metric Logger</DialogTitle>
                   </DialogHeader>
@@ -267,7 +267,7 @@ export function MockTestConsole() {
                             <ChevronDown className="w-4 h-4 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[450px] p-0 rounded-2xl shadow-2xl border-none" align="start">
+                        <PopoverContent className="w-[450px] p-0 rounded-2xl shadow-2xl border-none z-[60]" align="start">
                           <ScrollArea className="h-[400px] p-4">
                             <div className="space-y-4">
                               {ADDA247_SYLLABUS.map((subject) => (

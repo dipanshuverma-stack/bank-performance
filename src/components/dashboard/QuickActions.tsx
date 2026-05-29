@@ -22,14 +22,14 @@ export function QuickActions() {
   ];
 
   const handleToggle = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
+    e.stopPropagation();
     setIsOpen(!isOpen);
   };
 
   if (!mounted) return null;
 
   return (
-    <div className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-[100] flex flex-col items-end gap-3 pointer-events-none">
+    <div className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-40 flex flex-col items-end gap-3 pointer-events-none">
       {/* Speed Dial Actions */}
       <div
         className={cn(
@@ -57,9 +57,9 @@ export function QuickActions() {
 
       {/* Primary Toggle Floating Action Button */}
       <Button
-        onMouseDown={handleToggle}
+        onClick={handleToggle}
         className={cn(
-          "w-14 h-14 rounded-full shadow-2xl bg-primary text-primary-foreground transition-all duration-300 z-[101] shadow-primary/30 pointer-events-auto",
+          "w-14 h-14 rounded-full shadow-2xl bg-primary text-primary-foreground transition-all duration-300 z-50 shadow-primary/30 pointer-events-auto",
           isOpen ? "bg-slate-900 text-white dark:bg-white dark:text-black rotate-45" : "hover:scale-105"
         )}
         style={{ touchAction: 'manipulation' }}

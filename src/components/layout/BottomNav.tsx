@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -18,7 +17,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-t border-border/40 px-6 py-3">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-lg border-t border-border/40 px-6 py-3">
       <div className="flex items-center justify-between max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -30,6 +29,7 @@ export function BottomNav() {
                 "flex flex-col items-center gap-1 transition-all duration-300",
                 isActive ? "text-primary scale-110" : "text-muted-foreground"
               )}
+              style={{ touchAction: 'manipulation' }}
             >
               <item.icon className={cn("w-6 h-6", isActive && "fill-primary/20")} />
               <span className="text-[9px] font-black uppercase tracking-widest">{item.name}</span>
