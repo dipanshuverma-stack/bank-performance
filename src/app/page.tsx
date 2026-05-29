@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,9 +9,31 @@ import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
 import { PersonalBests } from "@/components/dashboard/PersonalBests";
 import { ReadinessScore } from "@/components/dashboard/ReadinessScore";
 import { AiInsightsPanel } from "@/components/dashboard/AiInsightsPanel";
-import { Activity, ShieldCheck, Trophy, Sparkles, BookOpen, AlertCircle, Calendar, ArrowRight, BrainCircuit, Target, Zap } from "lucide-react";
+import { 
+  Activity, 
+  ShieldCheck, 
+  Trophy, 
+  Sparkles, 
+  BookOpen, 
+  Calendar, 
+  ArrowRight, 
+  BrainCircuit, 
+  Target, 
+  Zap,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious,
+  type CarouselApi
+} from "@/components/ui/carousel";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -21,6 +44,10 @@ export default function Home() {
     mocksCount: 0,
     daysLeft: 0,
   });
+
+  // Carousel APIs for auto-scroll
+  const [intelApi, setIntelApi] = useState<CarouselApi>();
+  const [readinessApi, setReadinessApi] = useState<CarouselApi>();
 
   useEffect(() => {
     setMounted(true);
@@ -71,6 +98,24 @@ export default function Home() {
       daysLeft: days
     });
   }, []);
+
+  // Auto-scroll logic for Strategic Intelligence
+  useEffect(() => {
+    if (!intelApi) return;
+    const intervalId = setInterval(() => {
+      intelApi.scrollNext();
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, [intelApi]);
+
+  // Auto-scroll logic for Readiness Architecture
+  useEffect(() => {
+    if (!readinessApi) return;
+    const intervalId = setInterval(() => {
+      readinessApi.scrollNext();
+    }, 6000);
+    return () => clearInterval(intervalId);
+  }, [readinessApi]);
 
   if (!mounted) return null;
 
@@ -132,22 +177,44 @@ export default function Home() {
                 <BrainCircuit className="w-6 h-6 text-primary" />
                 Strategic Intelligence
               </h3>
-              <div className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                Swipe to Browse <ArrowRight className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="w-8 h-8 rounded-full border-2" 
+                  onClick={() => intelApi?.scrollPrev()}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="w-8 h-8 rounded-full border-2" 
+                  onClick={() => intelApi?.scrollNext()}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
             </div>
-            {/* Fluid Snap Row for Intelligence Modules */}
-            <div className="swipe-row">
-              <div className="swipe-item w-[88%] md:w-[480px]">
-                <AiInsightsPanel />
-              </div>
-              <div className="swipe-item w-[88%] md:w-[480px]">
-                <ReadinessScore />
-              </div>
-              <div className="swipe-item w-[88%] md:w-[480px]">
-                <QuoteCard />
-              </div>
-            </div>
+
+            {/* Auto-scrolling Intelligence Carousel */}
+            <Carousel 
+              setApi={setIntelApi}
+              opts={{ align: "start", loop: true }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4">
+                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px]">
+                  <AiInsightsPanel />
+                </CarouselItem>
+                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px]">
+                  <ReadinessScore />
+                </CarouselItem>
+                <CarouselItem className="pl-4 basis-[88%] md:basis-[480px]">
+                  <QuoteCard />
+                </CarouselItem>
+              </CarouselContent>
+            </Carousel>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -237,30 +304,59 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer Metrics Snap Row */}
+      {/* Footer Metrics Carousel */}
       <div className="mt-8 space-y-6">
-        <h3 className="text-xl font-bold font-headline px-2 flex items-center gap-3">
-          <ShieldCheck className="w-6 h-6 text-primary" />
-          Readiness Architecture
-        </h3>
-        <div className="swipe-row">
-          {[
-            { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10", desc: "Adda247 Matrix Progress" },
-            { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10", desc: "All-time Precision Score" },
-            { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500", bg: "bg-purple-500/10", desc: "Operational Units Completed" },
-          ].map((item, i) => (
-            <div key={i} className="swipe-item w-[85%] md:w-1/3 p-10 rounded-[3rem] bg-card border border-border/40 group hover:-translate-y-2 transition-all duration-500 shadow-xl hover:shadow-primary/5">
-              <div className="flex justify-between items-start mb-6">
-                 <div className={cn("p-4 rounded-[1.25rem] transition-transform duration-500 group-hover:scale-110", item.bg)}>
-                   <item.icon className={cn("w-8 h-8", item.color)} />
-                 </div>
-                 <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{item.label}</div>
-              </div>
-              <div className="text-5xl font-headline font-black tracking-tighter text-foreground mb-2">{item.val}</div>
-              <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">{item.desc}</div>
-            </div>
-          ))}
+        <div className="flex items-center justify-between px-2">
+          <h3 className="text-xl font-bold font-headline flex items-center gap-3">
+            <ShieldCheck className="w-6 h-6 text-primary" />
+            Readiness Architecture
+          </h3>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="w-8 h-8 rounded-full border-2" 
+              onClick={() => readinessApi?.scrollPrev()}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="w-8 h-8 rounded-full border-2" 
+              onClick={() => readinessApi?.scrollNext()}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
+
+        <Carousel 
+          setApi={setReadinessApi}
+          opts={{ align: "start", loop: true }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4 pb-4">
+            {[
+              { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10", desc: "Adda247 Matrix Progress" },
+              { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10", desc: "All-time Precision Score" },
+              { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500", bg: "bg-purple-500/10", desc: "Operational Units Completed" },
+            ].map((item, i) => (
+              <CarouselItem key={i} className="pl-4 basis-[85%] md:basis-1/3">
+                <div className="p-10 rounded-[3rem] bg-card border border-border/40 group hover:-translate-y-2 transition-all duration-500 shadow-xl hover:shadow-primary/5 h-full">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className={cn("p-4 rounded-[1.25rem] transition-transform duration-500 group-hover:scale-110", item.bg)}>
+                      <item.icon className={cn("w-8 h-8", item.color)} />
+                    </div>
+                    <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{item.label}</div>
+                  </div>
+                  <div className="text-5xl font-headline font-black tracking-tighter text-foreground mb-2">{item.val}</div>
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">{item.desc}</div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
       </div>
     </div>
   );
