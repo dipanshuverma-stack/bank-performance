@@ -5,12 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, AlertCircle, CheckCircle2, Search, BookOpen, AlertOctagon, Brain, Filter, X } from "lucide-react";
+import { Trash2, Plus, AlertCircle, CheckCircle2, Search, BookOpen, AlertOctagon, Brain, Filter, X, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { logAuditAction } from "@/lib/audit-logger";
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { doc, setDoc, collection, deleteDoc, query, orderBy } from "firebase/firestore";
 
 interface Mistake {
   id: string;
@@ -24,8 +26,11 @@ interface Mistake {
 
 export default function MistakesPage() {
   const { toast } = useToast();
+  const { user } = useUser();
+  const db = useFirestore();
+  
   const [mounted, setMounted] = useState(false);
-  const [mistakes, setMistakes] = useState<Mistake[]>([]);
+  const [localMistakes, setLocalMistakes] = useState<Mistake[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("All");
@@ -35,17 +40,22 @@ export default function MistakesPage() {
   const [newNote, setNewNote] = useState("");
   const [newCorrectMethod, setNewCorrectMethod] = useState("");
 
+  const mistakesQuery = useMemoFirebase(() => {
+    if (!user || !db) return null;
+    return query(collection(db, 'users', user.uid, 'mistakes'), orderBy('serverTimestamp', 'desc'));
+  }, [db, user]);
+  
+  const { data: cloudMistakes } = useCollection<Mistake>(mistakesQuery);
+
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("elite-mistakes");
     if (saved) {
-      try { setMistakes(JSON.parse(saved)); } catch (e) {}
+      try { setLocalMistakes(JSON.parse(saved)); } catch (e) { console.warn("Failed to parse local mistakes"); }
     }
   }, []);
 
-  useEffect(() => {
-    if (mounted) localStorage.setItem("elite-mistakes", JSON.stringify(mistakes));
-  }, [mistakes, mounted]);
+  const mistakes = (user && cloudMistakes && cloudMistakes.length > 0) ? cloudMistakes : localMistakes;
 
   const addMistake = () => {
     if (!newTopic.trim() || !newNote.trim()) {
@@ -61,9 +71,17 @@ export default function MistakesPage() {
       resolved: false,
       date: new Date().toLocaleDateString(),
     };
-    setMistakes([mistake, ...mistakes]);
+
+    const updated = [mistake, ...localMistakes];
+    setLocalMistakes(updated);
+    localStorage.setItem("elite-mistakes", JSON.stringify(updated));
+
+    if (user && db) {
+      const mistakeRef = doc(db, 'users', user.uid, 'mistakes', mistake.id);
+      setDoc(mistakeRef, { ...mistake, serverTimestamp: new Date() }, { merge: true });
+    }
+
     setIsDialogOpen(false);
-    
     logAuditAction("Journal", "Mistake Archived", `${newTopic} (${newType}) unit archived in journal.`);
     
     setNewTopic(""); setNewNote(""); setNewCorrectMethod("");
@@ -71,19 +89,34 @@ export default function MistakesPage() {
   };
 
   const toggleResolved = (id: string) => {
-    const updated = mistakes.map(m => {
+    const updated = localMistakes.map(m => {
       if (m.id === id) {
         const newState = !m.resolved;
         logAuditAction("Journal", "Status Update", `${m.topic} marked as ${newState ? 'Resolved' : 'Active'}`);
+        
+        if (user && db) {
+          const mistakeRef = doc(db, 'users', user.uid, 'mistakes', id);
+          setDoc(mistakeRef, { resolved: newState }, { merge: true });
+        }
+        
         return { ...m, resolved: newState };
       }
       return m;
     });
-    setMistakes(updated);
+    setLocalMistakes(updated);
+    localStorage.setItem("elite-mistakes", JSON.stringify(updated));
   };
 
   const deleteMistake = (id: string) => {
-    setMistakes(mistakes.filter(m => m.id !== id));
+    const updated = localMistakes.filter(m => m.id !== id);
+    setLocalMistakes(updated);
+    localStorage.setItem("elite-mistakes", JSON.stringify(updated));
+
+    if (user && db) {
+      const mistakeRef = doc(db, 'users', user.uid, 'mistakes', id);
+      deleteDoc(mistakeRef);
+    }
+
     logAuditAction("Journal", "Record Purged", "Mistake unit removed from Tactical Journal.");
     toast({ title: "Record Purged", description: "Operational error entry removed from archives." });
   };
@@ -232,7 +265,7 @@ export default function MistakesPage() {
                     <Button variant="outline" onClick={() => toggleResolved(m.id)} className={`rounded-2xl h-12 px-6 font-black uppercase tracking-widest text-[10px] border-2 transition-all active:scale-95 ${m.resolved ? 'text-success border-success/20 bg-success/5' : 'text-primary border-primary/20 bg-primary/5 hover:bg-primary/10'}`}>
                       {m.resolved ? "Unit Resolved" : "Active Anomaly"}
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteLog(m.id)} className="text-muted-foreground hover:text-destructive transition-colors rounded-2xl h-12 w-12 hover:bg-destructive/10 shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => deleteMistake(m.id)} className="text-muted-foreground hover:text-destructive transition-colors rounded-2xl h-12 w-12 hover:bg-destructive/10 shrink-0">
                       <Trash2 className="w-5 h-5" />
                     </Button>
                   </div>
