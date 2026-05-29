@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -66,7 +65,7 @@ export default function ProfilePage() {
     // Sync local storage size
     let total = 0;
     for (let x in localStorage) {
-      if (localStorage.hasOwnProperty(x)) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, x)) {
         total += (localStorage[x].length + x.length) * 2;
       }
     }
@@ -242,7 +241,7 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[280px]">
-              {displayLogs.length > 0 ? (
+              {displayLogs && displayLogs.length > 0 ? (
                 <div className="divide-y divide-white/5">
                   {displayLogs.map((log) => (
                     <div key={log.id} className="p-5 hover:bg-white/[0.02] transition-colors">
@@ -272,5 +271,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-import { useMemo } from "react";
