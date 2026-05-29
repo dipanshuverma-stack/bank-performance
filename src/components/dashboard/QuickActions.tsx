@@ -17,7 +17,7 @@ export function QuickActions() {
   ];
 
   return (
-    <div className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-50 flex flex-col items-end gap-2">
+    <div className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-[100] flex flex-col items-end gap-2">
       {/* Speed Dial Actions */}
       <div
         className={cn(
@@ -44,10 +44,13 @@ export function QuickActions() {
 
       {/* Primary Toggle Floating Action Button */}
       <Button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
         size="icon"
         className={cn(
-          "w-14 h-14 rounded-full shadow-2xl shadow-primary/30 bg-primary text-primary-foreground transition-all duration-300",
+          "w-14 h-14 rounded-full shadow-2xl shadow-primary/30 bg-primary text-primary-foreground transition-all duration-300 z-[101]",
           isOpen ? "bg-slate-900 text-white dark:bg-white dark:text-black rotate-45" : "hover:scale-105"
         )}
       >
@@ -57,7 +60,7 @@ export function QuickActions() {
       {/* Dimmed backdrop click-away anchor */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[-1] bg-black/5 dark:bg-black/20 backdrop-blur-[1px]"
+          className="fixed inset-0 z-[-1] bg-black/20 dark:bg-black/40 backdrop-blur-[2px]"
           onClick={() => setIsOpen(false)}
         />
       )}
