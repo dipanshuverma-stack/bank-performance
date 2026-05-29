@@ -67,6 +67,11 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tighter text-foreground;
   }
+  
+  /* Remove tap delay and improve touch responsiveness on all interactive elements */
+  button, a, [role="button"], input, select, textarea {
+    touch-action: manipulation;
+  }
 }
 
 .scroll-container {
@@ -75,7 +80,7 @@
   -webkit-overflow-scrolling: touch;
   flex: 1;
   /* Allow native gestures without hold delay */
-  touch-action: pan-x pan-y;
+  touch-action: auto;
   position: relative;
   height: 100%;
 }

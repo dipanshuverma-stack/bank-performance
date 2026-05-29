@@ -45,12 +45,13 @@ export function QuickActions() {
       {/* Primary Toggle Floating Action Button */}
       <Button
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
         size="icon"
         className={cn(
-          "w-14 h-14 rounded-full shadow-2xl shadow-primary/30 bg-primary text-primary-foreground transition-all duration-300 z-[101]",
+          "w-14 h-14 rounded-full shadow-2xl shadow-primary/30 bg-primary text-primary-foreground transition-all duration-300 z-[101] active:scale-95 touch-none",
           isOpen ? "bg-slate-900 text-white dark:bg-white dark:text-black rotate-45" : "hover:scale-105"
         )}
       >
