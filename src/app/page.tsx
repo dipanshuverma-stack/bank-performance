@@ -168,6 +168,16 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Top Briefing Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        <div className="lg:col-span-4 min-w-0 h-full">
+          <CountdownCard />
+        </div>
+        <div className="lg:col-span-8 min-w-0 h-full">
+          <QuoteCard className="h-full" />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         <div className="lg:col-span-8 space-y-8 min-w-0">
           <PerformanceOverview />
@@ -212,9 +222,6 @@ export default function Home() {
                 <CarouselItem className="pl-4 md:basis-1/2 flex min-w-0">
                   <ReadinessScore className="w-full min-h-[320px]" />
                 </CarouselItem>
-                <CarouselItem className="pl-4 md:basis-1/2 flex min-w-0">
-                  <QuoteCard className="w-full min-h-[320px]" />
-                </CarouselItem>
               </CarouselContent>
             </Carousel>
           </div>
@@ -250,8 +257,6 @@ export default function Home() {
         </div>
         
         <div className="lg:col-span-4 space-y-8 min-w-0">
-          <CountdownCard />
-          
           <div className="p-6 rounded-[2rem] bg-slate-900 border border-white/10 relative overflow-hidden group shadow-xl">
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-4">

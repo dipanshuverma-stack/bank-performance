@@ -50,36 +50,40 @@ export function QuoteCard({ className }: { className?: string }) {
   }, []);
 
   return (
-    <Card className={cn("bento-card border-none bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/10 flex flex-col", className)}>
-      <CardContent className="p-6 flex-1 flex flex-col justify-between">
-        <div className="flex items-center justify-between mb-2">
-          <Quote className="w-8 h-8 opacity-40 rotate-180" />
-          <Sparkles className="w-4 h-4 opacity-50 animate-pulse" />
-        </div>
-        
-        <div className="flex-1 flex items-center py-4">
-          {quoteData ? (
-            <div className="w-full">
-              <p className="text-lg font-medium leading-relaxed italic mb-2">
-                "{quoteData.quote}"
-              </p>
-              <p className="text-xs font-bold text-right opacity-80 uppercase tracking-widest">
-                — {quoteData.author}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2 w-full">
-              <Skeleton className="h-4 w-full bg-white/20" />
-              <Skeleton className="h-4 w-3/4 bg-white/20" />
-              <div className="flex justify-end">
+    <Card className={cn("bento-card border-none bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/10 flex items-center", className)}>
+      <CardContent className="p-6 py-4 flex-1 flex flex-row items-center justify-between gap-8">
+        <div className="flex items-center gap-5 flex-1 min-w-0">
+          <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-xl shrink-0">
+            <Quote className="w-5 h-5 text-white opacity-90 rotate-180" />
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            {quoteData ? (
+              <div className="space-y-1">
+                <p className="text-sm md:text-base font-bold leading-tight italic truncate">
+                  "{quoteData.quote}"
+                </p>
+                <div className="flex items-center gap-2 opacity-80">
+                  <div className="h-px w-4 bg-white/50" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.15em]">
+                    {quoteData.author}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 w-full">
+                <Skeleton className="h-4 w-full bg-white/20" />
                 <Skeleton className="h-3 w-1/4 bg-white/20" />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         
-        <div className="text-[10px] uppercase tracking-widest opacity-60 text-right mt-2">
-          Wisdom of the Elite
+        <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
+          <Sparkles className="w-4 h-4 opacity-50 animate-pulse text-white" />
+          <span className="text-[8px] font-black uppercase tracking-[0.2em] opacity-40 text-right">
+            Daily Wisdom
+          </span>
         </div>
       </CardContent>
     </Card>
