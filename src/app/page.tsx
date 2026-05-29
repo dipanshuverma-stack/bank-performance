@@ -136,14 +136,14 @@ export default function Home() {
                 Strategic Intelligence
               </h3>
               <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
-                Swipe for insights <ArrowRight className="w-3 h-3" />
+                Flick to browse <ArrowRight className="w-3 h-3" />
               </span>
             </div>
-            <div className="swipe-row">
-              <div className="swipe-item w-full md:w-[480px]">
+            <div className="swipe-row scrollbar-hide">
+              <div className="swipe-item w-[85%] md:w-[480px]">
                 <AiInsightsPanel />
               </div>
-              <div className="swipe-item w-full md:w-[480px]">
+              <div className="swipe-item w-[85%] md:w-[480px]">
                 <ReadinessScore />
               </div>
             </div>
