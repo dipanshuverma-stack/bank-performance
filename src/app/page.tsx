@@ -89,8 +89,8 @@ export default function Home() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-10 pb-12">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2">
+    <div className="space-y-10">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-1">
         <div className="space-y-1">
           <div className="flex items-center gap-2 mb-2">
              <span className="h-1 w-6 bg-primary rounded-full" />
@@ -139,11 +139,12 @@ export default function Home() {
                 Swipe to browse <ArrowRight className="w-3 h-3" />
               </span>
             </div>
+            {/* Native Snap Row */}
             <div className="swipe-row">
-              <div className="swipe-item w-[88%] md:w-[480px]">
+              <div className="swipe-item w-[85%] md:w-[480px]">
                 <AiInsightsPanel />
               </div>
-              <div className="swipe-item w-[88%] md:w-[480px]">
+              <div className="swipe-item w-[85%] md:w-[480px]">
                 <ReadinessScore />
               </div>
             </div>
@@ -209,13 +210,14 @@ export default function Home() {
           <ShieldCheck className="w-5 h-5 text-primary" />
           Global Readiness Matrix
         </h3>
+        {/* Native Snap Row for bottom metrics */}
         <div className="swipe-row">
           {[
             { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
             { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10" },
             { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500", bg: "bg-purple-500/10" },
           ].map((item, i) => (
-            <div key={i} className="swipe-item w-[80%] md:w-1/3 p-8 rounded-[2.5rem] bg-card border border-border/40 group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-xl">
+            <div key={i} className="swipe-item w-[80%] md:w-1/3 p-8 rounded-[2.5rem] bg-card border border-border/40 group hover:-translate-y-1 transition-all duration-300 shadow-sm">
               <div className="flex justify-between items-start mb-4">
                  <div className={cn("p-3 rounded-2xl", item.bg)}>
                    <item.icon className={cn("w-6 h-6", item.color)} />
