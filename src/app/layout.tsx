@@ -53,9 +53,9 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background text-foreground overflow-hidden h-screen w-screen">
         <div className="flex h-full w-full bg-background transition-colors duration-200 overflow-hidden">
           <Sidebar />
-          <div className="flex-1 flex flex-col min-w-0 h-full relative">
+          <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
             <Header />
-            <main className="flex-1 scroll-container px-4 md:px-8 lg:px-14 pb-32 md:pb-20">
+            <main className="scroll-container px-4 md:px-8 lg:px-14 pb-32 md:pb-12">
               <div className="max-w-[1600px] mx-auto page-transition w-full py-4">
                 {children}
               </div>
