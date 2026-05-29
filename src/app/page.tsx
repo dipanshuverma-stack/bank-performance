@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
+import { SubjectWisePerformance } from "@/components/dashboard/SubjectWisePerformance";
 import { CountdownCard } from "@/components/dashboard/CountdownCard";
 import { QuoteCard } from "@/components/dashboard/QuoteCard";
 import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
@@ -99,6 +100,8 @@ export default function Home() {
     };
 
     loadTelemetry();
+    window.addEventListener('storage', loadTelemetry);
+    return () => window.removeEventListener('storage', loadTelemetry);
   }, []);
 
   useEffect(() => {
@@ -168,6 +171,8 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         <div className="lg:col-span-8 space-y-8 min-w-0">
           <PerformanceOverview />
+          
+          <SubjectWisePerformance />
           
           <div className="space-y-4">
             <div className="flex items-center justify-between px-2">
