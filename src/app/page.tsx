@@ -139,11 +139,11 @@ export default function Home() {
                 Swipe to browse <ArrowRight className="w-3 h-3" />
               </span>
             </div>
-            <div className="swipe-row scrollbar-hide">
-              <div className="swipe-item w-[85%] md:w-[480px]">
+            <div className="swipe-row">
+              <div className="swipe-item w-[88%] md:w-[480px]">
                 <AiInsightsPanel />
               </div>
-              <div className="swipe-item w-[85%] md:w-[480px]">
+              <div className="swipe-item w-[88%] md:w-[480px]">
                 <ReadinessScore />
               </div>
             </div>
@@ -209,7 +209,7 @@ export default function Home() {
           <ShieldCheck className="w-5 h-5 text-primary" />
           Global Readiness Matrix
         </h3>
-        <div className="swipe-row scrollbar-hide">
+        <div className="swipe-row">
           {[
             { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
             { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10" },

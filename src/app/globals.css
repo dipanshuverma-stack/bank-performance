@@ -61,15 +61,15 @@
     height: 100dvh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Use auto to allow the browser to detect both horizontal and vertical gestures instantly */
-    touch-action: auto;
+    /* Pan-y allows vertical scrolling to start immediately without delay */
+    touch-action: pan-y;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tighter text-foreground;
   }
   
-  /* Remove tap delay and improve touch responsiveness on all interactive elements */
   button, a, [role="button"], input, select, textarea {
+    /*Manipulation removes the 300ms tap delay */
     touch-action: manipulation;
   }
 }
@@ -79,13 +79,12 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   flex: 1;
-  /* Allow native gestures without hold delay */
-  touch-action: auto;
+  touch-action: pan-y;
   position: relative;
   height: 100%;
 }
 
-/* Custom Smooth Scrollbar */
+/* Custom Smooth Scrollbar for vertical scrolling */
 .scroll-container::-webkit-scrollbar {
   width: 5px;
 }
@@ -95,14 +94,10 @@
 .scroll-container::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground) / 0.15);
   border-radius: 20px;
-  transition: background 0.3s;
-}
-.scroll-container::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.4);
 }
 
 .bento-card {
-  @apply relative overflow-hidden rounded-[2.5rem] border bg-card transition-all duration-500 hover:shadow-2xl hover:border-primary/30;
+  @apply relative overflow-hidden rounded-[2.5rem] border bg-card transition-all duration-500;
   will-change: transform, box-shadow;
 }
 
@@ -133,17 +128,18 @@
   scrollbar-width: none;
 }
 
-/* Horizontal Swipe Optimization */
+/* Horizontal Swipe Rows - Optimized for speed */
 .swipe-row {
-  @apply flex gap-4 overflow-x-auto pb-4 snap-x snap-proximity;
+  @apply flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide;
   -webkit-overflow-scrolling: touch;
-  /* pan-x pan-y allows both gestures to initiate without browser hesitation */
+  /* pan-x pan-y tells the browser to handle both axes instantly */
   touch-action: pan-x pan-y;
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* Auto is faster and more responsive for touch */
 }
 .swipe-item {
-  @apply shrink-0 snap-center;
+  @apply shrink-0 snap-start;
   scroll-snap-stop: always;
+  will-change: transform;
 }
 
 /* High Performance Animation Fixes */
