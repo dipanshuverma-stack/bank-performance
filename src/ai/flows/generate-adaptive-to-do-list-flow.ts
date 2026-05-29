@@ -76,10 +76,38 @@ const generateAdaptiveToDoListFlow = ai.defineFlow(
     outputSchema: GenerateAdaptiveToDoListOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error('Failed to generate study suggestions.');
+    try {
+      const { output } = await prompt(input);
+      if (!output) {
+        throw new Error('Failed to generate study suggestions.');
+      }
+      return output;
+    } catch (error: any) {
+      console.warn('Adaptive study planner skipped due to AI availability:', error.message);
+      // Strategic Fallback: Return standard high-impact tasks
+      return {
+        dailyToDoList: [
+          { 
+            subject: 'Quants', 
+            chapter: 'Data Interpretation (Table & Line)', 
+            estimatedTimeMinutes: 60, 
+            reason: 'High Exam Weightage (Strategic Fallback)' 
+          },
+          { 
+            subject: 'Reasoning', 
+            chapter: 'Puzzles (Linear & Circular)', 
+            estimatedTimeMinutes: 60, 
+            reason: 'Core Scoring Pillar (Strategic Fallback)' 
+          },
+          { 
+            subject: 'Quants', 
+            chapter: 'Arithmetic: Percentage & Ratio', 
+            estimatedTimeMinutes: 45, 
+            reason: 'Fundamental concepts (Strategic Fallback)' 
+          }
+        ],
+        overallRecommendation: "AI Strategy Engine is temporarily resting. Focus on high-weightage DI and Puzzles to maximize your score."
+      };
     }
-    return output;
   }
 );
