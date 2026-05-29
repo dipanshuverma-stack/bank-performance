@@ -1,11 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import React from 'react';
 
 /**
  * @fileOverview A wrapper for client-only tactical systems.
- * Handles the loading of components that require 'window' or 'localStorage'
- * without interrupting the Server Component hierarchy of the root layout.
+ * Handles components that require browser APIs like 'window' or 'localStorage'.
  */
 
 const QuickActions = dynamic(() => import('@/components/dashboard/QuickActions').then(mod => mod.QuickActions), { ssr: false });
@@ -13,6 +13,14 @@ const AchievementMonitor = dynamic(() => import('@/components/dashboard/Achievem
 const InteractionTracker = dynamic(() => import('@/components/layout/InteractionTracker').then(mod => mod.InteractionTracker), { ssr: false });
 
 export function ClientSideWrappers() {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <>
       <QuickActions />

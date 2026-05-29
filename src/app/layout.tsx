@@ -39,11 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`} style={{ colorScheme: 'light dark' }}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://firestore.googleapis.com" />
-      </head>
+    <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`}>
       <body className="font-body antialiased bg-background text-foreground">
         <FirebaseClientProvider>
           <div className="main-shell bg-background relative">

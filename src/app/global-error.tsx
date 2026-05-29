@@ -1,24 +1,10 @@
 'use client';
 
-import { Plus_Jakarta_Sans, Outfit } from 'next/font/google';
-import '@/app/globals.css';
-
 /**
  * @fileOverview Global fatal error boundary. 
  * Handles errors at the root layout level, providing a clean system reset.
+ * This component MUST define its own html and body tags.
  */
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-plus-jakarta',
-  display: 'swap',
-});
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  variable: '--font-outfit',
-  display: 'swap',
-});
 
 export default function GlobalSystemError({
   error,
@@ -28,40 +14,62 @@ export default function GlobalSystemError({
   reset: () => void;
 }) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`}>
-      <body className="font-body bg-background text-foreground flex min-h-screen flex-col items-center justify-center p-8 text-center">
-        <div className="max-w-md w-full space-y-10">
-          <div className="inline-block p-5 bg-primary/10 rounded-[2.5rem] mb-2 shadow-inner border border-primary/20">
-             <div className="w-16 h-16 bg-primary rounded-[2rem] flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40">
-                <span className="font-black text-3xl">!</span>
-             </div>
-          </div>
-          
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-6xl font-headline font-black tracking-tighter text-foreground leading-none">
-              CRITICAL <span className="text-primary italic">FAILURE</span>
-            </h1>
-            <p className="text-muted-foreground font-black uppercase tracking-[0.3em] text-[10px] opacity-60">
-              Emergency System Shutdown Initiated
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-              A fatal error occurred at the system kernel level. All active missions have been suspended 
-              to preserve the integrity of the performance archives.
-            </p>
-          </div>
-
+    <html lang="en">
+      <body style={{ 
+        margin: 0, 
+        fontFamily: 'sans-serif', 
+        backgroundColor: '#020617', 
+        color: '#f8fafc',
+        display: 'flex',
+        minHeight: '100vh',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem',
+        textAlign: 'center'
+      }}>
+        <div style={{ maxWidth: '400px', width: '100%' }}>
+          <div style={{ 
+            fontSize: '4rem', 
+            marginBottom: '1.5rem',
+            opacity: 0.5
+          }}>⚠️</div>
+          <h1 style={{ 
+            fontSize: '2rem', 
+            fontWeight: 900, 
+            letterSpacing: '-0.05em',
+            marginBottom: '1rem',
+            textTransform: 'uppercase'
+          }}>System Failure</h1>
+          <p style={{ 
+            fontSize: '0.875rem', 
+            opacity: 0.7, 
+            lineHeight: 1.6,
+            marginBottom: '2rem'
+          }}>
+            The terminal kernel has encountered a fatal error.
+            <br />
+            <span style={{ fontSize: '0.7rem', fontStyle: 'italic', opacity: 0.5 }}>
+              {error.message || 'Error Digest: ' + error.digest}
+            </span>
+          </p>
           <button
             onClick={() => reset()}
-            className="w-full h-16 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest shadow-2xl shadow-primary/30 hover:scale-[1.02] transition-transform flex items-center justify-center gap-3 active:scale-95"
+            style={{
+              width: '100%',
+              height: '4rem',
+              backgroundColor: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '1rem',
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              cursor: 'pointer',
+              boxShadow: '0 20px 25px -5px rgba(99, 102, 241, 0.3)'
+            }}
           >
             Reset System Kernel
           </button>
-          
-          <div className="pt-10 border-t border-border/40">
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/30">
-              Elite Performance Terminal v3.1.2 • Operational Recovery
-            </p>
-          </div>
         </div>
       </body>
     </html>

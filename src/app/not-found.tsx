@@ -1,7 +1,6 @@
 'use client';
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Map, ArrowLeft } from "lucide-react";
 
 /**
@@ -17,17 +16,17 @@ export default function NotFound() {
       
       <div className="space-y-3">
         <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tight text-foreground">Mission Out of Bounds</h2>
-        <p className="text-muted-foreground max-sm:text-xs max-w-sm mx-auto font-medium text-sm md:text-base leading-relaxed">
+        <p className="text-muted-foreground max-w-sm mx-auto font-medium text-sm md:text-base leading-relaxed">
           The requested coordinate does not exist in the terminal's strategic database. 
-          Return to mission control to continue operations.
         </p>
       </div>
 
-      <Button asChild className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
-        <Link href="/">
-          <ArrowLeft className="w-5 h-5 mr-3" /> Mission Control
-        </Link>
-      </Button>
+      <Link 
+        href="/"
+        className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground font-black uppercase tracking-widest shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+      >
+        <ArrowLeft className="w-5 h-5" /> Mission Control
+      </Link>
     </div>
   );
 }
