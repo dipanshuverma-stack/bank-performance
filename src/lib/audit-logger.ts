@@ -1,7 +1,10 @@
 /**
  * @fileOverview Centralized utility for logging tactical user actions.
- * Dispatches a global event to ensure the UI stays synchronized.
+ * Dispatches a global event and syncs to Firestore if authenticated.
  */
+
+import { doc, collection, addDoc, getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 export interface AuditLog {
   id: string;
@@ -14,24 +17,35 @@ export interface AuditLog {
 export const logAuditAction = (category: string, action: string, details: string) => {
   if (typeof window === 'undefined') return;
 
+  const timestamp = new Date().toLocaleString();
+  const newLog: AuditLog = {
+    id: Math.random().toString(36).substr(2, 9),
+    category,
+    action,
+    details,
+    timestamp,
+  };
+
   try {
+    // 1. Local Storage Write (Instant)
     const savedLogs = localStorage.getItem("elite-audit-logs");
     const logs: AuditLog[] = savedLogs ? JSON.parse(savedLogs) : [];
-    
-    const newLog: AuditLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      category,
-      action,
-      details,
-      timestamp: new Date().toLocaleString(),
-    };
-
-    // Keep only the most recent 50 logs for performance
     const updatedLogs = [newLog, ...logs].slice(0, 50);
     localStorage.setItem("elite-audit-logs", JSON.stringify(updatedLogs));
     
-    // Notify the system that a new log is available
+    // Notify local listeners
     window.dispatchEvent(new Event('elite-audit-updated'));
+
+    // 2. Server Write (Async)
+    const auth = getAuth();
+    const db = getFirestore();
+    if (auth.currentUser) {
+      const logRef = collection(db, 'users', auth.currentUser.uid, 'auditLogs');
+      addDoc(logRef, {
+        ...newLog,
+        serverTimestamp: new Date(),
+      }).catch(err => console.warn("Cloud Audit Sync Failed:", err));
+    }
   } catch (error) {
     console.warn("Audit Logger Error:", error);
   }

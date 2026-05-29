@@ -1,0 +1,72 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Core aspirant identity and operational parameters.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "targetExam": { "type": "string" },
+        "targetDate": { "type": "string", "format": "date" },
+        "preferredTiming": { "type": "string" }
+      }
+    },
+    "MockLog": {
+      "title": "Mock Examination Log",
+      "description": "Full performance record of a standardized mock test.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "examType": { "type": "string" },
+        "stage": { "type": "string", "enum": ["Prelims", "Mains"] },
+        "score": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "date": { "type": "string" }
+      }
+    },
+    "PracticeLog": {
+      "title": "Practice Session Unit",
+      "description": "Timed focused study unit for a specific topic.",
+      "type": "object",
+      "properties": {
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "time": { "type": "number" },
+        "date": { "type": "string" }
+      }
+    },
+    "AuditLog": {
+      "title": "Operational Audit Log",
+      "description": "Archived tactical interaction for diagnostic reporting.",
+      "type": "object",
+      "properties": {
+        "category": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Aspirant profile and core settings."
+    },
+    "/users/{userId}/mocks/{mockId}": {
+      "schema": "MockLog",
+      "description": "Archived mock performance metrics."
+    },
+    "/users/{userId}/accuracyLogs/{logId}": {
+      "schema": "PracticeLog",
+      "description": "Timed operational practice units."
+    },
+    "/users/{userId}/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Tactical interaction archives."
+    }
+  }
+}
