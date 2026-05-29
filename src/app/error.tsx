@@ -14,7 +14,8 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Terminal Fault:', error);
+    // Only log error in development or as a tactical audit
+    console.error('Terminal Runtime Exception:', error);
   }, [error]);
 
   return (
@@ -33,7 +34,7 @@ export default function Error({
       <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
       <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}>Operational Fault</h2>
       <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px', maxWidth: '320px' }}>
-        A system sub-module has encountered an exception.
+        A system sub-module has encountered an exception. Restarting the module may resolve the conflict.
       </p>
       <pre style={{
         padding: '16px',
@@ -43,7 +44,9 @@ export default function Error({
         color: '#ef4444',
         maxWidth: '100%',
         overflow: 'auto',
-        marginBottom: '24px'
+        marginBottom: '24px',
+        textAlign: 'left',
+        whiteSpace: 'pre-wrap'
       }}>
         {error.message || 'Unknown Exception'}
       </pre>
@@ -57,7 +60,8 @@ export default function Error({
           borderRadius: '12px',
           fontWeight: 900,
           cursor: 'pointer',
-          textTransform: 'uppercase'
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em'
         }}
       >
         Reboot Module

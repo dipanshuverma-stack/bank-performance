@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -41,9 +40,9 @@ export function AccuracyTimer() {
   
   const timerRef = useRef<any>(null);
 
-  // Cloud Sync Logic
+  // Cloud Sync Logic - Reinforced with null-safe checks
   const logsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !db) return null;
     return query(collection(db, 'users', user.uid, 'accuracyLogs'), orderBy('serverTimestamp', 'desc'));
   }, [db, user]);
   
@@ -71,7 +70,7 @@ export function AccuracyTimer() {
   }, [isActive]);
 
   // Display logic: Prefer cloud logs if logged in, otherwise use local
-  const displayLogs = user && cloudLogs.length > 0 ? cloudLogs : localLogs;
+  const displayLogs = (user && cloudLogs && cloudLogs.length > 0) ? cloudLogs : localLogs;
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -111,7 +110,7 @@ export function AccuracyTimer() {
     setLocalLogs(updated);
     localStorage.setItem("accuracy-logs", JSON.stringify(updated));
 
-    // 2. Cloud Uplink
+    // 2. Cloud Uplink - Reinforced check
     if (user && db) {
       const logRef = doc(db, 'users', user.uid, 'accuracyLogs', newLog.id);
       setDoc(logRef, { 

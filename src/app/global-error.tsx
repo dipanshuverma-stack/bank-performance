@@ -4,6 +4,7 @@ import React from 'react';
 
 /**
  * @fileOverview Failsafe kernel-level error boundary.
+ * Must include its own <html> and <body> tags.
  */
 
 export default function GlobalError({
@@ -31,7 +32,7 @@ export default function GlobalError({
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🚨</div>
           <h1 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px' }}>SYSTEM CRITICAL</h1>
           <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>
-            The terminal kernel has encountered a fatal exception.
+            The terminal kernel has encountered a fatal exception. Global synchronization has been suspended.
           </p>
           <pre style={{
             padding: '16px',
@@ -41,7 +42,8 @@ export default function GlobalError({
             color: '#ef4444',
             textAlign: 'left',
             overflow: 'auto',
-            marginBottom: '32px'
+            marginBottom: '32px',
+            whiteSpace: 'pre-wrap'
           }}>
             {error.message || 'Kernel Failure'}
           </pre>
@@ -56,6 +58,7 @@ export default function GlobalError({
               borderRadius: '12px',
               fontWeight: 900,
               textTransform: 'uppercase',
+              letterSpacing: '0.1em',
               cursor: 'pointer'
             }}
           >
