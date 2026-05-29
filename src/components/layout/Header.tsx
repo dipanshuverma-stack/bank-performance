@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -14,7 +13,9 @@ import {
   Sparkles,
   Trash2,
   AlertCircle,
-  X
+  X,
+  Calendar,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -147,9 +148,11 @@ export function Header() {
                   <div className="flex items-start gap-4">
                     <div className={cn(
                       "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
-                      n.type === 'achievement' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
+                      n.type === 'achievement' ? 'bg-primary/10 text-primary' : 
+                      n.type === 'alert' ? 'bg-destructive/10 text-destructive' : 'bg-indigo-500/10 text-indigo-500'
                     )}>
-                      {n.type === 'achievement' ? <Trophy className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                      {n.type === 'achievement' ? <Trophy className="w-5 h-5" /> : 
+                       n.type === 'alert' ? <AlertCircle className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
                     </div>
                     <div className="flex-1 pr-6">
                       <div className="text-sm font-bold text-foreground mb-1 leading-tight">{n.title}</div>
