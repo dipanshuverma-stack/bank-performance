@@ -12,7 +12,8 @@ import {
   BookOpen,
   Sparkles,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -50,9 +51,7 @@ export function Header() {
     };
 
     loadNotifications();
-    // Listen for storage changes to update notifications in real-time
     window.addEventListener('storage', loadNotifications);
-    // Custom event for internal app updates
     window.addEventListener('elite-new-notification', loadNotifications);
     
     return () => {
@@ -94,6 +93,66 @@ export function Header() {
     }
   };
 
+  const NotificationPopover = ({ isMobile = false }) => (
+    <Popover onOpenChange={(open) => open && markAllAsRead()}>
+      <PopoverTrigger asChild>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className={`rounded-2xl relative border border-border/60 hover:bg-accent transition-all group ${isMobile ? 'h-10 w-10' : 'h-12 w-12'}`}
+        >
+          <Bell className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-foreground group-hover:rotate-12 transition-transform`} />
+          {unreadCount > 0 && (
+            <span className="absolute top-2 right-2 w-3 h-3 bg-destructive rounded-full border-2 border-background shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse" />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0 rounded-3xl border-none shadow-2xl bg-card z-[100]" align="end">
+        <div className="p-4 border-b border-border/50 flex items-center justify-between">
+          <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Alerts</h4>
+          {notifications.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearNotifications} className="text-[10px] h-7 px-2 font-black uppercase text-muted-foreground hover:text-destructive">
+              Clear All
+            </Button>
+          )}
+        </div>
+        <ScrollArea className="h-[350px]">
+          {notifications.length > 0 ? (
+            <div className="divide-y divide-border/30">
+              {notifications.map((n) => (
+                <div key={n.id} className="p-4 group relative hover:bg-accent/30 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${n.type === 'achievement' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                      {n.type === 'achievement' ? <Trophy className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                    </div>
+                    <div className="flex-1 pr-6">
+                      <div className="text-xs font-bold text-foreground mb-0.5">{n.title}</div>
+                      <div className="text-[10px] text-muted-foreground leading-relaxed">{n.description}</div>
+                      <div className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest mt-2">{n.date}</div>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                    className="absolute top-4 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="h-[300px] flex flex-col items-center justify-center p-8 text-center text-muted-foreground/20">
+              <Bell className="w-12 h-12 mb-3 opacity-10" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em]">All Systems Clear</p>
+            </div>
+          )}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  );
+
   if (!mounted) return null;
 
   return (
@@ -107,6 +166,7 @@ export function Header() {
           <span className="font-headline font-black text-lg text-foreground tracking-tighter">Elite<span className="text-primary italic">Perf</span></span>
         </div>
         <div className="flex items-center gap-2">
+          <NotificationPopover isMobile={true} />
           <ThemeToggle />
           <Sheet>
             <SheetTrigger asChild>
@@ -134,7 +194,8 @@ export function Header() {
                       { name: "Overview", href: "/", icon: LayoutDashboard },
                       { name: "Mocks", href: "/mocks", icon: Trophy },
                       { name: "Console", href: "/accuracy", icon: TimerIcon },
-                      { name: "Syllabus", href: "/syllabus", icon: BookOpen }
+                      { name: "Syllabus", href: "/syllabus", icon: BookOpen },
+                      { name: "Journal", href: "/mistakes", icon: AlertCircle }
                     ].map((item) => (
                       <Button 
                         key={item.name}
@@ -152,7 +213,7 @@ export function Header() {
         </div>
       </header>
 
-      {/* Desktop Global Navigation / Control Bar */}
+      {/* Desktop Global Navigation */}
       <header className="hidden md:flex items-center justify-between px-8 lg:px-14 py-8 bg-background/50 backdrop-blur-md sticky top-0 z-40">
          <div className="flex items-center gap-8">
             <div className="flex flex-col">
@@ -177,59 +238,7 @@ export function Header() {
             
             <ThemeToggle />
             
-            <Popover onOpenChange={(open) => open && markAllAsRead()}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-2xl h-12 w-12 relative border border-border/60 hover:bg-accent transition-all group">
-                   <Bell className="w-5 h-5 text-foreground group-hover:rotate-12 transition-transform" />
-                   {unreadCount > 0 && (
-                     <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background shadow-lg shadow-destructive/20" />
-                   )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0 rounded-3xl border-none shadow-2xl bg-card" align="end">
-                <div className="p-4 border-b border-border/50 flex items-center justify-between">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Alerts</h4>
-                  {notifications.length > 0 && (
-                    <Button variant="ghost" size="sm" onClick={clearNotifications} className="text-[10px] h-7 px-2 font-black uppercase text-muted-foreground hover:text-destructive">
-                      Clear All
-                    </Button>
-                  )}
-                </div>
-                <ScrollArea className="h-[300px]">
-                  {notifications.length > 0 ? (
-                    <div className="divide-y divide-border/30">
-                      {notifications.map((n) => (
-                        <div key={n.id} className="p-4 group relative hover:bg-accent/30 transition-colors">
-                          <div className="flex items-start gap-3">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${n.type === 'achievement' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
-                              {n.type === 'achievement' ? <Trophy className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                            </div>
-                            <div className="flex-1 pr-6">
-                              <div className="text-xs font-bold text-foreground mb-0.5">{n.title}</div>
-                              <div className="text-[10px] text-muted-foreground leading-relaxed">{n.description}</div>
-                              <div className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest mt-2">{n.date}</div>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
-                            className="absolute top-4 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center py-12 text-center text-muted-foreground/20">
-                      <Bell className="w-12 h-12 mb-2 opacity-10" />
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em]">All Systems Clear</p>
-                    </div>
-                  )}
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
+            <NotificationPopover />
             
             <Button asChild className="rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 shadow-xl shadow-primary/20 font-black uppercase text-[10px] tracking-widest transition-all hover:-translate-y-0.5 active:translate-y-0">
                <Link href="/mocks">Quick Log</Link>
