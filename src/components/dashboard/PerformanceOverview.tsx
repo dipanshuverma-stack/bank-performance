@@ -53,7 +53,6 @@ export function PerformanceOverview() {
       const mockLogsRaw = localStorage.getItem("elite-mock-logs");
       const mockLogs = mockLogsRaw ? JSON.parse(mockLogsRaw) : [];
 
-      // Filter by stage (Prelims vs Mains)
       const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
 
       if (stageFiltered.length > 0) {
@@ -63,7 +62,6 @@ export function PerformanceOverview() {
         const avgScore = (sumScore / stageFiltered.length).toFixed(1);
         const avgAccuracy = (sumAcc / stageFiltered.length).toFixed(1);
 
-        // Map data for chart (last 7 entries)
         const mappedChartData = stageFiltered.slice(0, 7).reverse().map((m: any) => ({
           name: m.date.split('/')[0] + '/' + m.date.split('/')[1],
           accuracy: m.accuracy,
@@ -91,7 +89,6 @@ export function PerformanceOverview() {
     };
 
     refreshData();
-    // Listen for custom events or storage changes to refresh data
     window.addEventListener('storage', refreshData);
     return () => window.removeEventListener('storage', refreshData);
   }, [mounted, stage, period]);
@@ -158,33 +155,33 @@ export function PerformanceOverview() {
 
   return (
     <Card className="bento-card col-span-1 lg:col-span-2 overflow-hidden bg-card/50">
-      <CardHeader className="flex flex-col md:flex-row md:items-center justify-between bg-accent/5 py-6 px-6 gap-6 border-b">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary" />
-            <CardTitle className="text-xl font-headline font-bold">Performance Intel</CardTitle>
-          </div>
-          <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest ml-7">
-            <Layers className="w-3.5 h-3.5" />
-            {stage} Phase Active
+      <CardHeader className="flex flex-col bg-accent/5 py-6 px-6 gap-6 border-b">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              <CardTitle className="text-xl md:text-2xl font-headline font-bold">Performance Intel</CardTitle>
+            </div>
+            <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest ml-7">
+              <Layers className="w-3.5 h-3.5" />
+              {stage} Phase Active
+            </div>
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-          {/* Controlled Stage Toggle */}
-          <Tabs value={stage} onValueChange={(val: any) => setStage(val)} className="w-full md:w-auto">
-            <TabsList className="grid grid-cols-2 w-full md:w-[220px] h-10 bg-primary/10 rounded-xl p-1 border border-primary/20">
-              <TabsTrigger value="Prelims" className="text-[10px] font-black uppercase tracking-widest rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+          <Tabs value={stage} onValueChange={(val: any) => setStage(val)} className="w-full">
+            <TabsList className="grid grid-cols-2 w-full h-12 bg-primary/10 rounded-2xl p-1.5 border border-primary/20">
+              <TabsTrigger value="Prelims" className="text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
                 Prelims
               </TabsTrigger>
-              <TabsTrigger value="Mains" className="text-[10px] font-black uppercase tracking-widest rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+              <TabsTrigger value="Mains" className="text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
                 Mains
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
-          {/* Period Selection (Desktop only) */}
-          <div className="hidden lg:flex items-center gap-2 bg-accent/20 rounded-xl p-1 h-10">
+          <div className="hidden md:flex items-center gap-2 bg-accent/20 rounded-xl p-1 h-12">
             {["daily", "weekly", "monthly"].map((p) => (
               <Button 
                 key={p} 
@@ -192,7 +189,7 @@ export function PerformanceOverview() {
                 size="sm" 
                 onClick={() => setPeriod(p)}
                 className={cn(
-                  "h-8 px-3 text-[9px] font-black uppercase rounded-lg",
+                  "h-10 px-4 text-[9px] font-black uppercase rounded-lg",
                   period === p ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
                 )}
               >
@@ -203,19 +200,19 @@ export function PerformanceOverview() {
         </div>
       </CardHeader>
       
-      <CardContent className="p-8">
-        <div className="swipe-row md:grid md:grid-cols-3 gap-6 mb-8 scrollbar-hide">
+      <CardContent className="p-4 md:p-8">
+        <div className="swipe-row flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
           {[
             { label: "Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground", icon: TrendingUp },
             { label: "Avg Score", value: stats.avgScore, color: "text-primary", icon: Target },
             { label: "Tests Logged", value: stats.testsTaken, color: "text-emerald-500", icon: BarChart3 },
           ].map((stat, i) => (
-            <div key={i} className="swipe-item w-[80%] md:w-full flex flex-col p-6 rounded-[2rem] bg-slate-50 dark:bg-white/5 border border-border/40 group hover:border-primary/20 transition-all shadow-sm">
+            <div key={i} className="flex-shrink-0 w-[85%] md:w-full md:flex-1 flex flex-col p-6 rounded-[2rem] bg-slate-50 dark:bg-white/5 border border-border/40 group hover:border-primary/20 transition-all shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">{stat.label}</span>
                 <stat.icon className="w-4 h-4 text-muted-foreground/30" />
               </div>
-              <span className={cn("text-4xl font-headline font-black tabular-nums tracking-tighter", stat.color)}>
+              <span className={cn("text-3xl md:text-4xl font-headline font-black tabular-nums tracking-tighter", stat.color)}>
                 {stat.value}
               </span>
               <div className="mt-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
@@ -225,36 +222,36 @@ export function PerformanceOverview() {
           ))}
         </div>
 
-        <div className="h-[380px] w-full mt-4 bg-slate-50/20 dark:bg-white/[0.01] rounded-[2.5rem] p-6 border border-border/40 relative overflow-hidden group">
-          <div className="flex items-center justify-between mb-8">
+        <div className="w-full mt-6 bg-slate-50/20 dark:bg-white/[0.01] rounded-[2.5rem] p-4 md:p-8 border border-border/40 relative overflow-hidden group">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Trajectory Analysis</div>
-             <div className="flex items-center gap-2">
+             <div className="flex items-center gap-2 bg-accent/20 p-1 rounded-2xl w-full md:w-auto">
                <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setActiveView("performance")} 
                 className={cn(
-                  "h-9 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
+                  "flex-1 md:flex-none h-10 px-6 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
                   activeView === 'performance' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-accent'
                 )}
                >
-                 <LineChart className="w-3.5 h-3.5 mr-2" /> Precision
+                 <LineChart className="w-4 h-4 mr-2" /> Precision
                </Button>
                <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setActiveView("volume")} 
                 className={cn(
-                  "h-9 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
+                  "flex-1 md:flex-none h-10 px-6 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
                   activeView === 'volume' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-accent'
                 )}
                >
-                 <BarChart3 className="w-3.5 h-3.5 mr-2" /> Frequency
+                 <BarChart3 className="w-4 h-4 mr-2" /> Frequency
                </Button>
              </div>
           </div>
           
-          <div className="w-full h-[260px]">
+          <div className="w-full h-[280px] md:h-[320px]">
             {activeView === "performance" ? MemoizedAreaChart : MemoizedBarChart}
           </div>
 
