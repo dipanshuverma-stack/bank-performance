@@ -119,9 +119,22 @@ export function MockTestConsole() {
     }
   }, [mocks, mounted]);
 
+  const logAuditAction = (category: string, action: string, details: string) => {
+    const logs = JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
+    const newLog = {
+      id: Math.random().toString(36).substr(2, 9),
+      category,
+      action,
+      details,
+      timestamp: new Date().toLocaleString(),
+    };
+    localStorage.setItem("elite-audit-logs", JSON.stringify([newLog, ...logs].slice(0, 50)));
+  };
+
   const handleGlobalStageChange = (val: "Prelims" | "Mains") => {
     setActiveStage(val);
     localStorage.setItem("elite-active-stage", val);
+    logAuditAction("Strategic", "Stage Toggle", `Phase switched to ${val}`);
     window.dispatchEvent(new Event('elite-stage-changed'));
   };
 
@@ -157,6 +170,8 @@ export function MockTestConsole() {
     setMocks([newMock, ...mocks]);
     setIsDialogOpen(false);
     
+    logAuditAction("Performance", "Mock Logged", `${examType} ${stage} - Score: ${score}/${totalMarks}, Accuracy: ${newMock.accuracy}%`);
+    
     // Reset Form
     setMockName(""); setScore(""); setQuantsCorrect(""); 
     setReasoningCorrect(""); setEnglishCorrect(""); setGaCorrect(""); setCorrect(""); setWrong("");
@@ -166,6 +181,10 @@ export function MockTestConsole() {
   };
 
   const removeMock = (id: string) => {
+    const mockToRemove = mocks.find(m => m.id === id);
+    if (mockToRemove) {
+      logAuditAction("Performance", "Mock Purged", `${mockToRemove.name} archived log removed.`);
+    }
     setMocks(mocks.filter(m => m.id !== id));
   };
 

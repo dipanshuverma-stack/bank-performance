@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -84,6 +85,18 @@ export function AccuracyTimer() {
   const handleStartPause = () => setIsActive(!isActive);
   const handleReset = () => { setIsActive(false); setTime(0); };
 
+  const logAuditAction = (category: string, action: string, details: string) => {
+    const audit = JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
+    const newLog = {
+      id: Math.random().toString(36).substr(2, 9),
+      category,
+      action,
+      details,
+      timestamp: new Date().toLocaleString(),
+    };
+    localStorage.setItem("elite-audit-logs", JSON.stringify([newLog, ...audit].slice(0, 50)));
+  };
+
   const handleSaveLog = () => {
     if (!currentTopic || time === 0) return;
     const newLog = {
@@ -94,12 +107,19 @@ export function AccuracyTimer() {
       date: new Date().toLocaleDateString(),
     };
     setLogs([newLog, ...logs]);
+    logAuditAction("Performance", "Practice Unit Saved", `${currentTopic} (${currentSubject}) - Time: ${formatTime(time)}`);
     handleReset();
     setCurrentTopic("");
     setIsDialogOpen(false);
   };
 
-  const deleteLog = (id: number) => setLogs(logs.filter(l => l.id !== id));
+  const deleteLog = (id: number) => {
+    const logToRemove = logs.find(l => l.id === id);
+    if (logToRemove) {
+      logAuditAction("Performance", "Practice Unit Purged", `${logToRemove.topic} session log removed.`);
+    }
+    setLogs(logs.filter(l => l.id !== id));
+  };
 
   if (!mounted) return null;
 

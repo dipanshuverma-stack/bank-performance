@@ -31,10 +31,25 @@ export function SyllabusTracker() {
     }
   }, [syllabus, mounted]);
 
+  const logAuditAction = (category: string, action: string, details: string) => {
+    const audit = JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
+    const newLog = {
+      id: Math.random().toString(36).substr(2, 9),
+      category,
+      action,
+      details,
+      timestamp: new Date().toLocaleString(),
+    };
+    localStorage.setItem("elite-audit-logs", JSON.stringify([newLog, ...audit].slice(0, 50)));
+  };
+
   const toggleSubtopic = (subjectIndex: number, chapterIndex: number, subtopicIndex: number) => {
     const newSyllabus = [...syllabus];
-    newSyllabus[subjectIndex].chapters[chapterIndex].subtopics[subtopicIndex].completed = 
-      !newSyllabus[subjectIndex].chapters[chapterIndex].subtopics[subtopicIndex].completed;
+    const subtopic = newSyllabus[subjectIndex].chapters[chapterIndex].subtopics[subtopicIndex];
+    subtopic.completed = !subtopic.completed;
+    
+    logAuditAction("Knowledge", "Topic Protocol Updated", `${subtopic.name} status: ${subtopic.completed ? 'Completed' : 'Reset'}`);
+    
     setSyllabus(newSyllabus);
   };
 
