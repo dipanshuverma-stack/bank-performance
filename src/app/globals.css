@@ -62,6 +62,18 @@
     overflow-x: hidden;
   }
 
+  /* Custom Tactical Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-primary/30 transition-colors;
+  }
+
   /* Zero-Latency Interaction */
   button, a, [role="button"], input, select, textarea {
     touch-action: manipulation;
@@ -79,27 +91,6 @@
   width: 100%;
   position: relative;
   touch-action: pan-y;
-}
-
-/* Fluid Native Swiping */
-.swipe-row {
-  @apply flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
-  padding: 0.5rem 0.25rem 1.5rem 0.25rem;
-}
-
-.swipe-item {
-  @apply shrink-0 snap-start;
-  scroll-snap-stop: always;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
 
 .bento-card {
@@ -121,10 +112,19 @@
 
 @keyframes pulse-ring {
   0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.05); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 0.4; }
   100% { transform: scale(0.95); opacity: 0.8; }
 }
 
 .animate-pulse-ring {
   animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  @apply backdrop-blur-xl bg-white/5 border border-white/10;
+}
+
+.tactical-shadow {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }

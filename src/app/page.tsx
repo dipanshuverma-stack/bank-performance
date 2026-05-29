@@ -103,14 +103,6 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, [intelApi]);
 
-  useEffect(() => {
-    if (!readinessApi) return;
-    const intervalId = setInterval(() => {
-      readinessApi.scrollNext();
-    }, 6000);
-    return () => clearInterval(intervalId);
-  }, [readinessApi]);
-
   if (!mounted) return null;
 
   return (
@@ -253,7 +245,7 @@ export default function Home() {
                     <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">Syllabus Saturation</span>
                     <span className="text-3xl font-headline font-black text-white">{metrics.syllabusMastery}%</span>
                   </div>
-                  <div className="h-3.5 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                  <div className="h-3.5 bg-white/5 rounded-full overflow-hidden border border-border/10 shadow-inner">
                     <div className="h-full bg-primary transition-all duration-1000 shadow-[0_0_20px_rgba(var(--primary),0.6)]" style={{ width: `${metrics.syllabusMastery}%` }} />
                   </div>
                 </div>
@@ -262,7 +254,7 @@ export default function Home() {
                     <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">Objective Readiness</span>
                     <span className="text-3xl font-headline font-black text-white">{metrics.avgAccuracy}%</span>
                   </div>
-                  <div className="h-3.5 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                  <div className="h-3.5 bg-white/5 rounded-full overflow-hidden border border-border/10 shadow-inner">
                     <div className="h-full bg-emerald-500 transition-all duration-1000 shadow-[0_0_20px_rgba(16,185,129,0.6)]" style={{ width: `${metrics.avgAccuracy}%` }} />
                   </div>
                 </div>
@@ -296,60 +288,6 @@ export default function Home() {
              </button>
           </div>
         </div>
-      </div>
-
-      <div className="mt-12 space-y-8">
-        <div className="flex items-center justify-between px-4">
-          <h3 className="text-2xl font-headline font-black flex items-center gap-4 tracking-tight">
-            <ShieldCheck className="w-7 h-7 text-primary" />
-            Readiness Architecture
-          </h3>
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-10 h-10 rounded-2xl border-2 hover:bg-primary/5 transition-all" 
-              onClick={() => readinessApi?.scrollPrev()}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-10 h-10 rounded-2xl border-2 hover:bg-primary/5 transition-all" 
-              onClick={() => readinessApi?.scrollNext()}
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-
-        <Carousel 
-          setApi={setReadinessApi}
-          opts={{ align: "start", loop: true }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-6 pb-6 flex items-stretch">
-            {[
-              { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10", desc: "Adda247 Matrix Progress" },
-              { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10", desc: "All-time Precision Score" },
-              { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500", bg: "bg-purple-500/10", desc: "Operational Units Completed" },
-            ].map((item, i) => (
-              <CarouselItem key={i} className="pl-6 basis-[88%] md:basis-1/3 flex">
-                <div className="p-12 rounded-[3.5rem] bg-card border border-border/40 group hover:-translate-y-3 transition-all duration-500 shadow-xl hover:shadow-2xl hover:shadow-primary/10 h-full w-full flex flex-col">
-                  <div className="flex justify-between items-start mb-8">
-                    <div className={cn("p-5 rounded-2xl transition-all duration-500 group-hover:scale-110 shadow-inner", item.bg)}>
-                      <item.icon className={cn("w-9 h-9", item.color)} />
-                    </div>
-                    <div className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">{item.label}</div>
-                  </div>
-                  <div className="text-6xl font-headline font-black tracking-tighter text-foreground mb-4">{item.val}</div>
-                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-50 mt-auto">{item.desc}</div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
       </div>
     </div>
   );
