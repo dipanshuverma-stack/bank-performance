@@ -14,7 +14,7 @@ import {
   Bar,
   Cell
 } from 'recharts';
-import { Target, TrendingUp, Zap, BarChart3, LineChart, Activity, CheckCircle2, XCircle, Clock, Brain } from "lucide-react";
+import { Target, TrendingUp, BarChart3, LineChart } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
@@ -50,19 +50,11 @@ export function PerformanceOverview() {
     const accuracyLogs = JSON.parse(localStorage.getItem("accuracy-logs") || "[]");
 
     if (mockLogs.length > 0) {
-      const totalCorrect = mockLogs.reduce((acc: number, m: any) => acc + (m.correct || 0), 0);
-      const totalWrong = mockLogs.reduce((acc: number, m: any) => acc + (m.wrong || 0), 0);
       const sumScore = mockLogs.reduce((acc: number, m: any) => acc + (m.score || 0), 0);
       const sumAcc = mockLogs.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0);
       
       const avgScore = (sumScore / mockLogs.length).toFixed(1);
       const avgAccuracy = (sumAcc / mockLogs.length).toFixed(1);
-      
-      const quants = mockLogs.filter((m: any) => m.examType?.includes("Quants") || m.quantsCorrect > 0);
-      const reasoning = mockLogs.filter((m: any) => m.examType?.includes("Reasoning") || m.reasoningCorrect > 0);
-      
-      const qAcc = quants.length > 0 ? (quants.reduce((acc: number, m: any) => acc + m.accuracy, 0) / quants.length) : 0;
-      const rAcc = reasoning.length > 0 ? (reasoning.reduce((acc: number, m: any) => acc + m.accuracy, 0) / reasoning.length) : 0;
 
       const mappedChartData = mockLogs.slice(-7).reverse().map((m: any) => ({
         name: m.date.split('/')[0] + '/' + m.date.split('/')[1],
@@ -75,26 +67,12 @@ export function PerformanceOverview() {
         ...prev,
         avgScore: parseFloat(avgScore),
         avgAccuracy: parseFloat(avgAccuracy),
-        testsTaken: mockLogs.length,
-        totalCorrect,
-        totalWrong,
-        quantsAccuracy: Math.round(qAcc),
-        reasoningAccuracy: Math.round(rAcc)
+        testsTaken: mockLogs.length
       }));
 
       if (mappedChartData.length > 0) {
         setChartData(mappedChartData);
       }
-    }
-
-    if (accuracyLogs.length > 0) {
-      const avgTime = accuracyLogs.reduce((acc: number, l: any) => acc + l.time, 0) / accuracyLogs.length;
-      const mins = Math.floor(avgTime / 60);
-      const secs = Math.floor(avgTime % 60);
-      setStats(prev => ({
-        ...prev,
-        avgPracticeTime: `${mins}:${secs.toString().padStart(2, '0')}`
-      }));
     }
   }, [period]);
 
@@ -126,7 +104,7 @@ export function PerformanceOverview() {
           itemStyle={{ fontSize: '11px', fontWeight: '800' }}
         />
         <Area 
-          isAnimationActive={false} // Performance boost
+          isAnimationActive={false}
           name="Accuracy %" 
           type="monotone" 
           dataKey="accuracy" 
@@ -180,13 +158,13 @@ export function PerformanceOverview() {
       </CardHeader>
       
       <CardContent className="p-6">
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="swipe-row md:grid md:grid-cols-3 gap-4 mb-6 scrollbar-hide">
           {[
             { label: "Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground" },
             { label: "Avg Score", value: stats.avgScore, color: "text-primary" },
             { label: "Mocks", value: stats.testsTaken, color: "text-success" },
           ].map((stat, i) => (
-            <div key={i} className="flex flex-col p-4 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40">
+            <div key={i} className="swipe-item w-[70%] md:w-full flex flex-col p-4 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/40">
               <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-1">{stat.label}</span>
               <span className={`text-2xl md:text-3xl font-headline font-bold ${stat.color} tabular-nums tracking-tighter`}>{stat.value}</span>
             </div>

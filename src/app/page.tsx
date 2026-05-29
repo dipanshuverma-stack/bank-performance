@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
 import { CountdownCard } from "@/components/dashboard/CountdownCard";
 import { QuoteCard } from "@/components/dashboard/QuoteCard";
@@ -136,7 +136,7 @@ export default function Home() {
                 Strategic Intelligence
               </h3>
               <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
-                Flick to browse <ArrowRight className="w-3 h-3" />
+                Swipe to browse <ArrowRight className="w-3 h-3" />
               </span>
             </div>
             <div className="swipe-row scrollbar-hide">
@@ -204,22 +204,28 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-        {[
-          { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-          { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500", bg: "bg-purple-500/10" },
-        ].map((item, i) => (
-          <div key={i} className="p-8 rounded-[2.5rem] bg-card border border-border/40 group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-xl">
-            <div className="flex justify-between items-start mb-4">
-               <div className={cn("p-3 rounded-2xl", item.bg)}>
-                 <item.icon className={cn("w-6 h-6", item.color)} />
-               </div>
+      <div className="mt-8 space-y-4">
+        <h3 className="text-lg font-bold px-2 flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-primary" />
+          Global Readiness Matrix
+        </h3>
+        <div className="swipe-row scrollbar-hide">
+          {[
+            { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+            { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+            { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500", bg: "bg-purple-500/10" },
+          ].map((item, i) => (
+            <div key={i} className="swipe-item w-[80%] md:w-1/3 p-8 rounded-[2.5rem] bg-card border border-border/40 group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-xl">
+              <div className="flex justify-between items-start mb-4">
+                 <div className={cn("p-3 rounded-2xl", item.bg)}>
+                   <item.icon className={cn("w-6 h-6", item.color)} />
+                 </div>
+              </div>
+              <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">{item.label}</div>
+              <div className="text-4xl font-headline font-black tracking-tight text-foreground">{item.val}</div>
             </div>
-            <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">{item.label}</div>
-            <div className="text-4xl font-headline font-black tracking-tight text-foreground">{item.val}</div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

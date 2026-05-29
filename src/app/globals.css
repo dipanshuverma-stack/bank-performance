@@ -61,8 +61,8 @@
     height: 100dvh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Allow native touch actions for the whole body to prevent the "hold" delay */
-    touch-action: manipulation;
+    /* Use auto to allow the browser to detect both horizontal and vertical gestures instantly */
+    touch-action: auto;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tighter text-foreground;
@@ -74,8 +74,8 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   flex: 1;
-  /* Ensure the container is ready for vertical scrolling instantly */
-  touch-action: pan-y;
+  /* Allow native gestures without hold delay */
+  touch-action: pan-x pan-y;
   position: relative;
   height: 100%;
 }
@@ -132,8 +132,8 @@
 .swipe-row {
   @apply flex gap-4 overflow-x-auto pb-4 snap-x snap-proximity;
   -webkit-overflow-scrolling: touch;
-  /* pan-x allows immediate horizontal swipe while maintaining vertical scroll stability */
-  touch-action: pan-x;
+  /* pan-x pan-y allows both gestures to initiate without browser hesitation */
+  touch-action: pan-x pan-y;
   scroll-behavior: smooth;
 }
 .swipe-item {
