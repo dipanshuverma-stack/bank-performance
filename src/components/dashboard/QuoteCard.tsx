@@ -50,22 +50,22 @@ export function QuoteCard({ className }: { className?: string }) {
   }, []);
 
   return (
-    <Card className={cn("bento-card border-none bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/10 flex items-center", className)}>
-      <CardContent className="p-6 py-4 flex-1 flex flex-row items-center justify-between gap-8">
-        <div className="flex items-center gap-5 flex-1 min-w-0">
-          <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-xl shrink-0">
-            <Quote className="w-5 h-5 text-white opacity-90 rotate-180" />
+    <Card className={cn("bento-card border-none bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/10 flex items-center min-h-[100px]", className)}>
+      <CardContent className="p-5 md:p-6 py-4 flex-1 flex flex-row items-center justify-between gap-6 md:gap-8">
+        <div className="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
+          <div className="p-2.5 md:p-3 bg-white/20 rounded-2xl backdrop-blur-xl shrink-0">
+            <Quote className="w-4 h-4 md:w-5 md:h-5 text-white opacity-90 rotate-180" />
           </div>
           
           <div className="flex-1 min-w-0">
             {quoteData ? (
-              <div className="space-y-1">
-                <p className="text-sm md:text-base font-bold leading-tight italic truncate">
+              <div className="space-y-1.5">
+                <p className="text-xs md:text-sm lg:text-base font-bold leading-tight italic text-pretty">
                   "{quoteData.quote}"
                 </p>
                 <div className="flex items-center gap-2 opacity-80">
-                  <div className="h-px w-4 bg-white/50" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.15em]">
+                  <div className="h-px w-3 md:w-4 bg-white/50" />
+                  <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] truncate">
                     {quoteData.author}
                   </p>
                 </div>
@@ -79,7 +79,7 @@ export function QuoteCard({ className }: { className?: string }) {
           </div>
         </div>
         
-        <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
+        <div className="hidden sm:flex flex-col items-end gap-1 shrink-0 ml-2">
           <Sparkles className="w-4 h-4 opacity-50 animate-pulse text-white" />
           <span className="text-[8px] font-black uppercase tracking-[0.2em] opacity-40 text-right">
             Daily Wisdom
