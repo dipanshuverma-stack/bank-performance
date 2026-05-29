@@ -1,13 +1,13 @@
 'use client';
 
-import React, { ReactNode, useMemo } from 'react';
+import React, { ReactNode, useMemo, useState, useEffect } from 'react';
 import { initializeFirebase } from './index';
 import { FirebaseProvider } from './provider';
 
 /**
  * @fileOverview Client-side Firebase Provider.
- * Handles the idempotent initialization of Firebase services exclusively on the client
- * to avoid serialization errors during the Server-to-Client component handoff.
+ * Safely initializes Firebase instances on the client to avoid serialization
+ * and hydration errors in Next.js 15.
  */
 
 export function FirebaseClientProvider({
@@ -15,12 +15,32 @@ export function FirebaseClientProvider({
 }: {
   children: ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Initialize Firebase once on the client and memoize the instances.
-  // This prevents the "Only plain objects can be passed" error from Next.js 15.
-  const { firebaseApp, firestore, auth } = useMemo(() => initializeFirebase(), []);
+  const instances = useMemo(() => {
+    try {
+      return initializeFirebase();
+    } catch (error) {
+      console.error('Firebase Critical Initialization Error:', error);
+      return null;
+    }
+  }, []);
+
+  if (!mounted || !instances) {
+    return <>{children}</>;
+  }
 
   return (
-    <FirebaseProvider firebaseApp={firebaseApp} firestore={firestore} auth={auth}>
+    <FirebaseProvider 
+      firebaseApp={instances.firebaseApp} 
+      firestore={instances.firestore} 
+      auth={instances.auth}
+    >
       {children}
     </FirebaseProvider>
   );
