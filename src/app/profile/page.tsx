@@ -12,9 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { logAuditAction, type AuditLog } from "@/lib/audit-logger";
-import { useFirestore, useCollection, useDoc } from "@/firebase";
+import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, collection, query, orderBy, limit } from "firebase/firestore";
-import { useMemoFirebase } from "@/firebase/use-memo-firebase";
 import { supabase } from "@/lib/supabase";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -37,12 +36,18 @@ export default function ProfilePage() {
 
   // Supabase Auth Integration
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     // Check for existing session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSupabaseUser(session?.user ?? null);
-      if (session?.user) {
-        localStorage.setItem("cloud-sync-active", "true");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSupabaseUser(session?.user ?? null);
+        if (session?.user) {
+          localStorage.setItem("cloud-sync-active", "true");
+        }
+      } catch (err) {
+        console.warn("Supabase session check failed during initialization.");
       }
     };
     getInitialSession();
