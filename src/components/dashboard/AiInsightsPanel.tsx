@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Zap, Brain, TrendingUp, Clock, Target, ShieldAlert } from "lucide-react";
+import { Sparkles, Zap, Brain, TrendingUp, Target, ShieldAlert, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,6 @@ export function AiInsightsPanel({ className }: { className?: string }) {
 
     if (mockLogs.length > 0) {
       setHasData(true);
-      // 1. Accuracy Trend Insight
       const latestAcc = mockLogs[0].accuracy;
       const prevAcc = mockLogs[1]?.accuracy || latestAcc;
       const diff = latestAcc - prevAcc;
@@ -35,40 +34,37 @@ export function AiInsightsPanel({ className }: { className?: string }) {
       newInsights.push({
         category: "Tactical",
         message: diff >= 0 ? `${mockLogs[0].examType} Precision Peak` : "Accuracy Stabilization Needed",
-        metric: diff >= 0 ? `+${diff}% Gain` : `${diff}% Drop`,
+        metric: diff >= 0 ? `+${diff}% GAIN` : `${diff}% DROP`,
         icon: TrendingUp,
         color: diff >= 0 ? "text-emerald-500 bg-emerald-500/10" : "text-destructive bg-destructive/10"
       });
 
-      // 2. Volume/Focus Insight
       const mainsCount = mockLogs.filter((m: any) => m.stage === 'Mains').length;
       newInsights.push({
         category: "Focus",
         message: mainsCount > 0 ? "Mains Rigor Maintained" : "Prelims-Heavy Profile",
-        metric: `${mainsCount} Mains Logged`,
+        metric: `${mainsCount} MAINS LOG`,
         icon: Target,
         color: "text-blue-500 bg-blue-500/10"
       });
     }
 
     if (accuracyLogs.length > 0) {
-      // 3. Speed Insight
       const recentSession = accuracyLogs[0];
       newInsights.push({
         category: "Momentum",
-        message: `High Focus: ${recentSession.topic}`,
-        metric: "Active Unit",
+        message: `${recentSession.topic}`,
+        metric: "ACTIVE UNIT",
         icon: Zap,
         color: "text-yellow-500 bg-yellow-500/10"
       });
     }
 
-    // Default Fallbacks if low data
     if (newInsights.length < 3) {
       newInsights.push({
         category: "Revision",
         message: profile.targetExam ? `${profile.targetExam} Strategy Active` : "Standard Exam Protocol",
-        metric: "Active Mode",
+        metric: "LIVE MODE",
         icon: ShieldAlert,
         color: "text-indigo-500 bg-indigo-500/10"
       });
@@ -78,42 +74,57 @@ export function AiInsightsPanel({ className }: { className?: string }) {
   }, []);
 
   return (
-    <Card className={cn("bento-card bg-card/50 flex flex-col border-primary/10 shadow-2xl h-full", className)}>
+    <Card className={cn("bento-card bg-card/40 flex flex-col border-white/5 shadow-2xl h-full backdrop-blur-sm", className)}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-xl">
-              <Sparkles className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-primary/10 rounded-xl shadow-inner">
+              <Sparkles className="w-4 h-4 text-primary" />
             </div>
-            <CardTitle className="text-xl font-headline font-black tracking-tight">Strategic Intel</CardTitle>
+            <CardTitle className="text-xl font-headline font-black tracking-tight text-foreground">
+              Deep Strategic <span className="text-primary italic">Intel</span>
+            </CardTitle>
           </div>
-          <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest text-primary border-primary/20 bg-primary/5">
-            {hasData ? "Live Data" : "Protocol Mode"}
-          </Badge>
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/5 border border-primary/10">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-primary/80">Analysis Active</span>
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 flex-1">
+      <CardContent className="space-y-4 flex-1">
         {insights.map((insight, idx) => (
-          <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-accent/30 to-transparent border border-white/5 hover:border-primary/20 transition-all group">
-            <div className={cn("p-2.5 rounded-xl shrink-0 group-hover:scale-110 transition-transform duration-300", insight.color)}>
-              <insight.icon className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-0.5">
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{insight.category}</span>
-                {insight.metric && (
-                  <span className="text-[9px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-full">
-                    {insight.metric}
-                  </span>
-                )}
+          <div key={idx} className="relative group p-4 rounded-2xl bg-gradient-to-br from-accent/20 to-transparent border border-white/5 hover:border-primary/20 transition-all duration-500">
+            <div className="flex items-start gap-4">
+              <div className={cn("p-2.5 rounded-xl shrink-0 transition-all duration-500 group-hover:scale-110 shadow-sm", insight.color)}>
+                <insight.icon className="w-4 h-4" />
               </div>
-              <p className="text-sm font-bold truncate text-foreground">{insight.message}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[8px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">
+                    {insight.category}
+                  </span>
+                  {insight.metric && (
+                    <span className="text-[8px] font-mono font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-lg border border-primary/10">
+                      {insight.metric}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm font-extrabold truncate text-foreground/90 tracking-tight">
+                  {insight.message}
+                </p>
+              </div>
             </div>
           </div>
         ))}
-        <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center gap-2">
-           <Brain className="w-3.5 h-3.5 text-primary" />
-           <span className="text-[10px] font-black uppercase tracking-widest text-primary/70">Continuous Strategy Recalibration</span>
+        
+        <div className="mt-4 p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center gap-3 group cursor-default">
+           <div className="relative">
+             <Brain className="w-4 h-4 text-primary group-hover:animate-bounce" />
+             <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full animate-pulse" />
+           </div>
+           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
+             Continuous Strategy Recalibration
+           </span>
         </div>
       </CardContent>
     </Card>
