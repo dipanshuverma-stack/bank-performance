@@ -46,10 +46,15 @@ export function CountdownCard() {
 
   // Save to localStorage
   useEffect(() => {
-    if (exams.length > 0) {
+    if (mounted) {
       localStorage.setItem("elite-exams", JSON.stringify(exams));
     }
   }, [exams]);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const examCountdowns = exams.map(exam => {
     const diff = new Date(exam.date).getTime() - new Date().getTime();
@@ -79,6 +84,8 @@ export function CountdownCard() {
   const removeExam = (name: string) => {
     setExams(exams.filter(e => e.name !== name));
   };
+
+  if (!mounted) return null;
 
   return (
     <Card className="bento-card border-none shadow-2xl shadow-primary/5 group transition-all duration-500 overflow-visible bg-card">

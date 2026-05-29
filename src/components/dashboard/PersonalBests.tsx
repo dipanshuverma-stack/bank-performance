@@ -33,13 +33,13 @@ export function PersonalBests() {
       if (l.subject === "Quants" && l.time < bestQ) bestQ = l.time;
     });
 
-    // Mock "Fastest Mock" - in a real app we'd track total time. 
-    // For now, let's look for the mock with best speed if available.
+    // Simple streak calculation (count of active days)
+    const dates = new Set([...mockLogs, ...accuracyLogs].map((l: any) => l.date));
     
     setBests({
-      fastestMock: "42m 10s", // Placeholder for logic once full mock timing is implemented
+      fastestMock: "--:--", 
       highestAccuracy: maxAcc,
-      longestStreak: 12, // Placeholder for streak logic
+      longestStreak: dates.size,
       bestQuantTime: bestQ === Infinity ? "--:--" : `${Math.floor(bestQ / 60)}m ${bestQ % 60}s`,
     });
   }, []);
@@ -47,7 +47,7 @@ export function PersonalBests() {
   const records = [
     { 
       label: "Highest Accuracy", 
-      value: `${bests.highestAccuracy}%`, 
+      value: bests.highestAccuracy > 0 ? `${bests.highestAccuracy}%` : "0%", 
       icon: Target, 
       color: "text-emerald-400", 
       bg: "bg-emerald-500/10",
@@ -62,12 +62,12 @@ export function PersonalBests() {
       description: "Fastest Quant unit"
     },
     { 
-      label: "Longest Streak", 
-      value: `${bests.longestStreak} Days`, 
+      label: "Active Days", 
+      value: `${bests.longestStreak}`, 
       icon: Flame, 
       color: "text-orange-400", 
       bg: "bg-orange-500/10",
-      description: "Consistent grind"
+      description: "Consistency log"
     },
     { 
       label: "Fastest Mock", 
