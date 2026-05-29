@@ -16,13 +16,14 @@ export function QuickActions() {
     { name: "Update Syllabus", href: "/syllabus", icon: Target, color: "text-emerald-500 bg-emerald-500/10" },
   ];
 
-  const handleToggle = (e: React.MouseEvent) => {
+  // Use a fast toggle that works instantly on touch
+  const handleToggle = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     setIsOpen(!isOpen);
   };
 
   return (
-    <div className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-[100] flex flex-col items-end gap-3">
+    <div className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-[100] flex flex-col items-end gap-3 pointer-events-none">
       {/* Speed Dial Actions */}
       <div
         className={cn(
@@ -35,7 +36,8 @@ export function QuickActions() {
             key={i}
             href={action.href}
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-4 bg-card border border-border/80 shadow-2xl px-5 py-3 rounded-2xl hover:bg-accent transition-all active:scale-95 group"
+            className="flex items-center gap-4 bg-card border border-border/80 shadow-2xl px-5 py-3 rounded-2xl hover:bg-accent transition-all active:scale-95 group pointer-events-auto"
+            style={{ touchAction: 'manipulation' }}
           >
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground">
               {action.name}
@@ -49,12 +51,12 @@ export function QuickActions() {
 
       {/* Primary Toggle Floating Action Button */}
       <Button
-        onClick={handleToggle}
-        size="icon"
+        onMouseDown={handleToggle}
         className={cn(
-          "w-14 h-14 rounded-full shadow-2xl bg-primary text-primary-foreground transition-all duration-300 z-[101] shadow-primary/30",
+          "w-14 h-14 rounded-full shadow-2xl bg-primary text-primary-foreground transition-all duration-300 z-[101] shadow-primary/30 pointer-events-auto",
           isOpen ? "bg-slate-900 text-white dark:bg-white dark:text-black rotate-45" : "hover:scale-105"
         )}
+        style={{ touchAction: 'manipulation' }}
       >
         <Plus className="w-7 h-7" />
       </Button>
@@ -62,7 +64,7 @@ export function QuickActions() {
       {/* Simplified backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[-1] bg-black/40 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[-1] bg-black/40 backdrop-blur-[2px] pointer-events-auto"
           onClick={() => setIsOpen(false)}
         />
       )}

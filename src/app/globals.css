@@ -57,49 +57,40 @@
   
   html, body {
     @apply antialiased bg-background text-foreground selection:bg-primary/20 font-body;
+    /* Native scrolling is more reliable for touch detection */
     overflow-x: hidden;
-    height: 100%;
+    height: auto;
+    min-height: 100%;
     width: 100%;
-    /* Allow native browser gestures to handle the heavy lifting */
-    touch-action: manipulation;
+    scroll-behavior: smooth;
   }
 
-  button, a, [role="button"] {
+  /* Remove tap delay and "hold" requirement for all buttons */
+  button, a, [role="button"], input, select, textarea {
     touch-action: manipulation;
   }
 }
 
-/* Simplified High-Performance Layout */
+/* Simplified Layout for Better Touch Responsiveness */
 .main-shell {
   display: flex;
-  height: 100%;
+  min-height: 100vh;
   width: 100%;
-  overflow: hidden;
 }
 
 .scroll-viewport {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  width: 100%;
   position: relative;
-  /* Ensure scrolling starts instantly */
-  overscroll-behavior-y: contain;
+  /* Ensure horizontal swipes don't block vertical scrolling */
+  touch-action: pan-y;
 }
 
-.scroll-viewport::-webkit-scrollbar {
-  width: 4px;
-}
-.scroll-viewport::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.1);
-  border-radius: 10px;
-}
-
-/* Fluid Native Swiping */
+/* Fluid Native Swiping - No Hold Required */
 .swipe-row {
   @apply flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide;
   -webkit-overflow-scrolling: touch;
-  /* Allow horizontal swipe gestures to trigger immediately */
+  /* pan-x pan-y allows browser to handle both axes natively without locking */
   touch-action: pan-x pan-y;
   padding-bottom: 1rem;
 }
