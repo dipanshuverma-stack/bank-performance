@@ -11,7 +11,7 @@ export type Chapter = {
 };
 
 export type Subject = {
-  name: 'Reasoning' | 'Quants';
+  name: 'Reasoning' | 'Quants' | 'English' | 'General Awareness';
   chapters: Chapter[];
 };
 
@@ -151,13 +151,78 @@ export const ADDA247_SYLLABUS: Subject[] = [
           { id: 'q5s3', name: 'Coded Quadratic', completed: false },
         ],
       },
+    ],
+  },
+  {
+    name: 'English',
+    chapters: [
       {
-        id: 'q6',
-        name: 'Data Sufficiency & Comparisons',
+        id: 'e1',
+        name: 'Reading Comprehension',
         subtopics: [
-          { id: 'q6s1', name: 'Data Sufficiency (2 Statement)', completed: false },
-          { id: 'q6s2', name: 'Data Sufficiency (3 Statement)', completed: false },
-          { id: 'q6s3', name: 'Quantity 1 vs Quantity 2', completed: false },
+          { id: 'e1s1', name: 'Direct Question', completed: false },
+          { id: 'e1s2', name: 'Inference Based', completed: false },
+          { id: 'e1s3', name: 'Vocabulary Based (RC)', completed: false },
+        ],
+      },
+      {
+        id: 'e2',
+        name: 'Grammar & Usage',
+        subtopics: [
+          { id: 'e2s1', name: 'Error Spotting', completed: false },
+          { id: 'e2s2', name: 'Sentence Improvement', completed: false },
+          { id: 'e2s3', name: 'Phrase Replacement', completed: false },
+        ],
+      },
+      {
+        id: 'e3',
+        name: 'Vocabulary',
+        subtopics: [
+          { id: 'e3s1', name: 'Cloze Test', completed: false },
+          { id: 'e3s2', name: 'Fillers (Single/Double)', completed: false },
+          { id: 'e3s3', name: 'Word Usage/Swap', completed: false },
+        ],
+      },
+      {
+        id: 'e4',
+        name: 'Verbal Ability',
+        subtopics: [
+          { id: 'e4s1', name: 'Para Jumbles', completed: false },
+          { id: 'e4s2', name: 'Sentence Connector', completed: false },
+          { id: 'e4s3', name: 'Odd One Out', completed: false },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'General Awareness',
+    chapters: [
+      {
+        id: 'g1',
+        name: 'Banking Awareness',
+        subtopics: [
+          { id: 'g1s1', name: 'RBI & Monetary Policy', completed: false },
+          { id: 'g1s2', name: 'Banking History/Structure', completed: false },
+          { id: 'g1s3', name: 'Financial Terms & Abbrev', completed: false },
+        ],
+      },
+      {
+        id: 'g2',
+        name: 'Current Affairs',
+        subtopics: [
+          { id: 'g2s1', name: 'National/International News', completed: false },
+          { id: 'g2s2', name: 'Awards & Honors', completed: false },
+          { id: 'g2s3', name: 'Sports News', completed: false },
+          { id: 'g2s4', name: 'Appointments & Resignations', completed: false },
+        ],
+      },
+      {
+        id: 'g3',
+        name: 'Static GK',
+        subtopics: [
+          { id: 'g3s1', name: 'National Parks & Wildlife', completed: false },
+          { id: 'g3s2', name: 'Dams & Rivers', completed: false },
+          { id: 'g3s3', name: 'Capital & Currency', completed: false },
         ],
       },
     ],

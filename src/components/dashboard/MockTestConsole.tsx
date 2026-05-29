@@ -31,7 +31,7 @@ import {
   AlertTriangle,
   X,
   ChevronDown,
-  Layers
+  Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ADDA247_SYLLABUS } from "@/lib/syllabus";
@@ -81,6 +81,7 @@ export function MockTestConsole() {
   const [correct, setCorrect] = useState("");
   const [wrong, setWrong] = useState("");
   const [selectedWeakTopics, setSelectedWeakTopics] = useState<string[]>([]);
+  const [topicSearch, setTopicSearch] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -259,47 +260,88 @@ export function MockTestConsole() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-yellow-500 ml-1 flex items-center gap-1"><AlertTriangle className="w-2.5 h-2.5" /> Identify Weak Sub-topics (Optional)</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-yellow-500 ml-1 flex items-center gap-1"><AlertTriangle className="w-2.5 h-2.5" /> Identify Weak Sub-topics (Comprehensive)</label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" className="w-full justify-between rounded-2xl h-11 bg-yellow-500/5 border-yellow-500/20 font-bold text-xs">
-                            {selectedWeakTopics.length > 0 ? `${selectedWeakTopics.length} Topics Selected` : "Select Areas of Struggle"}
+                            {selectedWeakTopics.length > 0 ? `${selectedWeakTopics.length} Topics Selected` : "Select All Subjects Topics"}
                             <ChevronDown className="w-4 h-4 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[450px] p-0 rounded-2xl shadow-2xl border-none z-[60]" align="start">
+                        <PopoverContent className="w-[350px] md:w-[500px] p-0 rounded-3xl shadow-2xl border-none z-[60]" align="start">
+                          <div className="p-4 border-b bg-accent/5">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <Input 
+                                placeholder="Search all topics..." 
+                                value={topicSearch} 
+                                onChange={(e) => setTopicSearch(e.target.value)}
+                                className="pl-9 h-10 rounded-xl bg-background border-border/50 font-bold text-xs"
+                              />
+                            </div>
+                          </div>
                           <ScrollArea className="h-[400px] p-4">
-                            <div className="space-y-4">
-                              {ADDA247_SYLLABUS.map((subject) => (
-                                <div key={subject.name} className="space-y-2">
-                                  <h4 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                                    <div className="w-1 h-3 bg-primary rounded-full" />
-                                    {subject.name}
-                                  </h4>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {subject.chapters.flatMap(ch => ch.subtopics).map((sub) => (
-                                      <div key={sub.id} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                                        <Checkbox 
-                                          id={`weak-${sub.id}`} 
-                                          checked={selectedWeakTopics.includes(sub.name)}
-                                          onCheckedChange={() => toggleTopic(sub.name)}
-                                        />
-                                        <label htmlFor={`weak-${sub.id}`} className="text-[11px] font-semibold leading-none cursor-pointer">{sub.name}</label>
-                                      </div>
-                                    ))}
+                            <div className="space-y-6">
+                              {ADDA247_SYLLABUS.map((subject) => {
+                                const filteredChapters = subject.chapters.filter(ch => 
+                                  ch.name.toLowerCase().includes(topicSearch.toLowerCase()) || 
+                                  ch.subtopics.some(st => st.name.toLowerCase().includes(topicSearch.toLowerCase()))
+                                );
+
+                                if (filteredChapters.length === 0) return null;
+
+                                return (
+                                  <div key={subject.name} className="space-y-4">
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 sticky top-0 bg-background py-1 z-10">
+                                      <div className="w-1.5 h-3 bg-primary rounded-full" />
+                                      {subject.name}
+                                    </h4>
+                                    <div className="grid grid-cols-1 gap-4">
+                                      {subject.chapters.map((chapter) => {
+                                        const filteredSubtopics = chapter.subtopics.filter(st => 
+                                          st.name.toLowerCase().includes(topicSearch.toLowerCase()) || 
+                                          chapter.name.toLowerCase().includes(topicSearch.toLowerCase())
+                                        );
+
+                                        if (filteredSubtopics.length === 0) return null;
+
+                                        return (
+                                          <div key={chapter.id} className="space-y-2">
+                                            <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-2">{chapter.name}</div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                              {filteredSubtopics.map((sub) => (
+                                                <div 
+                                                  key={sub.id} 
+                                                  onClick={() => toggleTopic(sub.name)}
+                                                  className={`flex items-center space-x-2 p-2.5 rounded-xl border-2 cursor-pointer transition-all ${selectedWeakTopics.includes(sub.name) ? 'bg-primary/10 border-primary/20' : 'bg-background border-border/20 hover:border-primary/20'}`}
+                                                >
+                                                  <Checkbox 
+                                                    id={`weak-${sub.id}`} 
+                                                    checked={selectedWeakTopics.includes(sub.name)}
+                                                    onCheckedChange={() => toggleTopic(sub.name)}
+                                                    className="rounded-md"
+                                                  />
+                                                  <label htmlFor={`weak-${sub.id}`} className="text-[10px] font-bold leading-none cursor-pointer select-none">{sub.name}</label>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </ScrollArea>
                         </PopoverContent>
                       </Popover>
                       {selectedWeakTopics.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-1.5 mt-3">
                           {selectedWeakTopics.map(topic => (
-                            <Badge key={topic} variant="secondary" className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[9px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <Badge key={topic} variant="secondary" className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400 text-[8px] font-black px-2 py-0.5 rounded-lg flex items-center gap-1 border-none">
                               {topic}
-                              <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => toggleTopic(topic)} />
+                              <X className="w-2.5 h-2.5 cursor-pointer hover:text-destructive" onClick={() => toggleTopic(topic)} />
                             </Badge>
                           ))}
                         </div>
