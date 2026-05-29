@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Outfit } from 'next/font/google';
 import './globals.css';
@@ -46,18 +45,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`}>
+    <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`} style={{ colorScheme: 'light dark' }}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="font-body antialiased bg-background text-foreground overflow-hidden">
-        <div className="flex h-screen w-screen bg-background transition-colors duration-300 overflow-hidden">
+      <body className="font-body antialiased bg-background text-foreground overflow-hidden h-screen w-screen">
+        <div className="flex h-full w-full bg-background transition-colors duration-200 overflow-hidden">
           <Sidebar />
           <div className="flex-1 flex flex-col min-w-0 h-full relative">
             <Header />
-            <main className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth px-4 md:px-8 lg:px-14 pb-32 md:pb-20">
-              <div className="max-w-[1600px] mx-auto page-transition w-full">
+            <main className="flex-1 scroll-container px-4 md:px-8 lg:px-14 pb-32 md:pb-20">
+              <div className="max-w-[1600px] mx-auto page-transition w-full py-4">
                 {children}
               </div>
             </main>
