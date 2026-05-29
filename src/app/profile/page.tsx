@@ -6,25 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  User, Save, History, FileJson, Database, LogOut, Cloud, ShieldCheck
+  User as UserIcon, Save, History, FileJson, Database, LogOut, Cloud, ShieldCheck
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { logAuditAction, type AuditLog } from "@/lib/audit-logger";
-import { useUser, useAuth, useFirestore, useCollection, useDoc } from "@/firebase";
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { useFirestore, useCollection, useDoc } from "@/firebase";
 import { doc, setDoc, collection, query, orderBy, limit } from "firebase/firestore";
 import { useMemoFirebase } from "@/firebase/use-memo-firebase";
+import { supabase } from "@/lib/supabase";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  const { user } = useUser();
-  const auth = useAuth();
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
   const [storageSize, setStorageSize] = useState("0 KB");
   const [localAuditLogs, setLocalAuditLogs] = useState<AuditLog[]>([]);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState({
     name: "Dipanshu",
     targetExam: "SBI PO",
@@ -35,14 +35,35 @@ export default function ProfilePage() {
     strongSubjects: "Syllogism, English Grammar",
   });
 
-  // Cloud Data Integration
-  const userRef = useMemoFirebase(() => user ? doc(db, 'users', user.uid) : null, [db, user]);
+  // Supabase Auth Integration
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSupabaseUser(session?.user ?? null);
+      if (session?.user) {
+        localStorage.setItem("cloud-sync-active", "true");
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSupabaseUser(session?.user ?? null);
+      if (session?.user) {
+        localStorage.setItem("cloud-sync-active", "true");
+      } else {
+        localStorage.removeItem("cloud-sync-active");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Cloud Data Integration (Firestore linked via Supabase ID)
+  const userRef = useMemoFirebase(() => supabaseUser ? doc(db, 'users', supabaseUser.id) : null, [db, supabaseUser]);
   const { data: cloudProfile } = useDoc(userRef);
 
   const auditQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(db, 'users', user.uid, 'auditLogs'), orderBy('serverTimestamp', 'desc'), limit(50));
-  }, [db, user]);
+    if (!supabaseUser) return null;
+    return query(collection(db, 'users', supabaseUser.id, 'auditLogs'), orderBy('serverTimestamp', 'desc'), limit(50));
+  }, [db, supabaseUser]);
   const { data: cloudAuditLogs } = useCollection<AuditLog>(auditQuery);
 
   const refreshLocalLogs = useCallback(() => {
@@ -88,13 +109,13 @@ export default function ProfilePage() {
     }
   }, [cloudProfile]);
 
-  const displayLogs = user ? cloudAuditLogs : localAuditLogs;
+  const displayLogs = supabaseUser ? cloudAuditLogs : localAuditLogs;
 
   const handleSave = () => {
     localStorage.setItem("elite-user-profile", JSON.stringify(profile));
     
-    if (user && db) {
-      const userRef = doc(db, 'users', user.uid);
+    if (supabaseUser && db) {
+      const userRef = doc(db, 'users', supabaseUser.id);
       setDoc(userRef, { profile, lastUpdated: new Date() }, { merge: true });
     }
 
@@ -106,20 +127,23 @@ export default function ProfilePage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      logAuditAction("Security", "Cloud Uplink Established", "User authenticated via Google.");
-      toast({ title: "Cloud Uplink Established", description: "Terminal is now synchronizing with the server." });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/profile'
+        }
+      });
+      if (error) throw error;
+      
+      logAuditAction("Security", "Cloud Uplink Established", "User authenticated via Supabase.");
     } catch (error: any) {
       toast({ variant: "destructive", title: "Authentication Failed", description: error.message });
     }
   };
 
   const handleSignOut = async () => {
-    if (!auth) return;
-    await signOut(auth);
+    await supabase.auth.signOut();
     logAuditAction("Security", "Cloud Uplink Severed", "User signed out.");
     toast({ title: "Cloud Uplink Severed", description: "Data will only be saved locally." });
   };
@@ -157,14 +181,20 @@ export default function ProfilePage() {
         </div>
         
         <Card className="bg-primary/5 border-primary/20 rounded-2xl p-4 flex items-center gap-4 border-2">
-          {user ? (
+          {supabaseUser ? (
             <>
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary border-2 border-primary/40 overflow-hidden">
-                {user.photoURL ? <img src={user.photoURL} alt="User" /> : <User className="w-6 h-6" />}
+                {supabaseUser.user_metadata?.avatar_url ? (
+                  <img src={supabaseUser.user_metadata.avatar_url} alt="User" />
+                ) : (
+                  <UserIcon className="w-6 h-6" />
+                )}
               </div>
               <div className="flex-1">
                 <div className="text-[10px] font-black uppercase tracking-widest text-primary">Cloud Active</div>
-                <div className="text-sm font-bold truncate max-w-[120px]">{user.displayName || "Elite Aspirant"}</div>
+                <div className="text-sm font-bold truncate max-w-[120px]">
+                  {supabaseUser.user_metadata?.full_name || supabaseUser.email || "Elite Aspirant"}
+                </div>
               </div>
               <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground hover:text-destructive h-8 w-8 rounded-lg">
                 <LogOut className="w-4 h-4" />
@@ -182,7 +212,7 @@ export default function ProfilePage() {
         <Card className="bento-card border-none bg-card/40 backdrop-blur-md shadow-xl">
           <CardHeader>
             <div className="flex items-center gap-3">
-               <div className="p-2.5 bg-primary/10 rounded-xl text-primary shadow-inner"><User className="w-5 h-5" /></div>
+               <div className="p-2.5 bg-primary/10 rounded-xl text-primary shadow-inner"><UserIcon className="w-5 h-5" /></div>
                <CardTitle className="text-xl font-headline font-bold">Personal Parameters</CardTitle>
             </div>
           </CardHeader>
@@ -217,8 +247,8 @@ export default function ProfilePage() {
              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
                 <div className="flex justify-between items-center">
                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Storage Mode</span>
-                   <Badge variant="outline" className={user ? "bg-primary/10 text-primary border-primary/20 text-[8px] font-black" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[8px] font-black"}>
-                     {user ? "CLOUD SYNC" : "LOCAL ONLY"}
+                   <Badge variant="outline" className={supabaseUser ? "bg-primary/10 text-primary border-primary/20 text-[8px] font-black" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[8px] font-black"}>
+                     {supabaseUser ? "LOCAL & CLOUD SYNCED" : "LOCAL ONLY"}
                    </Badge>
                 </div>
                 <div className="flex justify-between items-center">
@@ -227,7 +257,7 @@ export default function ProfilePage() {
                 </div>
              </div>
              <p className="text-[10px] text-slate-500 leading-relaxed italic">
-               All performance logs are synchronized between your local browser and the Firebase server for seamless multi-device access.
+               All performance logs are synchronized between your local browser and the cloud server for seamless multi-device access.
              </p>
           </CardContent>
         </Card>
