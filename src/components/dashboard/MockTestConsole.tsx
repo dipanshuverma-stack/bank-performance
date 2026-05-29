@@ -30,7 +30,8 @@ import {
   BarChart3,
   AlertTriangle,
   X,
-  ChevronDown
+  ChevronDown,
+  Layers
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ADDA247_SYLLABUS } from "@/lib/syllabus";
@@ -42,11 +43,13 @@ interface MockLog {
   id: string;
   name: string;
   examType: string;
+  stage: 'Prelims' | 'Mains';
   score: number;
   totalMarks: number;
   quantsCorrect: number;
   reasoningCorrect: number;
   englishCorrect: number;
+  gaCorrect?: number;
   correct: number;
   wrong: number;
   accuracy: number;
@@ -68,11 +71,13 @@ export function MockTestConsole() {
   // Form State
   const [mockName, setMockName] = useState("");
   const [examType, setExamType] = useState("SBI PO");
+  const [stage, setStage] = useState<'Prelims' | 'Mains'>('Prelims');
   const [score, setScore] = useState("");
   const [totalMarks, setTotalMarks] = useState("100");
   const [quantsCorrect, setQuantsCorrect] = useState("");
   const [reasoningCorrect, setReasoningCorrect] = useState("");
   const [englishCorrect, setEnglishCorrect] = useState("");
+  const [gaCorrect, setGaCorrect] = useState("");
   const [correct, setCorrect] = useState("");
   const [wrong, setWrong] = useState("");
   const [selectedWeakTopics, setSelectedWeakTopics] = useState<string[]>([]);
@@ -110,11 +115,13 @@ export function MockTestConsole() {
       id: Math.random().toString(36).substr(2, 9),
       name: mockName,
       examType: examType,
+      stage: stage,
       score: parseFloat(score),
       totalMarks: parseFloat(totalMarks),
       quantsCorrect: parseInt(quantsCorrect) || 0,
       reasoningCorrect: parseInt(reasoningCorrect) || 0,
       englishCorrect: parseInt(englishCorrect) || 0,
+      gaCorrect: stage === 'Mains' ? (parseInt(gaCorrect) || 0) : undefined,
       correct: correctNum,
       wrong: wrongNum,
       accuracy: Math.round(accuracyValue * 10) / 10,
@@ -127,10 +134,10 @@ export function MockTestConsole() {
     
     // Reset Form
     setMockName(""); setScore(""); setQuantsCorrect(""); 
-    setReasoningCorrect(""); setEnglishCorrect(""); setCorrect(""); setWrong("");
+    setReasoningCorrect(""); setEnglishCorrect(""); setGaCorrect(""); setCorrect(""); setWrong("");
     setSelectedWeakTopics([]);
     
-    toast({ title: "Performance Archived", description: `${examType} ${mockName} metrics saved.` });
+    toast({ title: "Performance Archived", description: `${examType} (${stage}) ${mockName} metrics saved.` });
   };
 
   const removeMock = (id: string) => {
@@ -195,9 +202,26 @@ export function MockTestConsole() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mock Name</label>
-                        <Input placeholder="e.g. Mock 1" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-2xl h-11 bg-accent/30 font-bold text-xs" />
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Target Stage</label>
+                        <Select value={stage} onValueChange={(val: any) => {
+                          setStage(val);
+                          if (val === 'Mains') setTotalMarks("200");
+                          else setTotalMarks("100");
+                        }}>
+                          <SelectTrigger className="rounded-2xl h-11 bg-accent/30 font-bold text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl">
+                            <SelectItem value="Prelims" className="font-bold">Prelims Stage</SelectItem>
+                            <SelectItem value="Mains" className="font-bold">Mains Stage</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mock Name</label>
+                      <Input placeholder="e.g. Mock 1" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-2xl h-11 bg-accent/30 font-bold text-xs" />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -213,10 +237,13 @@ export function MockTestConsole() {
 
                     <div className="space-y-3">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Correct Answers Breakdown</label>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className={stage === 'Mains' ? "grid grid-cols-4 gap-2" : "grid grid-cols-3 gap-3"}>
                         <Input type="number" placeholder="Quants" value={quantsCorrect} onChange={(e) => setQuantsCorrect(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
                         <Input type="number" placeholder="Reason" value={reasoningCorrect} onChange={(e) => setReasoningCorrect(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
                         <Input type="number" placeholder="English" value={englishCorrect} onChange={(e) => setEnglishCorrect(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold" />
+                        {stage === 'Mains' && (
+                          <Input type="number" placeholder="GA" value={gaCorrect} onChange={(e) => setGaCorrect(e.target.value)} className="rounded-xl h-9 text-xs text-center font-bold bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200" />
+                        )}
                       </div>
                     </div>
 
@@ -303,6 +330,7 @@ export function MockTestConsole() {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2 mb-1">
                           <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-black h-4 px-2 uppercase border-none">{mock.examType}</Badge>
+                          <Badge className={mock.stage === 'Mains' ? "bg-indigo-500 text-white text-[8px] font-black" : "bg-emerald-500 text-white text-[8px] font-black"}>{mock.stage}</Badge>
                           <span className="font-bold text-foreground">{mock.name}</span>
                         </div>
                         <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{mock.date} • {mock.score}/{mock.totalMarks} Marks</div>
