@@ -2,6 +2,10 @@
 
 import React, { useEffect } from 'react';
 
+/**
+ * @fileOverview Hardened Error Boundary Shell.
+ * Designed with zero dependencies to ensure visibility during kernel failure.
+ */
 export default function Error({
   error,
   reset,
@@ -10,7 +14,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Terminal Runtime Exception:', error);
+    console.error('Terminal Operational Fault:', error);
   }, [error]);
 
   return (
@@ -22,33 +26,35 @@ export default function Error({
       justifyContent: 'center',
       backgroundColor: '#020617',
       color: '#f8fafc',
-      padding: '24px',
+      padding: '32px',
       textAlign: 'center',
       fontFamily: 'sans-serif'
     }}>
-      <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-      <h2 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}>Operational Fault</h2>
-      <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px', maxWidth: '320px' }}>
-        A system sub-module has encountered an exception. Restarting the module may resolve the conflict.
+      <div style={{ fontSize: '64px', marginBottom: '16px' }}>⚠️</div>
+      <h2 style={{ fontSize: '28px', fontWeight: 900, marginBottom: '8px', letterSpacing: '-0.02em' }}>OPERATIONAL FAULT</h2>
+      <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px', maxWidth: '380px', lineHeight: 1.6 }}>
+        A system sub-module has encountered a critical exception. Restarting the protocol may resolve the conflict.
       </p>
-      <pre style={{
-        padding: '16px',
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderRadius: '12px',
-        fontSize: '10px',
-        color: '#ef4444',
+      <div style={{
+        padding: '20px',
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        borderRadius: '16px',
+        fontSize: '11px',
+        color: '#f87171',
         maxWidth: '100%',
         overflow: 'auto',
-        marginBottom: '24px',
+        marginBottom: '32px',
         textAlign: 'left',
-        whiteSpace: 'pre-wrap'
+        whiteSpace: 'pre-wrap',
+        border: '1px solid rgba(248, 113, 113, 0.1)',
+        fontFamily: 'monospace'
       }}>
-        {error.message || 'Unknown Exception'}
-      </pre>
+        {error.message || 'Unknown Exception Vector'}
+      </div>
       <button
         onClick={() => reset()}
         style={{
-          padding: '12px 24px',
+          padding: '16px 32px',
           backgroundColor: '#6366f1',
           color: 'white',
           border: 'none',
@@ -56,7 +62,9 @@ export default function Error({
           fontWeight: 900,
           cursor: 'pointer',
           textTransform: 'uppercase',
-          letterSpacing: '0.1em'
+          letterSpacing: '0.15em',
+          fontSize: '12px',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
         }}
       >
         Reboot Module
