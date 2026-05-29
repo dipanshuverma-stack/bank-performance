@@ -8,7 +8,7 @@ import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
 import { PersonalBests } from "@/components/dashboard/PersonalBests";
 import { ReadinessScore } from "@/components/dashboard/ReadinessScore";
 import { AiInsightsPanel } from "@/components/dashboard/AiInsightsPanel";
-import { Activity, ShieldCheck, Trophy, Sparkles, BookOpen, AlertCircle, Calendar } from "lucide-react";
+import { Activity, ShieldCheck, Trophy, Sparkles, BookOpen, AlertCircle, Calendar, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
@@ -24,7 +24,6 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     
-    // Combined local storage reads for efficiency
     const savedProfile = localStorage.getItem("elite-user-profile");
     const syllabusSaved = localStorage.getItem("elite-syllabus-v2");
     const mockLogsSaved = localStorage.getItem("elite-mock-logs");
@@ -70,13 +69,12 @@ export default function Home() {
       daysLeft: days
     });
 
-    // Auto-Welcome Notification logic
     if (!hasSeenWelcome) {
       const savedNotifs = JSON.parse(localStorage.getItem("elite-notifications") || "[]");
       const welcomeNotif = {
         id: "welcome-" + Date.now(),
         title: "Elite Terminal Active",
-        description: "System online. Initial diagnostic sequence complete.",
+        description: "System online. Fluid momentum scrolling enabled.",
         date: new Date().toLocaleDateString(),
         type: 'achievement',
         read: false
@@ -92,7 +90,7 @@ export default function Home() {
   return (
     <div className="space-y-10 pb-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2">
-        <div>
+        <div className="space-y-1">
           <div className="flex items-center gap-2 mb-2">
              <span className="h-1 w-6 bg-primary rounded-full" />
              <span className="text-[9px] text-primary font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
@@ -100,73 +98,130 @@ export default function Home() {
                Strategic Command
              </span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-headline font-black tracking-tight text-foreground">
+          <h1 className="text-3xl md:text-5xl font-headline font-black tracking-tight text-foreground leading-none">
             {profile?.name ? `Hello, ${profile.name}` : "Elite Command"} <span className="text-primary italic">Center</span>
           </h1>
-          <div className="text-muted-foreground mt-1 max-w-md font-medium">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-[10px] text-primary border-primary/20 h-5">{profile?.targetExam || "SBI PO"}</Badge>
+          <div className="text-muted-foreground mt-3 flex items-center gap-3">
+              <Badge variant="outline" className="text-[10px] text-primary border-primary/20 px-3 py-1 rounded-full font-black uppercase">
+                {profile?.targetExam || "SBI PO"}
+              </Badge>
               {metrics.daysLeft > 0 && (
-                <span className="flex items-center gap-1 text-[11px] text-indigo-500 font-bold">
-                  <Calendar className="w-3 h-3" />
-                  {metrics.daysLeft}d left
+                <span className="flex items-center gap-1 text-[11px] text-indigo-500 font-bold bg-indigo-500/5 px-3 py-1 rounded-full border border-indigo-500/10">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {metrics.daysLeft} days to objective
                 </span>
               )}
-            </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-card border rounded-2xl p-3 shadow-sm">
-           <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center text-primary"><Activity className="w-4 h-4" /></div>
-           <div className="hidden sm:block">
-              <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Readiness</div>
-              <div className="text-xs font-bold">{metrics.avgAccuracy}% Accuracy</div>
+        <div className="flex items-center gap-4 bg-card/40 backdrop-blur-md border rounded-3xl p-4 shadow-sm hover:border-primary/30 transition-all group">
+           <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+             <Activity className="w-6 h-6" />
+           </div>
+           <div>
+              <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Operational Accuracy</div>
+              <div className="text-xl font-headline font-black">{metrics.avgAccuracy}%</div>
            </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
           <PerformanceOverview />
-          <AiInsightsPanel />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <BrainCircuit className="w-5 h-5 text-primary" />
+                Strategic Intelligence
+              </h3>
+              <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
+                Swipe for insights <ArrowRight className="w-3 h-3" />
+              </span>
+            </div>
+            <div className="swipe-row">
+              <div className="swipe-item w-full md:w-[480px]">
+                <AiInsightsPanel />
+              </div>
+              <div className="swipe-item w-full md:w-[480px]">
+                <ReadinessScore />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <AdaptiveToDo />
-            <ReadinessScore />
+            <div className="space-y-8">
+               <QuoteCard />
+               <div className="p-8 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/10 backdrop-blur-sm group hover:border-indigo-500/30 transition-all relative overflow-hidden">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div className="text-[9px] font-black uppercase tracking-widest text-indigo-400">Streak Monitor</div>
+                </div>
+                <h3 className="text-lg font-bold mb-2">Consistency Protocol</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">System requires a precision session today to maintain active status and protect your growth momentum.</p>
+                <div className="w-full h-1 bg-indigo-500/10 rounded-full overflow-hidden">
+                   <div className="h-full w-3/4 bg-indigo-500 animate-pulse" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-8">
           <CountdownCard />
           <PersonalBests />
-          <QuoteCard />
           
-          <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 backdrop-blur-sm group hover:border-indigo-500/30 transition-all relative overflow-hidden">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                <AlertCircle className="w-5 h-5" />
+          <div className="p-8 rounded-[2.5rem] bg-slate-900 border border-white/5 relative overflow-hidden group">
+            <div className="relative z-10">
+              <div className="text-[9px] font-black text-primary uppercase tracking-widest mb-2">Elite Status</div>
+              <h3 className="text-xl font-headline font-bold text-white mb-4">Operational Mastery</h3>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span>Syllabus Completion</span>
+                    <span>{metrics.syllabusMastery}%</span>
+                  </div>
+                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${metrics.syllabusMastery}%` }} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span>Target Readiness</span>
+                    <span>{metrics.avgAccuracy}%</span>
+                  </div>
+                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${metrics.avgAccuracy}%` }} />
+                  </div>
+                </div>
               </div>
-              <div className="text-[9px] font-black uppercase tracking-widest text-indigo-400">Streak</div>
             </div>
-            <h3 className="text-base font-bold mb-1">Consistency Check</h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">System requires a precision session today to maintain active status.</p>
+            <Trophy className="absolute -bottom-6 -right-6 w-32 h-32 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-500" />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         {[
-          { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500" },
-          { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500" },
-          { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500" },
+          { label: "Syllabus Mastery", val: `${metrics.syllabusMastery}%`, icon: BookOpen, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+          { label: "Global Accuracy", val: `${metrics.avgAccuracy}%`, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Mocks Archived", val: metrics.mocksCount, icon: Trophy, color: "text-purple-500", bg: "bg-purple-500/10" },
         ].map((item, i) => (
-          <div key={i} className="p-6 rounded-[2rem] bg-slate-50 dark:bg-white/[0.02] border border-border/40 group transition-all duration-300">
-            <div className="flex justify-between items-start mb-2">
-               <item.icon className={`w-5 h-5 ${item.color}`} />
+          <div key={i} className="p-8 rounded-[2.5rem] bg-card border border-border/40 group hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-xl">
+            <div className="flex justify-between items-start mb-4">
+               <div className={cn("p-3 rounded-2xl", item.bg)}>
+                 <item.icon className={cn("w-6 h-6", item.color)} />
+               </div>
             </div>
-            <div className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1">{item.label}</div>
-            <div className="text-4xl font-headline font-bold tracking-tighter text-foreground">{item.val}</div>
+            <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">{item.label}</div>
+            <div className="text-4xl font-headline font-black tracking-tight text-foreground">{item.val}</div>
           </div>
         ))}
       </div>
     </div>
   );
 }
+
+import { BrainCircuit } from "lucide-react";

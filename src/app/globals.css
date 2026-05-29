@@ -60,6 +60,8 @@
     height: 100vh;
     height: 100dvh;
     overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tighter text-foreground;
@@ -70,42 +72,52 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: auto;
+  scroll-behavior: smooth;
   overscroll-behavior-y: contain;
   flex: 1;
+  backface-visibility: hidden;
+  perspective: 1000;
+  transform: translate3d(0,0,0);
 }
 
-/* Subtle Scrollbar for Visibility */
+/* Custom Smooth Scrollbar */
 .scroll-container::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 .scroll-container::-webkit-scrollbar-track {
   background: transparent;
 }
 .scroll-container::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.1);
-  border-radius: 10px;
+  background: hsl(var(--muted-foreground) / 0.15);
+  border-radius: 20px;
+  transition: background 0.3s;
 }
 .scroll-container::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.2);
+  background: hsl(var(--primary) / 0.4);
 }
 
 .bento-card {
-  @apply relative overflow-hidden rounded-[2.5rem] border bg-card transition-all duration-300 hover:shadow-xl hover:border-primary/20;
-  will-change: transform, box-shadow;
+  @apply relative overflow-hidden rounded-[2.5rem] border bg-card transition-all duration-500 hover:shadow-2xl hover:border-primary/30;
+  will-change: transform, box-shadow, opacity;
 }
 
 .page-transition {
-  animation: fadeIn 0.3s ease-out;
+  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes slideUpFade {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px) scale(0.98); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
 }
 
 .neon-glow {
-  box-shadow: 0 0 15px -5px hsl(var(--primary));
+  box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.5);
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -114,4 +126,13 @@
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Horizontal Swipe Optimization */
+.swipe-row {
+  @apply flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.swipe-item {
+  @apply shrink-0 snap-center;
 }
