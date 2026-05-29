@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -14,7 +15,7 @@ import {
   Bar,
   Cell
 } from 'recharts';
-import { Target, TrendingUp, BarChart3, LineChart, Layers } from "lucide-react";
+import { Target, TrendingUp, BarChart3, LineChart, Layers, Zap } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,8 +37,8 @@ export function PerformanceOverview() {
   const [stats, setStats] = useState({
     avgScore: 0,
     avgAccuracy: 0,
+    practicePrecision: 0,
     testsTaken: 0,
-    growth: "0%",
   });
 
   const [chartData, setChartData] = useState<any[]>(EMPTY_CHART_DATA);
@@ -62,10 +63,24 @@ export function PerformanceOverview() {
 
     const refreshData = () => {
       const mockLogsRaw = localStorage.getItem("elite-mock-logs");
+      const practiceLogsRaw = localStorage.getItem("accuracy-logs");
+      
       const mockLogs = mockLogsRaw ? JSON.parse(mockLogsRaw) : [];
+      const practiceLogs = practiceLogsRaw ? JSON.parse(practiceLogsRaw) : [];
+      
       const currentStage = localStorage.getItem("elite-active-stage") as "Prelims" | "Mains" || stage;
 
       const stageFiltered = mockLogs.filter((m: any) => m.stage === currentStage);
+      
+      // Calculate Practice Precision (from practice units that have correct/wrong data)
+      const logsWithAccuracy = practiceLogs.filter((l: any) => l.correct !== undefined && l.wrong !== undefined);
+      let avgPracticeAcc = 0;
+      if (logsWithAccuracy.length > 0) {
+        avgPracticeAcc = Math.round(logsWithAccuracy.reduce((acc: number, l: any) => {
+          const total = l.correct + l.wrong;
+          return acc + (total > 0 ? (l.correct / total) * 100 : 0);
+        }, 0) / logsWithAccuracy.length);
+      }
 
       if (stageFiltered.length > 0) {
         const sumScore = stageFiltered.reduce((acc: number, m: any) => acc + (m.score || 0), 0);
@@ -84,8 +99,8 @@ export function PerformanceOverview() {
         setStats({
           avgScore: parseFloat(avgScore),
           avgAccuracy: parseFloat(avgAccuracy),
+          practicePrecision: avgPracticeAcc,
           testsTaken: stageFiltered.length,
-          growth: "Active"
         });
 
         setChartData(mappedChartData.length > 0 ? mappedChartData : EMPTY_CHART_DATA);
@@ -93,8 +108,8 @@ export function PerformanceOverview() {
         setStats({
           avgScore: 0,
           avgAccuracy: 0,
+          practicePrecision: avgPracticeAcc,
           testsTaken: 0,
-          growth: "No Data"
         });
         setChartData(EMPTY_CHART_DATA);
       }
@@ -219,22 +234,23 @@ export function PerformanceOverview() {
       </CardHeader>
       
       <CardContent className="p-6 lg:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 lg:gap-6 mb-8">
           {[
-            { label: "Mean Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground", icon: TrendingUp },
+            { label: "Mock Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground", icon: TrendingUp },
+            { label: "Practice Precision", value: `${stats.practicePrecision}%`, color: "text-emerald-500", icon: Zap },
             { label: "Peak Score", value: stats.avgScore, color: "text-primary", icon: Target },
-            { label: "Mission Volume", value: stats.testsTaken, color: "text-emerald-500", icon: BarChart3 },
+            { label: "Mission Volume", value: stats.testsTaken, color: "text-indigo-500", icon: BarChart3 },
           ].map((stat, i) => (
-            <div key={i} className="flex flex-col p-6 rounded-[2rem] bg-slate-50 dark:bg-white/5 border border-border/60 group hover:border-primary/30 transition-all duration-500 shadow-md">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[9px] text-muted-foreground uppercase font-black tracking-[0.2em]">{stat.label}</span>
-                <stat.icon className="w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+            <div key={i} className="flex flex-col p-5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/60 group hover:border-primary/30 transition-all duration-500 shadow-md">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[8px] text-muted-foreground uppercase font-black tracking-[0.2em]">{stat.label}</span>
+                <stat.icon className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
               </div>
-              <span className={cn("text-2xl lg:text-3xl font-headline font-black tabular-nums tracking-tighter", stat.color)}>
+              <span className={cn("text-xl lg:text-2xl font-headline font-black tabular-nums tracking-tighter", stat.color)}>
                 {stat.value}
               </span>
-              <div className="mt-2 text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">
-                Archived Telemetry
+              <div className="mt-1.5 text-[7px] font-black text-muted-foreground uppercase tracking-widest opacity-40">
+                Live Telemetry
               </div>
             </div>
           ))}

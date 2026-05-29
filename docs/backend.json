@@ -27,13 +27,15 @@
     },
     "PracticeLog": {
       "title": "Practice Session Unit",
-      "description": "Timed focused study unit for a specific topic.",
+      "description": "Timed focused study unit for a specific topic with optional accuracy data.",
       "type": "object",
       "properties": {
         "subject": { "type": "string" },
         "topic": { "type": "string" },
         "time": { "type": "number" },
-        "date": { "type": "string" }
+        "date": { "type": "string" },
+        "correct": { "type": "number" },
+        "wrong": { "type": "number" }
       }
     },
     "AuditLog": {
