@@ -48,7 +48,11 @@ export default function ProfilePage() {
       read: false
     };
     localStorage.setItem("elite-notifications", JSON.stringify([newNotification, ...notifications]));
+    
+    // Trigger internal app sync
     window.dispatchEvent(new Event('elite-new-notification'));
+    
+    // Show visual toast
     toast({
       title: "Diagnostic Alert Sent",
       description: "Check the notification bell in the header.",

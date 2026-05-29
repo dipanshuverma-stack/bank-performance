@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -66,6 +67,8 @@ export function Header() {
   };
 
   const markAllAsRead = () => {
+    const hasUnread = notifications.some(n => !n.read);
+    if (!hasUnread) return;
     const updated = notifications.map(n => ({ ...n, read: true }));
     saveNotifications(updated);
   };
