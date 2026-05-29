@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,14 +22,9 @@ import {
 import { 
   Plus, 
   Activity, 
-  Trophy, 
   Trash2,
   Award,
-  CheckCircle2,
-  XCircle,
   BarChart3,
-  AlertTriangle,
-  X,
   ChevronDown,
   Search,
   Layers
@@ -41,6 +35,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { logAuditAction } from "@/lib/audit-logger";
 
 interface MockLog {
   id: string;
@@ -72,7 +67,6 @@ export function MockTestConsole() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeStage, setActiveStage] = useState<"Prelims" | "Mains">("Prelims");
   
-  // Form State
   const [mockName, setMockName] = useState("");
   const [examType, setExamType] = useState("SBI PO");
   const [stage, setStage] = useState<'Prelims' | 'Mains'>('Prelims');
@@ -91,17 +85,11 @@ export function MockTestConsole() {
     setMounted(true);
     const saved = localStorage.getItem("elite-mock-logs");
     if (saved) {
-      try {
-        setMocks(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse mocks");
-      }
+      try { setMocks(JSON.parse(saved)); } catch (e) {}
     }
     
     const savedStage = localStorage.getItem("elite-active-stage") as "Prelims" | "Mains";
-    if (savedStage) {
-      setActiveStage(savedStage);
-    }
+    if (savedStage) setActiveStage(savedStage);
   }, []);
 
   useEffect(() => {
@@ -119,18 +107,6 @@ export function MockTestConsole() {
     }
   }, [mocks, mounted]);
 
-  const logAuditAction = (category: string, action: string, details: string) => {
-    const logs = JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
-    const newLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      category,
-      action,
-      details,
-      timestamp: new Date().toLocaleString(),
-    };
-    localStorage.setItem("elite-audit-logs", JSON.stringify([newLog, ...logs].slice(0, 50)));
-  };
-
   const handleGlobalStageChange = (val: "Prelims" | "Mains") => {
     setActiveStage(val);
     localStorage.setItem("elite-active-stage", val);
@@ -140,7 +116,7 @@ export function MockTestConsole() {
 
   const addMock = () => {
     if (!mockName || !score || !correct || !wrong) {
-      toast({ variant: "destructive", title: "Missing Metrics", description: "Please fill in the core performance details (Name, Score, Correct/Wrong)." });
+      toast({ variant: "destructive", title: "Missing Metrics", description: "Please fill in the core performance details." });
       return;
     }
 
@@ -172,7 +148,6 @@ export function MockTestConsole() {
     
     logAuditAction("Performance", "Mock Logged", `${examType} ${stage} - Score: ${score}/${totalMarks}, Accuracy: ${newMock.accuracy}%`);
     
-    // Reset Form
     setMockName(""); setScore(""); setQuantsCorrect(""); 
     setReasoningCorrect(""); setEnglishCorrect(""); setGaCorrect(""); setCorrect(""); setWrong("");
     setSelectedWeakTopics([]);

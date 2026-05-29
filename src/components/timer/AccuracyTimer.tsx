@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -33,6 +32,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { ADDA247_SYLLABUS } from "@/lib/syllabus";
+import { logAuditAction } from "@/lib/audit-logger";
 
 export function AccuracyTimer() {
   const [mounted, setMounted] = useState(false);
@@ -84,18 +84,6 @@ export function AccuracyTimer() {
 
   const handleStartPause = () => setIsActive(!isActive);
   const handleReset = () => { setIsActive(false); setTime(0); };
-
-  const logAuditAction = (category: string, action: string, details: string) => {
-    const audit = JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
-    const newLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      category,
-      action,
-      details,
-      timestamp: new Date().toLocaleString(),
-    };
-    localStorage.setItem("elite-audit-logs", JSON.stringify([newLog, ...audit].slice(0, 50)));
-  };
 
   const handleSaveLog = () => {
     if (!currentTopic || time === 0) return;

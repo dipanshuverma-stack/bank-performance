@@ -1,24 +1,16 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Target, Clock, BookOpen, Save, ShieldCheck, BellRing, Activity, Sparkles, Brain, ListChecks, History, Trash2, FileJson } from "lucide-react";
+import { User, Target, Save, ShieldCheck, History, Trash2, FileJson, UserCircle, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-
-interface AuditLog {
-  id: string;
-  category: string;
-  action: string;
-  timestamp: string;
-  details: string;
-}
+import { logAuditAction, type AuditLog } from "@/lib/audit-logger";
 
 export default function ProfilePage() {
   const { toast } = useToast();
@@ -41,10 +33,16 @@ export default function ProfilePage() {
       try { setProfile(JSON.parse(saved)); } catch (e) {}
     }
     
-    const logs = localStorage.getItem("elite-audit-logs");
-    if (logs) {
-      try { setAuditLogs(JSON.parse(logs)); } catch (e) {}
-    }
+    const loadLogs = () => {
+      const logs = localStorage.getItem("elite-audit-logs");
+      if (logs) {
+        try { setAuditLogs(JSON.parse(logs)); } catch (e) {}
+      }
+    };
+
+    loadLogs();
+    window.addEventListener('elite-audit-updated', loadLogs);
+    return () => window.removeEventListener('elite-audit-updated', loadLogs);
   }, []);
 
   const handleSave = () => {
@@ -71,19 +69,6 @@ export default function ProfilePage() {
     a.click();
     logAuditAction("Strategic", "Data Export Initiated", "Full performance report generated.");
     toast({ title: "Report Exported", description: "Your performance data has been downloaded." });
-  };
-
-  const logAuditAction = (category: string, action: string, details: string) => {
-    const newLog: AuditLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      category,
-      action,
-      details,
-      timestamp: new Date().toLocaleString(),
-    };
-    const updated = [newLog, ...auditLogs].slice(0, 50);
-    setAuditLogs(updated);
-    localStorage.setItem("elite-audit-logs", JSON.stringify(updated));
   };
 
   const clearLogs = () => {

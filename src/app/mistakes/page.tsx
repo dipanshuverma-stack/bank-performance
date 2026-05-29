@@ -1,16 +1,16 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, AlertCircle, CheckCircle2, Search, Filter, BookOpen, AlertOctagon, Brain } from "lucide-react";
+import { Trash2, Plus, AlertCircle, CheckCircle2, Search, BookOpen, AlertOctagon, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { logAuditAction } from "@/lib/audit-logger";
 
 interface Mistake {
   id: string;
@@ -60,15 +60,30 @@ export default function MistakesPage() {
     };
     setMistakes([mistake, ...mistakes]);
     setIsDialogOpen(false);
+    
+    logAuditAction("Journal", "Mistake Archived", `${newTopic} (${newType}) entry created.`);
+    
     setNewTopic(""); setNewNote(""); setNewCorrectMethod("");
     toast({ title: "Mistake Archived", description: "Strategic correction unit saved to journal." });
   };
 
   const toggleResolved = (id: string) => {
-    setMistakes(mistakes.map(m => m.id === id ? { ...m, resolved: !m.resolved } : m));
+    const updated = mistakes.map(m => {
+      if (m.id === id) {
+        const newState = !m.resolved;
+        logAuditAction("Journal", "Mistake Protocol Updated", `${m.topic} marked as ${newState ? 'Resolved' : 'Active'}`);
+        return { ...m, resolved: newState };
+      }
+      return m;
+    });
+    setMistakes(updated);
   };
 
   const deleteMistake = (id: string) => {
+    const mistake = mistakes.find(m => m.id === id);
+    if (mistake) {
+      logAuditAction("Journal", "Mistake Entry Purged", `${mistake.topic} removed from archives.`);
+    }
     setMistakes(mistakes.filter(m => m.id !== id));
   };
 

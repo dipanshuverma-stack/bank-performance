@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -19,6 +18,7 @@ import { Target, TrendingUp, BarChart3, LineChart, Layers } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { logAuditAction } from "@/lib/audit-logger";
 
 const EMPTY_CHART_DATA = Array.from({ length: 5 }, (_, i) => ({
   name: `P${i + 1}`,
@@ -53,6 +53,7 @@ export function PerformanceOverview() {
   const handleStageChange = (val: "Prelims" | "Mains") => {
     setStage(val);
     localStorage.setItem("elite-active-stage", val);
+    logAuditAction("Strategic", "Stage Toggle", `Phase switched to ${val} via Overview`);
     window.dispatchEvent(new Event('elite-stage-changed'));
   };
 
@@ -62,8 +63,6 @@ export function PerformanceOverview() {
     const refreshData = () => {
       const mockLogsRaw = localStorage.getItem("elite-mock-logs");
       const mockLogs = mockLogsRaw ? JSON.parse(mockLogsRaw) : [];
-
-      // Re-read current stage from state which is updated by the tab
       const currentStage = localStorage.getItem("elite-active-stage") as "Prelims" | "Mains" || stage;
 
       const stageFiltered = mockLogs.filter((m: any) => m.stage === currentStage);

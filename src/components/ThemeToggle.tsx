@@ -3,6 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { logAuditAction } from "@/lib/audit-logger";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -23,6 +24,7 @@ export function ThemeToggle() {
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
     document.documentElement.classList.toggle("dark", newTheme === "dark");
+    logAuditAction("Strategic", "Theme Protocol Updated", `Interface switched to ${newTheme} mode.`);
   };
 
   return (

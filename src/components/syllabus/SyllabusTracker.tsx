@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookMarked, CheckCircle2 } from "lucide-react";
+import { logAuditAction } from "@/lib/audit-logger";
 
 export function SyllabusTracker() {
   const [mounted, setMounted] = useState(false);
@@ -30,18 +30,6 @@ export function SyllabusTracker() {
       localStorage.setItem("elite-syllabus-v2", JSON.stringify(syllabus));
     }
   }, [syllabus, mounted]);
-
-  const logAuditAction = (category: string, action: string, details: string) => {
-    const audit = JSON.parse(localStorage.getItem("elite-audit-logs") || "[]");
-    const newLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      category,
-      action,
-      details,
-      timestamp: new Date().toLocaleString(),
-    };
-    localStorage.setItem("elite-audit-logs", JSON.stringify([newLog, ...audit].slice(0, 50)));
-  };
 
   const toggleSubtopic = (subjectIndex: number, chapterIndex: number, subtopicIndex: number) => {
     const newSyllabus = [...syllabus];
