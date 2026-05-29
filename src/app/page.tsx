@@ -8,8 +8,9 @@ import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
 import { PersonalBests } from "@/components/dashboard/PersonalBests";
 import { ReadinessScore } from "@/components/dashboard/ReadinessScore";
 import { AiInsightsPanel } from "@/components/dashboard/AiInsightsPanel";
-import { Activity, ShieldCheck, Trophy, Sparkles, BookOpen, AlertCircle, Calendar, ArrowRight } from "lucide-react";
+import { Activity, ShieldCheck, Trophy, Sparkles, BookOpen, AlertCircle, Calendar, ArrowRight, BrainCircuit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -223,5 +224,3 @@ export default function Home() {
     </div>
   );
 }
-
-import { BrainCircuit } from "lucide-react";
