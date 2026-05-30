@@ -20,9 +20,9 @@ export const getFirebaseConfig = () => {
 
 export const getAppInstance = () => {
   try {
-    // Validate API key exists and is not a placeholder
     const key = firebaseConfig.apiKey;
-    if (!key || key === '' || key.includes('MISSING_KEY')) {
+    // Strictly validate that the key is not missing or a placeholder
+    if (!key || key === "" || key === "undefined" || key.includes("YOUR_") || key.includes("MISSING")) {
       console.warn("[Firebase] Operational Warning: No valid API Key detected. Cloud sync suspended.");
       return null;
     }
@@ -30,7 +30,7 @@ export const getAppInstance = () => {
     if (getApps().length > 0) return getApp();
     return initializeApp(firebaseConfig);
   } catch (error) {
-    console.error('[Firebase] SDK Initialization Protocol Fault:', error);
+    console.warn('[Firebase] SDK Initialization Protocol Fault:', error);
     return null;
   }
 };

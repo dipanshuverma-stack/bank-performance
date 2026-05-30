@@ -11,7 +11,7 @@ import { ClientSideWrappers } from '@/components/layout/ClientSideWrappers';
 
 /**
  * @fileOverview Client-side App Shell to manage layouts and auth guards.
- * Isolated from the server layout to prevent hydration errors.
+ * Supports "Offline Operational Mode" for local-only prototyping.
  */
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -19,35 +19,38 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    setIsOffline(localStorage.getItem("elite-offline-mode") === "true");
   }, []);
 
   useEffect(() => {
-    if (mounted && !loading && !user && pathname !== '/login') {
+    if (mounted && !loading && !user && !isOffline && pathname !== '/login') {
       router.push('/login');
     }
-  }, [user, loading, pathname, router, mounted]);
+  }, [user, loading, pathname, router, mounted, isOffline]);
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-10 h-10 text-primary animate-spin opacity-20" />
       </div>
     );
   }
 
-  if (loading) {
+  if (loading && !isOffline) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-12 h-12 text-primary animate-spin opacity-40" />
         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">Initializing Terminal...</span>
       </div>
     );
   }
 
-  if (!user && pathname !== '/login') return null;
+  const hasAccess = user || isOffline || pathname === '/login';
+  if (!hasAccess && pathname !== '/login') return null;
 
   return <>{children}</>;
 }

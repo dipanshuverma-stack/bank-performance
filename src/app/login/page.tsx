@@ -1,24 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/firebase";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Mail, Lock, LogIn, Sparkles, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Activity, Mail, Lock, LogIn, Sparkles, ShieldCheck, AlertTriangle, WifiOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { logAuditAction } from "@/lib/audit-logger";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +32,7 @@ export default function LoginPage() {
       toast({ 
         variant: "destructive", 
         title: "Environment Calibration Required", 
-        description: "Authentication service is currently disabled. Please verify your .env.local file contains valid Firebase credentials." 
+        description: "Cloud services are offline. Use Offline Protocol to proceed." 
       });
       return;
     }
@@ -40,6 +46,7 @@ export default function LoginPage() {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "Uplink Secure", description: "Operational session established." });
       }
+      localStorage.removeItem("elite-offline-mode");
       router.push("/");
     } catch (error: any) {
       toast({ variant: "destructive", title: "Access Denied", description: error.message });
@@ -49,14 +56,12 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) {
-      toast({ variant: "destructive", title: "Auth Service Unavailable", description: "Firebase configuration is invalid." });
-      return;
-    }
+    if (!auth) return;
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      localStorage.removeItem("elite-offline-mode");
       toast({ title: "Google Uplink Active", description: "Strategic data sync enabled." });
       router.push("/");
     } catch (error: any) {
@@ -65,6 +70,18 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  const initiateOfflineProtocol = () => {
+    localStorage.setItem("elite-offline-mode", "true");
+    logAuditAction("Security", "Offline Protocol", "Manual offline bypass initiated.");
+    toast({ 
+      title: "Offline Mode Active", 
+      description: "Entering Local-Only Environment. Cloud sync disabled." 
+    });
+    router.push("/");
+  };
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[#020617] relative overflow-hidden">
@@ -93,12 +110,21 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="px-8 pb-10 space-y-8">
           {!auth && (
-            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-4 mb-4">
-              <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-1" />
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase text-destructive tracking-widest leading-none">Kernel Warning</p>
-                <p className="text-xs text-destructive/80 font-medium">Valid Firebase API credentials not detected. Please configure your .env file to enable authentication and cloud sync.</p>
+            <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex flex-col gap-3 mb-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-orange-500 tracking-widest leading-none">Kernel Warning</p>
+                  <p className="text-[10px] text-orange-500/80 font-bold leading-relaxed">Firebase credentials not detected. Authentication and Cloud Sync are currently unavailable.</p>
+                </div>
               </div>
+              <Button 
+                variant="outline" 
+                onClick={initiateOfflineProtocol}
+                className="h-12 rounded-xl border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 text-orange-500 font-black uppercase text-[10px] tracking-widest transition-all"
+              >
+                <WifiOff className="w-4 h-4 mr-2" /> Initiate Offline Protocol
+              </Button>
             </div>
           )}
 
@@ -113,7 +139,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
                   disabled={!auth}
-                  className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner" 
+                  className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner disabled:opacity-30" 
                   placeholder="aspirant@elite.com" 
                 />
               </div>
@@ -128,12 +154,16 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)} 
                   required 
                   disabled={!auth}
-                  className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner" 
+                  className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner disabled:opacity-30" 
                   placeholder="••••••••" 
                 />
               </div>
             </div>
-            <Button type="submit" disabled={loading || !auth} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all mt-4 group">
+            <Button 
+              type="submit" 
+              disabled={loading || !auth} 
+              className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all mt-4 group disabled:opacity-50"
+            >
               {loading ? "Processing..." : isSignUp ? "Create Protocol" : "Engage Terminal"}
               <LogIn className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -144,12 +174,23 @@ export default function LoginPage() {
             <div className="relative flex justify-center text-[8px] font-black uppercase tracking-[0.4em]"><span className="bg-[#0b0e1a] px-4 text-white/40">Strategic Link</span></div>
           </div>
 
-          <Button type="button" variant="outline" onClick={handleGoogleSignIn} disabled={loading || !auth} className="w-full h-16 rounded-2xl border-white/20 bg-white/[0.05] font-black uppercase tracking-widest text-[10px] text-white shadow-lg hover:bg-white/[0.08] hover:border-white/40 active:scale-95 transition-all">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleGoogleSignIn} 
+            disabled={loading || !auth} 
+            className="w-full h-16 rounded-2xl border-white/20 bg-white/[0.05] font-black uppercase tracking-widest text-[10px] text-white shadow-lg hover:bg-white/[0.08] hover:border-white/40 active:scale-95 transition-all disabled:opacity-50"
+          >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5 mr-3" alt="G" />
             Uplink with Google
           </Button>
 
-          <button type="button" onClick={() => setIsSignUp(!isSignUp)} disabled={!auth} className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-all flex items-center justify-center gap-2 group disabled:opacity-30">
+          <button 
+            type="button" 
+            onClick={() => setIsSignUp(!isSignUp)} 
+            disabled={!auth} 
+            className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-all flex items-center justify-center gap-2 group disabled:opacity-30"
+          >
             {isSignUp ? "Already archived? Login" : "New Aspirant? Register Phase"}
             <Sparkles className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
