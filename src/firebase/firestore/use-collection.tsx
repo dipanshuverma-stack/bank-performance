@@ -15,10 +15,22 @@ export function useCollection<T = any>(query: Query | null) {
     }
 
     setLoading(true);
-    return onSnapshot(query, (snapshot) => {
-      setData(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T));
-      setLoading(false);
-    });
+    console.log(`[Firestore] Initiating subscription for query path...`);
+    
+    const unsubscribe = onSnapshot(query, 
+      (snapshot) => {
+        const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T);
+        console.log(`[Firestore] Read Success: ${results.length} units retrieved.`);
+        setData(results);
+        setLoading(false);
+      },
+      (error) => {
+        console.error(`[Firestore] Read Failure:`, error.message);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, [query]);
 
   return { data, loading };

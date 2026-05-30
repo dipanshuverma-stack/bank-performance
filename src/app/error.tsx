@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 /**
- * @fileOverview Hardened Error Boundary Shell.
- * Designed with zero dependencies to ensure visibility during kernel failure.
+ * @fileOverview Standard Error Boundary for page segments.
  */
 export default function Error({
   error,
@@ -18,57 +17,28 @@ export default function Error({
   }, [error]);
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#020617',
-      color: '#f8fafc',
-      padding: '32px',
-      textAlign: 'center',
-      fontFamily: 'sans-serif'
-    }}>
-      <div style={{ fontSize: '64px', marginBottom: '16px' }}>⚠️</div>
-      <h2 style={{ fontSize: '28px', fontWeight: 900, marginBottom: '8px', letterSpacing: '-0.02em' }}>OPERATIONAL FAULT</h2>
-      <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px', maxWidth: '380px', lineHeight: 1.6 }}>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center bg-card rounded-[2.5rem] border-2 border-dashed border-destructive/20 m-4">
+      <div className="w-20 h-20 bg-destructive/10 rounded-3xl flex items-center justify-center text-destructive mb-6">
+        <span className="text-4xl">⚠️</span>
+      </div>
+      <h2 className="text-2xl font-black tracking-tight text-foreground mb-2 uppercase">Operational Fault</h2>
+      <p className="text-muted-foreground text-sm max-w-sm mb-8">
         A system sub-module has encountered a critical exception. Restarting the protocol may resolve the conflict.
       </p>
-      <div style={{
-        padding: '20px',
-        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-        borderRadius: '16px',
-        fontSize: '11px',
-        color: '#f87171',
-        maxWidth: '100%',
-        overflow: 'auto',
-        marginBottom: '32px',
-        textAlign: 'left',
-        whiteSpace: 'pre-wrap',
-        border: '1px solid rgba(248, 113, 113, 0.1)',
-        fontFamily: 'monospace'
-      }}>
-        {error.message || 'Unknown Exception Vector'}
+      <div className="flex gap-4">
+        <button
+          onClick={() => reset()}
+          className="h-12 px-8 bg-primary text-primary-foreground rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 transition-transform active:scale-95"
+        >
+          Reboot Module
+        </button>
+        <button
+          onClick={() => window.location.reload()}
+          className="h-12 px-8 bg-accent text-accent-foreground rounded-2xl font-black uppercase text-[10px] tracking-widest transition-transform active:scale-95"
+        >
+          Refresh Page
+        </button>
       </div>
-      <button
-        onClick={() => reset()}
-        style={{
-          padding: '16px 32px',
-          backgroundColor: '#6366f1',
-          color: 'white',
-          border: 'none',
-          borderRadius: '12px',
-          fontWeight: 900,
-          cursor: 'pointer',
-          textTransform: 'uppercase',
-          letterSpacing: '0.15em',
-          fontSize: '12px',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-        }}
-      >
-        Reboot Module
-      </button>
     </div>
   );
 }

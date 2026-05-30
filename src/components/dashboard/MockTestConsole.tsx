@@ -64,8 +64,8 @@ const EXAM_TYPES = [
 
 export function MockTestConsole() {
   const { toast } = useToast();
-  const { user } = useUser();
   const db = useFirestore();
+  const { user } = useUser();
   const [mounted, setMounted] = useState(false);
   const [localMocks, setLocalMocks] = useState<MockLog[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -90,22 +90,24 @@ export function MockTestConsole() {
     if (!user || !db) return null;
     return query(collection(db, 'users', user.uid, 'mocks'), orderBy('serverTimestamp', 'desc'));
   }, [db, user]);
-  const { data: cloudMocks } = useCollection<MockLog>(mocksQuery);
+  
+  const { data: cloudMocks, loading: cloudLoading } = useCollection<MockLog>(mocksQuery);
 
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("elite-mock-logs");
     if (saved) {
-      try { setLocalMocks(JSON.parse(saved)); } catch (e) {}
+      try { setLocalMocks(JSON.parse(saved)); } catch (e) { console.warn("Failed to parse local mocks"); }
     }
   }, []);
 
-  const mocks = (user && cloudMocks && cloudMocks.length > 0) ? cloudMocks : localMocks;
+  // Sync Logic: Prioritize cloud data if user is logged in
+  const mocks = user ? (cloudMocks || []) : localMocks;
   const filteredMocks = mocks.filter(m => m.stage === activeStage);
 
   const addMock = async () => {
     if (!mockName || !score || !correct || !wrong) {
-      toast({ variant: "destructive", title: "Missing Metrics", description: "All primary performance metrics are required." });
+      toast({ variant: "destructive", title: "Metrics Required", description: "Aggregate score and counts are mandatory." });
       return;
     }
 
@@ -134,56 +136,50 @@ export function MockTestConsole() {
       }
     };
 
+    // Update Local Vault
     const updated = [newMock, ...localMocks];
     setLocalMocks(updated);
     localStorage.setItem("elite-mock-logs", JSON.stringify(updated));
 
+    // Uplink to Cloud if session active
     if (user && db) {
       try {
         const mockRef = doc(db, 'users', user.uid, 'mocks', newMock.id);
-    
-        await setDoc(
-          mockRef,
-          {
-            ...newMock,
-            serverTimestamp: new Date(),
-          },
-          { merge: true }
-        );
-    
-        console.log("Mock synced to Firestore");
-      } catch (error) {
-        console.error("Firestore sync failed:", error);
-    
-        toast({
-          title: "Cloud Sync Failed",
-          description: "Mock saved locally but not uploaded.",
-        });
+        await setDoc(mockRef, { ...newMock, serverTimestamp: new Date() }, { merge: true });
+        console.log(`[Firestore] Write Success: ${newMock.name}`);
+      } catch (error: any) {
+        console.error(`[Firestore] Write Fail:`, error.message);
+        toast({ title: "Sync Delayed", description: "Data archived in Local Vault only." });
       }
     }
 
     setIsDialogOpen(false);
-    logAuditAction("Performance", "Mock Archived", `${examType} (${stage}) - ${newMock.accuracy}% accuracy recorded.`);
-    toast({ title: "Performance Secured", description: "Mock unit archived in Hybrid Vault." });
+    logAuditAction("Performance", "Mock Archived", `${mockName} recorded in archives.`);
+    toast({ title: "Performance Archived", description: "Mock metrics secured in Hybrid Vault." });
     
-    // Reset Logger
+    // Clear Logger
     setMockName(""); setScore(""); setCorrect(""); setWrong(""); 
     setWeakTopics([]); setQScore(""); setRScore(""); setEScore(""); setGAScore("");
   };
 
-  const removeMock = (id: string) => {
+  const removeMock = async (id: string) => {
     const updated = localMocks.filter(m => m.id !== id);
     setLocalMocks(updated);
     localStorage.setItem("elite-mock-logs", JSON.stringify(updated));
 
     if (user && db) {
-      const mockRef = doc(db, 'users', user.uid, 'mocks', id);
-      deleteDoc(mockRef);
+      try {
+        const mockRef = doc(db, 'users', user.uid, 'mocks', id);
+        await deleteDoc(mockRef);
+        console.log(`[Firestore] Purge Success: ${id}`);
+      } catch (error: any) {
+        console.error(`[Firestore] Purge Fail:`, error.message);
+      }
     }
-    logAuditAction("Performance", "Mock Purged", "Operational record removed from archives.");
-    toast({ title: "Record Purged", description: "Performance unit removed from vault." });
+    logAuditAction("Performance", "Record Purged", "Mock unit removed from archives.");
   };
 
+  // Dynamic syllabus filtering based on selected stage
   const currentSyllabus = ADDA247_SYLLABUS.filter(subject => {
     if (stage === 'Prelims') {
       return subject.name !== 'General Awareness';
@@ -203,8 +199,10 @@ export function MockTestConsole() {
                 <Award className="w-6 h-6" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-headline font-black tracking-tight">Mission Analytics</CardTitle>
-                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mt-1 opacity-60">Phase: {activeStage} Operation</div>
+                <CardTitle className="text-2xl font-headline font-black tracking-tight">Mock Vault</CardTitle>
+                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mt-1 opacity-60">
+                   {user ? "Cloud Sync Active" : "Local Operational Mode"}
+                </div>
               </div>
             </div>
             
@@ -219,57 +217,54 @@ export function MockTestConsole() {
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="w-full sm:w-auto rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-widest h-12 px-8 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
-                    <Plus className="w-4 h-4 mr-3" /> Log Mock Unit
+                    <Plus className="w-4 h-4 mr-3" /> Archive Unit
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[650px] rounded-[2.5rem] border-none shadow-2xl max-h-[90vh] overflow-y-auto bg-card">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-headline font-black tracking-tight">Strategic Logger</DialogTitle>
+                    <DialogTitle className="text-2xl font-headline font-black tracking-tight">Performance Logger</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-6 py-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Category</label>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Target Exam</label>
                         <Select value={examType} onValueChange={setExamType}>
-                          <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold shadow-inner"><SelectValue /></SelectTrigger>
                           <SelectContent className="rounded-xl border-none shadow-2xl">
                             {EXAM_TYPES.map((type) => (<SelectItem key={type} value={type} className="font-bold">{type}</SelectItem>))}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Phase</label>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mission Phase</label>
                         <Select value={stage} onValueChange={(val: any) => { setStage(val); setWeakTopics([]); }}>
-                          <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold shadow-inner"><SelectValue /></SelectTrigger>
                           <SelectContent className="rounded-xl border-none shadow-2xl">
-                            <SelectItem value="Prelims" className="font-bold">Prelims</SelectItem>
-                            <SelectItem value="Mains" className="font-bold">Mains</SelectItem>
+                            <SelectItem value="Prelims" className="font-bold">Prelims Phase</SelectItem>
+                            <SelectItem value="Mains" className="font-bold">Mains Phase</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Name</label>
-                      <Input placeholder="e.g. SBI PO Mock 1" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-xl h-12 bg-accent/30 border-none font-bold" />
+                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Designation</label>
+                      <Input placeholder="e.g. SBI PO Mock 1" value={mockName} onChange={(e) => setMockName(e.target.value)} className="rounded-xl h-12 bg-accent/30 border-none font-bold shadow-inner" />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-black uppercase tracking-widest text-primary ml-1">Aggregate Score</label>
-                        <Input type="number" placeholder="Score" value={score} onChange={(e) => setScore(e.target.value)} className="rounded-xl h-12 bg-primary/5 border-2 border-primary/20 font-bold" />
+                        <Input type="number" placeholder="Score" value={score} onChange={(e) => setScore(e.target.value)} className="rounded-xl h-12 bg-primary/5 border-2 border-primary/20 font-bold text-center" />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Max Marks</label>
-                        <Input type="number" placeholder="Total" value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className="rounded-xl h-12 bg-accent/30 border-none font-bold" />
+                        <Input type="number" placeholder="Total" value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className="rounded-xl h-12 bg-accent/30 border-none font-bold text-center shadow-inner" />
                       </div>
                     </div>
 
                     <div className="p-5 rounded-3xl bg-accent/10 border border-border/40 space-y-4 shadow-inner">
-                      <div className="flex items-center justify-between">
-                         <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Diagnostic Drill-Down (Optional)</div>
-                         <Badge variant="outline" className="text-[8px] font-bold uppercase tracking-widest opacity-60">Accuracy Engine</Badge>
-                      </div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sectional Drill-Down</div>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {['quants', 'reasoning', 'english', 'ga'].map((sub) => {
                           if (sub === 'ga' && stage === 'Prelims') return null;
@@ -287,10 +282,10 @@ export function MockTestConsole() {
 
                     <div className="space-y-3">
                       <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                        <Target className="w-3 h-3" /> Struggle Zones (Syllabus Select)
+                        <Target className="w-3 h-3" /> Struggle Zones (Stage-Specific)
                       </label>
                       <Select onValueChange={(topic) => { if (!weakTopics.includes(topic)) setWeakTopics([...weakTopics, topic]); }}>
-                        <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold"><SelectValue placeholder="Identify sub-topic gaps..." /></SelectTrigger>
+                        <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold shadow-inner"><SelectValue placeholder="Identify gaps in this stage..." /></SelectTrigger>
                         <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
                           {currentSyllabus.map((subject) => (
                             <SelectGroup key={subject.name}>
@@ -304,9 +299,9 @@ export function MockTestConsole() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <div className="flex flex-wrap gap-2 pt-2">
+                      <div className="flex flex-wrap gap-2 pt-1">
                         {weakTopics.map(topic => (
-                          <Badge key={topic} variant="secondary" className="pl-3 pr-1 py-1.5 rounded-xl bg-primary/10 text-primary border-primary/20 flex items-center gap-2 group/tag cursor-default">
+                          <Badge key={topic} variant="secondary" className="pl-3 pr-1 py-1.5 rounded-xl bg-primary/10 text-primary border-primary/20 flex items-center gap-2">
                             <span className="text-[9px] font-black uppercase">{topic}</span>
                             <button onClick={() => setWeakTopics(weakTopics.filter(t => t !== topic))} className="hover:bg-primary/20 rounded-full p-0.5 transition-colors">
                               <X className="w-3 h-3" />
@@ -319,11 +314,11 @@ export function MockTestConsole() {
                     <div className="grid grid-cols-2 gap-4 border-t border-border/20 pt-6">
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-black uppercase tracking-widest text-success ml-1">Correct Hits</label>
-                        <Input type="number" placeholder="Count" value={correct} onChange={(e) => setCorrect(e.target.value)} className="rounded-xl h-12 bg-success/5 border-2 border-success/20 font-bold" />
+                        <Input type="number" placeholder="Count" value={correct} onChange={(e) => setCorrect(e.target.value)} className="rounded-xl h-12 bg-success/5 border-2 border-success/20 font-bold text-center" />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-black uppercase tracking-widest text-destructive ml-1">Errors</label>
-                        <Input type="number" placeholder="Count" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-xl h-12 bg-destructive/5 border-2 border-destructive/20 font-bold" />
+                        <Input type="number" placeholder="Count" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-xl h-12 bg-destructive/5 border-2 border-destructive/20 font-bold text-center" />
                       </div>
                     </div>
                     <Button onClick={addMock} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-[0.2em] shadow-2xl shadow-primary/30 mt-4 active:scale-[0.98] transition-all">Archive Unit to Vault</Button>
@@ -335,13 +330,18 @@ export function MockTestConsole() {
         </CardHeader>
         
         <CardContent className="p-6 lg:p-10">
-          {filteredMocks.length > 0 ? (
+          {cloudLoading ? (
+            <div className="py-20 text-center animate-pulse flex flex-col items-center gap-4">
+               <BarChart3 className="w-10 h-10 text-muted-foreground/20" />
+               <div className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">Synchronizing Archives...</div>
+            </div>
+          ) : filteredMocks.length > 0 ? (
             <div className="space-y-4">
               {filteredMocks.map((mock) => (
                 <div key={mock.id} className="group relative p-6 rounded-3xl border-2 border-border/40 bg-card/60 hover:border-primary/40 transition-all duration-500 shadow-sm hover:shadow-xl">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
-                      <div className="w-14 h-14 rounded-2xl bg-primary/5 text-primary flex items-center justify-center shadow-inner group-hover:bg-primary/10 transition-colors shrink-0">
+                      <div className="w-14 h-14 rounded-2xl bg-primary/5 text-primary flex items-center justify-center shadow-inner shrink-0">
                         <Award className="w-7 h-7" />
                       </div>
                       <div>
@@ -358,7 +358,7 @@ export function MockTestConsole() {
                         <div className="text-4xl font-headline font-black text-primary tracking-tighter tabular-nums leading-none">{mock.accuracy}%</div>
                         <div className="text-[9px] text-muted-foreground uppercase font-black tracking-[0.2em] mt-1 opacity-60 text-right">Precision</div>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => removeMock(mock.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive h-12 w-12 transition-all hover:bg-destructive/10 rounded-2xl shrink-0"><Trash2 className="w-5 h-5" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => removeMock(mock.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive h-12 w-12 rounded-2xl shrink-0"><Trash2 className="w-5 h-5" /></Button>
                     </div>
                   </div>
                   
@@ -395,7 +395,7 @@ export function MockTestConsole() {
                </div>
                <div>
                  <p className="text-xs font-black uppercase tracking-[0.4em] text-muted-foreground/30">Vault Segment Empty</p>
-                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/20 mt-2">Log a {activeStage} performance unit to activate analytics</p>
+                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/20 mt-2 leading-relaxed">Archive a {activeStage} performance unit to activate deep analytics.</p>
                </div>
             </div>
           )}
