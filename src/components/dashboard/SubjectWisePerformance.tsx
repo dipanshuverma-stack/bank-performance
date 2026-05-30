@@ -14,15 +14,28 @@ import {
   Legend
 } from 'recharts';
 import { BrainCircuit, LineChart as LineIcon } from 'lucide-react';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
 
 export function SubjectWisePerformance() {
   const [stage, setStage] = useState<"Prelims" | "Mains">("Prelims");
   const [chartData, setChartData] = useState<any[]>([]);
+  const { user } = useUser();
+  const db = useFirestore();
+
+  const mocksQuery = useMemoFirebase(() => {
+    if (!user || !db) return null;
+    return query(collection(db, 'users', user.uid, 'mocks'), orderBy('serverTimestamp', 'desc'));
+  }, [db, user]);
+
+  const { data: cloudMocks } = useCollection(mocksQuery);
 
   useEffect(() => {
     const refresh = () => {
       const saved = localStorage.getItem("elite-mock-logs");
-      const logs = saved ? JSON.parse(saved) : [];
+      const localLogs = saved ? JSON.parse(saved) : [];
+      const logs = user && cloudMocks && cloudMocks.length > 0 ? cloudMocks : localLogs;
+
       const filtered = logs
         .filter((m: any) => m.stage === stage)
         .slice(0, 10)
@@ -38,14 +51,7 @@ export function SubjectWisePerformance() {
     };
 
     refresh();
-    window.addEventListener('storage', refresh);
-    window.addEventListener('elite-stage-changed', refresh);
-    
-    return () => {
-      window.removeEventListener('storage', refresh);
-      window.removeEventListener('elite-stage-changed', refresh);
-    };
-  }, [stage]);
+  }, [stage, cloudMocks, user]);
 
   return (
     <Card className="bento-card border-none bg-card/40 backdrop-blur-3xl shadow-xl overflow-hidden">
@@ -117,7 +123,7 @@ export function SubjectWisePerformance() {
                   stroke="#a855f7" 
                   strokeWidth={3} 
                   dot={{ r: 4, fill: '#a855f7', strokeWidth: 2, stroke: '#fff' }} 
-                  activeDot={{ r: 6 }}
+                  activeDot={{ r: 6 }} 
                   animationDuration={1500}
                 />
                 <Line 
@@ -127,7 +133,7 @@ export function SubjectWisePerformance() {
                   stroke="#10b981" 
                   strokeWidth={3} 
                   dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} 
-                  activeDot={{ r: 6 }}
+                  activeDot={{ r: 6 }} 
                   animationDuration={1500}
                 />
                 {stage === "Mains" && (
@@ -138,7 +144,7 @@ export function SubjectWisePerformance() {
                     stroke="#f59e0b" 
                     strokeWidth={3} 
                     dot={{ r: 4, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }} 
-                    activeDot={{ r: 6 }}
+                    activeDot={{ r: 6 }} 
                     animationDuration={1500}
                   />
                 )}

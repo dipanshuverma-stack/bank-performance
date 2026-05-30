@@ -28,7 +28,8 @@ import {
   BarChart3,
   X,
   Target,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -65,7 +66,7 @@ const EXAM_TYPES = [
 export function MockTestConsole() {
   const { toast } = useToast();
   const db = useFirestore();
-  const { user } = useUser();
+  const { user, loading: authLoading } = useUser();
   const [mounted, setMounted] = useState(false);
   const [localMocks, setLocalMocks] = useState<MockLog[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -92,22 +93,16 @@ export function MockTestConsole() {
   }, [db, user]);
   
   const { data: cloudMocks, loading: cloudLoading } = useCollection<MockLog>(mocksQuery);
-  useEffect(() => {
-    console.log("Current user:", user?.uid);
-    console.log("Cloud loading:", cloudLoading);
-    console.log("Cloud mocks count:", cloudMocks?.length);
-    console.log("Cloud mocks:", cloudMocks);
-  }, [cloudMocks, cloudLoading, user]);
 
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("elite-mock-logs");
     if (saved) {
-      try { setLocalMocks(JSON.parse(saved)); } catch (e) { console.warn("Failed to parse local mocks"); }
+      try { setLocalMocks(JSON.parse(saved)); } catch (e) { console.warn("Local logs parse failure"); }
     }
   }, []);
 
-  // Sync Logic: Prioritize cloud data if user is logged in
+  // CLOUD-FIRST: Standardize on Cloud data if user is authenticated
   const mocks = user ? (cloudMocks || []) : localMocks;
   const filteredMocks = mocks.filter(m => m.stage === activeStage);
 
@@ -142,58 +137,54 @@ export function MockTestConsole() {
       }
     };
 
-    // Update Local Vault
-    const updated = [newMock, ...localMocks];
-    setLocalMocks(updated);
-    localStorage.setItem("elite-mock-logs", JSON.stringify(updated));
-
-    // Uplink to Cloud if session active
     if (user && db) {
       try {
         const mockRef = doc(db, 'users', user.uid, 'mocks', newMock.id);
         await setDoc(mockRef, { ...newMock, serverTimestamp: new Date() }, { merge: true });
-        console.log(`[Firestore] Write Success: ${newMock.name}`);
+        console.log(`[Firestore] Write Success: users/${user.uid}/mocks/${newMock.id}`);
+        toast({ title: "Performance Synchronized", description: "Cloud Vault updated successfully." });
       } catch (error: any) {
-        console.error(`[Firestore] Write Fail:`, error.message);
-        toast({ title: "Sync Delayed", description: "Data archived in Local Vault only." });
+        console.error(`[Firestore] Write Failure:`, error.message);
+        toast({ variant: "destructive", title: "Sync Fault", description: error.message });
       }
+    } else {
+      const updated = [newMock, ...localMocks];
+      setLocalMocks(updated);
+      localStorage.setItem("elite-mock-logs", JSON.stringify(updated));
+      toast({ title: "Local Archival", description: "Data secured in Local Vault only." });
     }
 
     setIsDialogOpen(false);
-    logAuditAction("Performance", "Mock Archived", `${mockName} recorded in archives.`);
-    toast({ title: "Performance Archived", description: "Mock metrics secured in Hybrid Vault." });
-    
-    // Clear Logger
+    logAuditAction("Performance", "Mock Archived", `${mockName} recorded.`);
     setMockName(""); setScore(""); setCorrect(""); setWrong(""); 
     setWeakTopics([]); setQScore(""); setRScore(""); setEScore(""); setGAScore("");
   };
 
   const removeMock = async (id: string) => {
-    const updated = localMocks.filter(m => m.id !== id);
-    setLocalMocks(updated);
-    localStorage.setItem("elite-mock-logs", JSON.stringify(updated));
-
     if (user && db) {
       try {
         const mockRef = doc(db, 'users', user.uid, 'mocks', id);
         await deleteDoc(mockRef);
-        console.log(`[Firestore] Purge Success: ${id}`);
+        console.log(`[Firestore] Purge Success: users/${user.uid}/mocks/${id}`);
       } catch (error: any) {
-        console.error(`[Firestore] Purge Fail:`, error.message);
+        console.error(`[Firestore] Purge Failure:`, error.message);
       }
+    } else {
+      const updated = localMocks.filter(m => m.id !== id);
+      setLocalMocks(updated);
+      localStorage.setItem("elite-mock-logs", JSON.stringify(updated));
     }
-    logAuditAction("Performance", "Record Purged", "Mock unit removed from archives.");
+    logAuditAction("Performance", "Record Purged", "Mock unit removed.");
   };
 
-  // Dynamic syllabus filtering based on selected stage
-  const currentSyllabus = ADDA247_SYLLABUS.filter(subject => {
-    if (stage === 'Prelims') {
-      return subject.name !== 'General Awareness';
-    }
-    return true;
-  });
+  const currentSyllabus = ADDA247_SYLLABUS.filter(subject => stage === 'Prelims' ? subject.name !== 'General Awareness' : true);
 
-  if (!mounted) return null;
+  if (!mounted || authLoading) return (
+    <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
+      <Loader2 className="w-10 h-10 animate-spin" />
+      <span className="text-[10px] font-black uppercase tracking-widest">Validating Archives...</span>
+    </div>
+  );
 
   return (
     <div className="space-y-8">
@@ -206,8 +197,9 @@ export function MockTestConsole() {
               </div>
               <div>
                 <CardTitle className="text-2xl font-headline font-black tracking-tight">Mock Vault</CardTitle>
-                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mt-1 opacity-60">
-                   {user ? "Cloud Sync Active" : "Local Operational Mode"}
+                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mt-1 opacity-80 flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                   {user ? `Cloud Active: ${user.email}` : "Local Protocol"}
                 </div>
               </div>
             </div>
@@ -227,9 +219,7 @@ export function MockTestConsole() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[650px] rounded-[2.5rem] border-none shadow-2xl max-h-[90vh] overflow-y-auto bg-card">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl font-headline font-black tracking-tight">Performance Logger</DialogTitle>
-                  </DialogHeader>
+                  <DialogHeader><DialogTitle className="text-2xl font-headline font-black tracking-tight">Performance Logger</DialogTitle></DialogHeader>
                   <div className="space-y-6 py-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
@@ -287,17 +277,13 @@ export function MockTestConsole() {
                     </div>
 
                     <div className="space-y-3">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                        <Target className="w-3 h-3" /> Struggle Zones (Stage-Specific)
-                      </label>
+                      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2"><Target className="w-3 h-3" /> Struggle Zones (Stage-Specific)</label>
                       <Select onValueChange={(topic) => { if (!weakTopics.includes(topic)) setWeakTopics([...weakTopics, topic]); }}>
                         <SelectTrigger className="rounded-xl h-12 bg-accent/30 border-none font-bold shadow-inner"><SelectValue placeholder="Identify gaps in this stage..." /></SelectTrigger>
                         <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
                           {currentSyllabus.map((subject) => (
                             <SelectGroup key={subject.name}>
-                              <SelectLabel className="text-[8px] font-black uppercase text-primary px-4 py-2 bg-primary/5 flex items-center gap-2">
-                                <ChevronRight className="w-2.5 h-2.5" /> {subject.name}
-                              </SelectLabel>
+                              <SelectLabel className="text-[8px] font-black uppercase text-primary px-4 py-2 bg-primary/5 flex items-center gap-2"><ChevronRight className="w-2.5 h-2.5" /> {subject.name}</SelectLabel>
                               {subject.chapters.flatMap(ch => ch.subtopics).map((sub) => (
                                 <SelectItem key={sub.id} value={sub.name} className="text-xs font-bold transition-colors">{sub.name}</SelectItem>
                               ))}
@@ -309,9 +295,7 @@ export function MockTestConsole() {
                         {weakTopics.map(topic => (
                           <Badge key={topic} variant="secondary" className="pl-3 pr-1 py-1.5 rounded-xl bg-primary/10 text-primary border-primary/20 flex items-center gap-2">
                             <span className="text-[9px] font-black uppercase">{topic}</span>
-                            <button onClick={() => setWeakTopics(weakTopics.filter(t => t !== topic))} className="hover:bg-primary/20 rounded-full p-0.5 transition-colors">
-                              <X className="w-3 h-3" />
-                            </button>
+                            <button onClick={() => setWeakTopics(weakTopics.filter(t => t !== topic))} className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"><X className="w-3 h-3" /></button>
                           </Badge>
                         ))}
                       </div>
@@ -327,7 +311,7 @@ export function MockTestConsole() {
                         <Input type="number" placeholder="Count" value={wrong} onChange={(e) => setWrong(e.target.value)} className="rounded-xl h-12 bg-destructive/5 border-2 border-destructive/20 font-bold text-center" />
                       </div>
                     </div>
-                    <Button onClick={addMock} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-[0.2em] shadow-2xl shadow-primary/30 mt-4 active:scale-[0.98] transition-all">Archive Unit to Vault</Button>
+                    <Button onClick={addMock} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-[0.2em] shadow-2xl shadow-primary/30 mt-4 active:scale-95 transition-all">Archive Unit to Vault</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -347,9 +331,7 @@ export function MockTestConsole() {
                 <div key={mock.id} className="group relative p-6 rounded-3xl border-2 border-border/40 bg-card/60 hover:border-primary/40 transition-all duration-500 shadow-sm hover:shadow-xl">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
-                      <div className="w-14 h-14 rounded-2xl bg-primary/5 text-primary flex items-center justify-center shadow-inner shrink-0">
-                        <Award className="w-7 h-7" />
-                      </div>
+                      <div className="w-14 h-14 rounded-2xl bg-primary/5 text-primary flex items-center justify-center shadow-inner shrink-0"><Award className="w-7 h-7" /></div>
                       <div>
                         <div className="font-black text-xl tracking-tight text-foreground leading-tight">{mock.name}</div>
                         <div className="flex flex-wrap items-center gap-3 mt-1.5">
@@ -383,9 +365,7 @@ export function MockTestConsole() {
                       {mock.weakTopics && mock.weakTopics.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {mock.weakTopics.map(topic => (
-                            <Badge key={topic} variant="secondary" className="text-[8px] font-black text-muted-foreground uppercase tracking-wider bg-accent/40 rounded-lg px-2.5 py-1">
-                              {topic}
-                            </Badge>
+                            <Badge key={topic} variant="secondary" className="text-[8px] font-black text-muted-foreground uppercase tracking-wider bg-accent/40 rounded-lg px-2.5 py-1">{topic}</Badge>
                           ))}
                         </div>
                       )}
@@ -396,9 +376,7 @@ export function MockTestConsole() {
             </div>
           ) : (
             <div className="py-24 text-center flex flex-col items-center gap-6">
-               <div className="w-20 h-20 rounded-[2rem] bg-accent/20 flex items-center justify-center opacity-30 shadow-inner">
-                 <BarChart3 className="w-10 h-10" />
-               </div>
+               <div className="w-20 h-20 rounded-[2rem] bg-accent/20 flex items-center justify-center opacity-30 shadow-inner"><BarChart3 className="w-10 h-10" /></div>
                <div>
                  <p className="text-xs font-black uppercase tracking-[0.4em] text-muted-foreground/30">Vault Segment Empty</p>
                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/20 mt-2 leading-relaxed">Archive a {activeStage} performance unit to activate deep analytics.</p>

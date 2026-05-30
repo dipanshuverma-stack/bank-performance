@@ -19,9 +19,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { logAuditAction } from "@/lib/audit-logger";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
-import { supabase } from "@/lib/supabase";
 
 const EMPTY_CHART_DATA = Array.from({ length: 8 }, (_, i) => ({
   name: `P${i + 1}`,
@@ -32,34 +31,27 @@ const EMPTY_CHART_DATA = Array.from({ length: 8 }, (_, i) => ({
 
 export function PerformanceOverview() {
   const [mounted, setMounted] = useState(false);
-  const [period, setPeriod] = useState("weekly");
   const [stage, setStage] = useState<"Prelims" | "Mains">("Prelims");
-  const [activeView, setActiveView] = useState<"performance" | "volume">("performance");
-  const [userId, setUserId] = useState<string | null>(null);
-
+  const { user } = useUser();
   const db = useFirestore();
 
   useEffect(() => {
     setMounted(true);
     const savedStage = localStorage.getItem("elite-active-stage") as "Prelims" | "Mains";
     if (savedStage) setStage(savedStage);
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserId(session?.user?.id || null);
-    });
   }, []);
 
   const mocksQuery = useMemoFirebase(() => {
-    if (!userId || !db) return null;
-    return query(collection(db, 'users', userId, 'mocks'), orderBy('serverTimestamp', 'desc'));
-  }, [db, userId]);
+    if (!user || !db) return null;
+    return query(collection(db, 'users', user.uid, 'mocks'), orderBy('serverTimestamp', 'desc'));
+  }, [db, user]);
 
-  const { data: cloudMocks } = useCollection(mocksQuery);
+  const { data: cloudMocks, loading: cloudLoading } = useCollection(mocksQuery);
 
   const stats = useMemo(() => {
     if (!mounted) return { avgScore: 0, avgAccuracy: 0, practicePrecision: 0, testsTaken: 0 };
 
-    const mockLogs = userId && cloudMocks ? cloudMocks : JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+    const mockLogs = user && cloudMocks && cloudMocks.length > 0 ? cloudMocks : JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
     const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
     
     if (stageFiltered.length === 0) return { avgScore: 0, avgAccuracy: 0, practicePrecision: 0, testsTaken: 0 };
@@ -70,14 +62,14 @@ export function PerformanceOverview() {
     return {
       avgScore: parseFloat((sumScore / stageFiltered.length).toFixed(1)),
       avgAccuracy: parseFloat((sumAcc / stageFiltered.length).toFixed(1)),
-      practicePrecision: 0, // Placeholder
+      practicePrecision: 0, 
       testsTaken: stageFiltered.length,
     };
-  }, [mounted, stage, cloudMocks, userId]);
+  }, [mounted, stage, cloudMocks, user]);
 
   const chartData = useMemo(() => {
     if (!mounted) return EMPTY_CHART_DATA;
-    const mockLogs = userId && cloudMocks ? cloudMocks : JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+    const mockLogs = user && cloudMocks && cloudMocks.length > 0 ? cloudMocks : JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
     const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
 
     if (stageFiltered.length === 0) return EMPTY_CHART_DATA;
@@ -88,7 +80,7 @@ export function PerformanceOverview() {
       score: m.score,
       tests: 1
     }));
-  }, [mounted, stage, cloudMocks, userId]);
+  }, [mounted, stage, cloudMocks, user]);
 
   const handleStageChange = (val: "Prelims" | "Mains") => {
     setStage(val);
@@ -111,7 +103,7 @@ export function PerformanceOverview() {
             </div>
             <div className="flex items-center gap-2 text-primary font-black text-[9px] uppercase tracking-[0.3em] ml-12">
               <Layers className="w-3 h-3" />
-              {stage} Protocol
+              {stage} Protocol {user && "(Cloud Active)"}
             </div>
           </div>
           
@@ -132,7 +124,7 @@ export function PerformanceOverview() {
             { label: "Mock Accuracy", value: `${stats.avgAccuracy}%`, color: "text-foreground", icon: TrendingUp },
             { label: "Mission Volume", value: stats.testsTaken, color: "text-indigo-500", icon: BarChart3 },
             { label: "Peak Score", value: stats.avgScore, color: "text-primary", icon: Target },
-            { label: "Sync Status", value: userId ? "ONLINE" : "OFFLINE", color: userId ? "text-emerald-500" : "text-orange-500", icon: Zap },
+            { label: "Sync Status", value: user ? "ONLINE" : "OFFLINE", color: user ? "text-emerald-500" : "text-orange-500", icon: Zap },
           ].map((stat, i) => (
             <div key={i} className="flex flex-col p-5 rounded-3xl bg-slate-50 dark:bg-white/5 border border-border/60 group hover:border-primary/30 transition-all duration-500 shadow-md">
               <div className="flex items-center justify-between mb-3">

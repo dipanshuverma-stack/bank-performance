@@ -12,18 +12,19 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { logAuditAction, type AuditLog } from "@/lib/audit-logger";
-import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, collection, query, orderBy, limit } from "firebase/firestore";
-import { supabase } from "@/lib/supabase";
-import { User as SupabaseUser } from "@supabase/supabase-js";
+import { signOut } from "firebase/auth";
+import { useAuth } from "@/firebase";
 
 export default function ProfilePage() {
   const { toast } = useToast();
   const db = useFirestore();
+  const auth = useAuth();
+  const { user } = useUser();
   const [mounted, setMounted] = useState(false);
   const [storageSize, setStorageSize] = useState("0 KB");
   const [localAuditLogs, setLocalAuditLogs] = useState<AuditLog[]>([]);
-  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   
   // Tactical Parameters
   const [profile, setProfile] = useState({
@@ -36,33 +37,13 @@ export default function ProfilePage() {
     strongSubjects: "Syllogism, English Grammar",
   });
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const getInitialSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSupabaseUser(session?.user ?? null);
-      } catch (err) { console.warn("Supabase session check skipped"); }
-    };
-    getInitialSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSupabaseUser(session?.user ?? null);
-      if (session?.user) localStorage.setItem("cloud-sync-active", "true");
-      else localStorage.removeItem("cloud-sync-active");
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const userRef = useMemoFirebase(() =>  supabaseUser && db ? doc(db, 'users', supabaseUser.id) : null, [db, supabaseUser]);
+  const userRef = useMemoFirebase(() =>  user && db ? doc(db, 'users', user.uid) : null, [db, user]);
   const { data: cloudProfile } = useDoc(userRef);
 
   const auditQuery = useMemoFirebase(() => {
-    if (!db || !supabaseUser) return null;
-    return query(collection(db, 'users', supabaseUser.id, 'auditLogs'), orderBy('serverTimestamp', 'desc'), limit(50));
-  }, [db, supabaseUser]);
+    if (!db || !user) return null;
+    return query(collection(db, 'users', user.uid, 'auditLogs'), orderBy('serverTimestamp', 'desc'), limit(50));
+  }, [db, user]);
   const { data: cloudAuditLogs } = useCollection<AuditLog>(auditQuery);
 
   const refreshLocalLogs = useCallback(() => {
@@ -72,15 +53,8 @@ export default function ProfilePage() {
       if (saved) {
         const logs: AuditLog[] = JSON.parse(saved);
         const twelveHoursAgo = Date.now() - (12 * 60 * 60 * 1000);
-        
-        // Auto-purge logs older than 12 hours
         const purged = logs.filter(l => l.createdAt && l.createdAt > twelveHoursAgo);
-        
-        // Update local storage if any logs were purged
-        if (purged.length !== logs.length) {
-          localStorage.setItem("elite-audit-logs", JSON.stringify(purged));
-        }
-        
+        if (purged.length !== logs.length) localStorage.setItem("elite-audit-logs", JSON.stringify(purged));
         setLocalAuditLogs(purged);
       }
     } catch (e) { console.warn("Audit log refresh failed"); }
@@ -89,18 +63,12 @@ export default function ProfilePage() {
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("elite-user-profile");
-    if (saved) {
-      try { setProfile(JSON.parse(saved)); } catch (e) {}
-    }
-    
+    if (saved) { try { setProfile(JSON.parse(saved)); } catch (e) {} }
     refreshLocalLogs();
     
-    // Storage Metric Calculation
     let total = 0;
     for (let x in localStorage) {
-      if (Object.prototype.hasOwnProperty.call(localStorage, x)) {
-        total += (localStorage[x].length + x.length) * 2;
-      }
+      if (Object.prototype.hasOwnProperty.call(localStorage, x)) total += (localStorage[x].length + x.length) * 2;
     }
     setStorageSize((total / 1024).toFixed(2) + " KB");
 
@@ -115,35 +83,25 @@ export default function ProfilePage() {
     }
   }, [cloudProfile]);
 
-  const displayLogs = supabaseUser ? (cloudAuditLogs && cloudAuditLogs.length > 0 ? cloudAuditLogs : localAuditLogs) : localAuditLogs;
+  const displayLogs = user ? (cloudAuditLogs && cloudAuditLogs.length > 0 ? cloudAuditLogs : localAuditLogs) : localAuditLogs;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     localStorage.setItem("elite-user-profile", JSON.stringify(profile));
-    
-    if (supabaseUser && db) {
-      const userRef = doc(db, 'users', supabaseUser.id);
-      setDoc(userRef, { profile, lastUpdated: new Date() }, { merge: true });
+    if (user && db) {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, { profile, lastUpdated: new Date() }, { merge: true });
+        toast({ title: "Protocol Synchronized", description: "Local Vault and Cloud Uplink updated." });
+      } catch (err: any) {
+        toast({ variant: "destructive", title: "Sync Fault", description: err.message });
+      }
     }
-
     logAuditAction("Settings", "Profile Sync", `Operational parameters synchronized. Target: ${profile.targetExam}`);
-    toast({ title: "Protocol Synchronized", description: "Local Vault and Cloud Uplink updated." });
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin + '/profile' }
-      });
-      if (error) throw error;
-      logAuditAction("Security", "Cloud Uplink established", "Authentication via Supabase successful.");
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Authentication Fail", description: error.message });
-    }
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    if (!auth) return;
+    await signOut(auth);
     logAuditAction("Security", "Cloud Uplink severed", "Manual sign-out initiated.");
     toast({ title: "Cloud Uplink Severed", description: "Operational mode switched to Local Only." });
   };
@@ -189,11 +147,11 @@ export default function ProfilePage() {
         </div>
         
         <Card className="bg-primary/5 border-2 border-primary/20 rounded-[2rem] p-5 flex items-center gap-5 shadow-xl backdrop-blur-xl">
-          {supabaseUser ? (
+          {user ? (
             <>
               <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary border-2 border-primary/40 overflow-hidden shadow-inner shrink-0">
-                {supabaseUser.user_metadata?.avatar_url ? (
-                  <img src={supabaseUser.user_metadata.avatar_url} alt="User" referrerPolicy="no-referrer" />
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="User" referrerPolicy="no-referrer" />
                 ) : (
                   <UserIcon className="w-6 h-6" />
                 )}
@@ -201,7 +159,7 @@ export default function ProfilePage() {
               <div className="flex-1 min-w-0">
                 <div className="text-[9px] font-black uppercase tracking-[0.2em] text-primary">Cloud Uplink Active</div>
                 <div className="text-sm font-black truncate max-w-[140px] tracking-tight">
-                  {supabaseUser.user_metadata?.full_name || supabaseUser.email || "Elite Aspirant"}
+                  {user.displayName || user.email || "Elite Aspirant"}
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground hover:text-destructive h-10 w-10 rounded-xl hover:bg-destructive/10 transition-colors">
@@ -209,9 +167,7 @@ export default function ProfilePage() {
               </Button>
             </>
           ) : (
-            <Button onClick={handleGoogleSignIn} variant="outline" className="rounded-2xl border-2 border-primary/40 hover:bg-primary/10 h-12 px-6 font-black uppercase text-[10px] tracking-[0.15em] shadow-lg">
-              <Cloud className="w-4 h-4 mr-3" /> Activate Cloud Sync
-            </Button>
+             <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-4">Local Mode Active</div>
           )}
         </Card>
       </div>
@@ -265,8 +221,8 @@ export default function ProfilePage() {
                <div className="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-4 shadow-inner">
                   <div className="flex justify-between items-center">
                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">Storage Status</span>
-                     <Badge variant="outline" className={supabaseUser ? "bg-primary/10 text-primary border-primary/40 text-[9px] font-black py-1 px-3" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/40 text-[9px] font-black py-1 px-3"}>
-                       {supabaseUser ? "SYNCED" : "OFFLINE"}
+                     <Badge variant="outline" className={user ? "bg-primary/10 text-primary border-primary/40 text-[9px] font-black py-1 px-3" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/40 text-[9px] font-black py-1 px-3"}>
+                       {user ? "SYNCED" : "OFFLINE"}
                      </Badge>
                   </div>
                   <div className="flex justify-between items-center border-t border-white/5 pt-4">

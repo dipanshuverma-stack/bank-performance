@@ -1,4 +1,5 @@
-import type { Metadata, Viewport } from 'next';
+'use client';
+
 import { Plus_Jakarta_Sans, Outfit } from 'next/font/google';
 import './globals.css';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -7,6 +8,10 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 import { ClientSideWrappers } from '@/components/layout/ClientSideWrappers';
+import { useUser } from '@/firebase';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -20,42 +25,66 @@ const outfit = Outfit({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: "Dipanshu's Performance Elite",
-  description: 'AI-Powered Bank Exam Performance Tracking Dashboard',
-};
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useUser();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
-export const viewport: Viewport = {
-  themeColor: '#4f46e5',
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !loading && !user && pathname !== '/login') {
+      console.log("[Guard] Unauthorized access. Redirecting to login.");
+      router.push('/login');
+    }
+  }, [user, loading, pathname, router, mounted]);
+
+  // Prevent hydration mismatch by ensuring initial mount state matches server
+  if (!mounted || loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 text-primary animate-spin opacity-40" />
+        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">Initializing Terminal...</span>
+      </div>
+    );
+  }
+
+  if (!user && pathname !== '/login') return null;
+
+  return <>{children}</>;
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/login';
+
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`} suppressHydrationWarning>
       <body className="font-body antialiased bg-background text-foreground min-h-screen overflow-x-hidden">
         <FirebaseClientProvider>
-          <div className="main-shell bg-background relative flex min-h-screen w-full">
-            <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0 relative">
-              <Header />
-              <main className="scroll-viewport px-4 md:px-8 lg:px-14 flex-1">
-                <div className="max-w-[1600px] mx-auto page-transition w-full py-6 pb-32 md:pb-12">
-                  {children}
-                </div>
-              </main>
-              <BottomNav />
+          <AuthGuard>
+            <div className="main-shell bg-background relative flex min-h-screen w-full">
+              {!isLoginPage && <Sidebar />}
+              <div className="flex-1 flex flex-col min-w-0 relative">
+                {!isLoginPage && <Header />}
+                <main className={`scroll-viewport px-4 md:px-8 lg:px-14 flex-1 ${isLoginPage ? 'p-0' : ''}`}>
+                  <div className={`${isLoginPage ? '' : 'max-w-[1600px] mx-auto page-transition w-full py-6 pb-32 md:pb-12'}`}>
+                    {children}
+                  </div>
+                </main>
+                {!isLoginPage && <BottomNav />}
+              </div>
             </div>
-          </div>
-          <ClientSideWrappers />
-          <Toaster />
+            {!isLoginPage && <ClientSideWrappers />}
+            <Toaster />
+          </AuthGuard>
         </FirebaseClientProvider>
       </body>
     </html>

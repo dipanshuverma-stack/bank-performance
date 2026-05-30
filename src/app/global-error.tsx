@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * @fileOverview Minimalist Root Error Boundary.
- * Next.js 15 requires global-error to have its own html and body tags.
+ * @fileOverview Bulletproof Root Error Boundary.
+ * Uses zero-dependency inline styles to ensure rendering even during total bundle failure.
  */
 export default function GlobalError({
   error,
@@ -12,22 +12,52 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-slate-950 text-slate-50 flex items-center justify-center min-h-screen p-6 text-center font-sans">
-        <div className="max-w-md w-full space-y-6">
-          <div className="text-6xl mb-4">🚨</div>
-          <h1 className="text-2xl font-black uppercase tracking-tighter">System Critical</h1>
-          <p className="text-slate-400 text-sm leading-relaxed">
+    <html>
+      <body style={{ 
+        backgroundColor: '#020617', 
+        color: '#f8fafc', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '100vh', 
+        margin: 0,
+        fontFamily: 'system-ui, -apple-system, sans-serif' 
+      }}>
+        <div style={{ textAlign: 'center', padding: '2rem', maxWidth: '600px' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🚨</div>
+          <h1 style={{ fontSize: '2rem', fontWeight: '900', marginBottom: '1rem', letterSpacing: '-0.05em' }}>SYSTEM CRITICAL</h1>
+          <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6' }}>
             The terminal kernel has encountered a fatal exception. Global synchronization has been suspended.
           </p>
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-left">
-            <pre className="text-[10px] text-red-400 overflow-auto whitespace-pre-wrap font-mono">
-              {error.message || 'Kernel Failure'}
-            </pre>
+          <div style={{ 
+            padding: '1rem', 
+            backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+            border: '1px solid rgba(239, 68, 68, 0.2)', 
+            borderRadius: '0.75rem', 
+            fontSize: '0.75rem', 
+            color: '#f87171',
+            textAlign: 'left',
+            overflow: 'auto',
+            maxHeight: '200px',
+            fontFamily: 'monospace'
+          }}>
+            {error.message || 'Kernel Failure'}
           </div>
           <button
             onClick={() => reset()}
-            className="w-full h-14 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors shadow-lg shadow-indigo-500/20"
+            style={{
+              marginTop: '2rem',
+              padding: '1rem 2.5rem',
+              backgroundColor: '#4f46e5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.75rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              cursor: 'pointer',
+              boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.3)'
+            }}
           >
             Reboot Kernel
           </button>

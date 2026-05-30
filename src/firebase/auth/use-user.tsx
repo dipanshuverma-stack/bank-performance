@@ -6,7 +6,7 @@ import { useAuth } from '../provider';
 
 /**
  * @fileOverview Hardened user identity hook.
- * Prevents hydration errors by carefully managing auth lifecycle.
+ * Standardized on Firebase Auth for Firestore compatibility.
  */
 export function useUser() {
   const auth = useAuth();
@@ -14,21 +14,17 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // If auth isn't initialized yet, stay in loading state
     if (!auth) {
+      console.warn("[Auth] Auth instance not available.");
       return;
     }
 
-    // Initialize with current value immediately
-    setUser(auth.currentUser);
-    setLoading(false);
-
-    // Subscribe to future changes
     const unsubscribe = onAuthStateChanged(auth, (u) => {
+      console.log(`[Auth] State Change: ${u ? 'Authenticated (' + u.uid + ')' : 'Unauthenticated'}`);
       setUser(u);
       setLoading(false);
     }, (error) => {
-      console.error("[Auth] Session Error:", error);
+      console.error("[Auth] Session Protocol Error:", error);
       setLoading(false);
     });
 

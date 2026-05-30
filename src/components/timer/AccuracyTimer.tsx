@@ -72,7 +72,7 @@ export function AccuracyTimer() {
     return `${m.toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   };
 
-  const handleSaveLog = () => {
+  const handleSaveLog = async () => {
     if (time < 10) {
       toast({ variant: "destructive", title: "Operational Fault", description: "Practice unit too short to be archived (minimum 10s required)." });
       return;
@@ -97,25 +97,31 @@ export function AccuracyTimer() {
     localStorage.setItem("accuracy-logs", JSON.stringify(updated));
 
     if (user && db) {
-      const logRef = doc(db, 'users', user.uid, 'accuracyLogs', newLog.id);
-      setDoc(logRef, { ...newLog, serverTimestamp: new Date() }, { merge: true });
+      try {
+        const logRef = doc(db, 'users', user.uid, 'accuracyLogs', newLog.id);
+        await setDoc(logRef, { ...newLog, serverTimestamp: new Date() }, { merge: true });
+        toast({ title: "Session Archived", description: "Practice unit secured in Hybrid Vault." });
+      } catch (err: any) {
+        toast({ variant: "destructive", title: "Sync Error", description: err.message });
+      }
     }
 
     logAuditAction("Performance", "Practice Archived", `${currentTopic} - ${formatTime(time)} recorded.`);
-    toast({ title: "Session Archived", description: "Practice unit secured in Hybrid Vault." });
     
     // Reset Controls
     setTime(0); setIsActive(false); setCurrentTopic(""); setCorrect(""); setWrong("");
   };
 
-  const deleteLog = (id: string) => {
+  const deleteLog = async (id: string) => {
     const updated = localLogs.filter(l => l.id !== id);
     setLocalLogs(updated);
     localStorage.setItem("accuracy-logs", JSON.stringify(updated));
 
     if (user && db) {
-      const logRef = doc(db, 'users', user.uid, 'accuracyLogs', id);
-      deleteDoc(logRef);
+      try {
+        const logRef = doc(db, 'users', user.uid, 'accuracyLogs', id);
+        await deleteDoc(logRef);
+      } catch (err) {}
     }
     logAuditAction("Performance", "Log Purged", "Practice unit removed from archives.");
     toast({ title: "Log Purged", description: "Record removed from vault." });
@@ -125,7 +131,6 @@ export function AccuracyTimer() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-14 pb-24">
-      {/* Precision Terminal */}
       <Card className="xl:col-span-4 bento-card border-none shadow-2xl bg-card/60 backdrop-blur-3xl h-fit xl:sticky xl:top-32">
         <CardHeader className="bg-primary/5 p-6 border-b border-border/40">
           <div className="flex items-center gap-4">
@@ -225,7 +230,6 @@ export function AccuracyTimer() {
         </CardContent>
       </Card>
 
-      {/* Archives */}
       <Card className="xl:col-span-8 bento-card border-none shadow-2xl bg-card/40 backdrop-blur-3xl overflow-hidden">
         <CardHeader className="bg-accent/5 p-6 lg:p-8 border-b border-border/40">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
