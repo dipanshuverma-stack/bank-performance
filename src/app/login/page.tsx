@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Mail, Lock, LogIn, Sparkles, ShieldCheck } from "lucide-react";
+import { Activity, Mail, Lock, LogIn, Sparkles, ShieldCheck, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -25,8 +25,8 @@ export default function LoginPage() {
     if (!auth) {
       toast({ 
         variant: "destructive", 
-        title: "Kernel Fault", 
-        description: "Authentication module not initialized. Please verify your terminal environment variables." 
+        title: "Environment Calibration Required", 
+        description: "Authentication service is currently disabled. Please verify your .env.local file contains valid Firebase credentials." 
       });
       return;
     }
@@ -50,7 +50,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     if (!auth) {
-      toast({ variant: "destructive", title: "Kernel Fault", description: "Auth service unavailable." });
+      toast({ variant: "destructive", title: "Auth Service Unavailable", description: "Firebase configuration is invalid." });
       return;
     }
     setLoading(true);
@@ -92,6 +92,16 @@ export default function LoginPage() {
           </div>
         </CardHeader>
         <CardContent className="px-8 pb-10 space-y-8">
+          {!auth && (
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-4 mb-4">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-1" />
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase text-destructive tracking-widest leading-none">Kernel Warning</p>
+                <p className="text-xs text-destructive/80 font-medium">Valid Firebase API credentials not detected. Please configure your .env file to enable authentication and cloud sync.</p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-2 brightness-150">Archive ID (Email)</label>
@@ -102,6 +112,7 @@ export default function LoginPage() {
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
+                  disabled={!auth}
                   className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner" 
                   placeholder="aspirant@elite.com" 
                 />
@@ -116,12 +127,13 @@ export default function LoginPage() {
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   required 
+                  disabled={!auth}
                   className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner" 
                   placeholder="••••••••" 
                 />
               </div>
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all mt-4 group">
+            <Button type="submit" disabled={loading || !auth} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all mt-4 group">
               {loading ? "Processing..." : isSignUp ? "Create Protocol" : "Engage Terminal"}
               <LogIn className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -132,12 +144,12 @@ export default function LoginPage() {
             <div className="relative flex justify-center text-[8px] font-black uppercase tracking-[0.4em]"><span className="bg-[#0b0e1a] px-4 text-white/40">Strategic Link</span></div>
           </div>
 
-          <Button type="button" variant="outline" onClick={handleGoogleSignIn} disabled={loading} className="w-full h-16 rounded-2xl border-white/20 bg-white/[0.05] font-black uppercase tracking-widest text-[10px] text-white shadow-lg hover:bg-white/[0.08] hover:border-white/40 active:scale-95 transition-all">
+          <Button type="button" variant="outline" onClick={handleGoogleSignIn} disabled={loading || !auth} className="w-full h-16 rounded-2xl border-white/20 bg-white/[0.05] font-black uppercase tracking-widest text-[10px] text-white shadow-lg hover:bg-white/[0.08] hover:border-white/40 active:scale-95 transition-all">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5 mr-3" alt="G" />
             Uplink with Google
           </Button>
 
-          <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-all flex items-center justify-center gap-2 group">
+          <button type="button" onClick={() => setIsSignUp(!isSignUp)} disabled={!auth} className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-all flex items-center justify-center gap-2 group disabled:opacity-30">
             {isSignUp ? "Already archived? Login" : "New Aspirant? Register Phase"}
             <Sparkles className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>

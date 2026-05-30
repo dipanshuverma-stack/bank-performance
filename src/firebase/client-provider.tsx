@@ -6,7 +6,7 @@ import { FirebaseProvider } from './provider';
 
 /**
  * @fileOverview Client-side Firebase Provider.
- * Safely initializes Firebase instances only on the client.
+ * Safely initializes Firebase instances while maintaining structural hydration parity.
  */
 export function FirebaseClientProvider({
   children,
@@ -20,26 +20,24 @@ export function FirebaseClientProvider({
   }, []);
 
   const instances = useMemo(() => {
-    if (!mounted) return null;
+    // structural stability: return consistent shape even if null
+    if (typeof window === 'undefined') {
+      return { firebaseApp: null, firestore: null, auth: null };
+    }
     try {
       return initializeFirebase();
     } catch (error) {
-      console.error('Firebase Critical Initialization Error:', error);
-      return null;
+      console.error('[Firebase] Critical Initialization Error:', error);
+      return { firebaseApp: null, firestore: null, auth: null };
     }
-  }, [mounted]);
+  }, []);
 
-  // If not mounted yet, render children without provider to avoid SSR mismatches
-  // But wrap them in a stable structure
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // Structural Stability: Always render the provider to avoid hydration mismatches
   return (
     <FirebaseProvider 
-      firebaseApp={instances?.firebaseApp ?? null} 
-      firestore={instances?.firestore ?? null} 
-      auth={instances?.auth ?? null}
+      firebaseApp={instances.firebaseApp} 
+      firestore={instances.firestore} 
+      auth={instances.auth}
     >
       {children}
     </FirebaseProvider>

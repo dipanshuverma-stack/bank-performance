@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-
 /**
- * @fileOverview Hardened Segment Error Boundary.
- * Ensures the app shell survives module-level crashes with minimalist inline styling.
+ * @fileOverview Segment-level error boundary.
+ * Hardened with inline styles to survive asset loading failures.
  */
 export default function Error({
   error,
@@ -13,20 +11,16 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error('Terminal Operational Fault:', error);
-  }, [error]);
-
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '60px 20px',
+      padding: '80px 20px',
       textAlign: 'center',
-      backgroundColor: 'rgba(255, 255, 255, 0.02)',
-      borderRadius: '24px',
+      backgroundColor: 'rgba(2, 6, 23, 0.5)',
+      borderRadius: '32px',
       border: '2px dashed rgba(239, 68, 68, 0.2)',
       margin: '40px auto',
       maxWidth: '600px',
@@ -36,7 +30,7 @@ export default function Error({
         width: '64px',
         height: '64px',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        borderRadius: '16px',
+        borderRadius: '20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -45,19 +39,19 @@ export default function Error({
       }}>
         ⚠️
       </div>
-      <h2 style={{ fontSize: '20px', fontWeight: '900', marginBottom: '8px', color: '#f8fafc' }}>OPERATIONAL FAULT</h2>
-      <p style={{ color: '#94a3b8', fontSize: '14px', maxWidth: '320px', marginBottom: '32px' }}>
-        A system sub-module has encountered a critical exception. Restarting the protocol may resolve the conflict.
+      <h2 style={{ fontSize: '22px', fontWeight: '900', marginBottom: '12px', color: '#f8fafc' }}>MODULE FAULT</h2>
+      <p style={{ color: '#94a3b8', fontSize: '14px', maxWidth: '350px', marginBottom: '32px', lineHeight: '1.5' }}>
+        {error?.message || "A system sub-module has encountered a resource conflict."}
       </p>
       <button
         onClick={() => reset()}
         style={{
-          height: '48px',
+          height: '52px',
           padding: '0 32px',
           backgroundColor: '#4f46e5',
           color: 'white',
           border: 'none',
-          borderRadius: '12px',
+          borderRadius: '14px',
           fontWeight: '900',
           fontSize: '12px',
           textTransform: 'uppercase',
@@ -65,7 +59,7 @@ export default function Error({
           cursor: 'pointer'
         }}
       >
-        Reboot Module
+        Retry Module
       </button>
     </div>
   );
