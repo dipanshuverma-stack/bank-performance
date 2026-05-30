@@ -1,10 +1,6 @@
 'use server';
 /**
  * @fileOverview An AI agent that analyzes student performance data to identify weak sub-topics.
- *
- * - analyzeWeakAreas - A function that handles the analysis of performance data.
- * - AnalyzeWeakAreasInput - The input type for the analyzeWeakAreas function.
- * - AnalyzeWeakAreasOutput - The return type for the analyzeWeakAreas function.
  */
 
 import { ai } from '@/ai/genkit';
@@ -29,10 +25,6 @@ const AnalyzeWeakAreasOutputSchema = z.object({
   recommendations: z.array(z.string()).describe('Specific study recommendations for the identified weak topics.'),
 });
 export type AnalyzeWeakAreasOutput = z.infer<typeof AnalyzeWeakAreasOutputSchema>;
-
-export async function analyzeWeakAreas(input: AnalyzeWeakAreasInput): Promise<AnalyzeWeakAreasOutput> {
-  return analyzeWeakAreasFlow(input);
-}
 
 const prompt = ai.definePrompt({
   name: 'analyzeWeakAreasPrompt',
@@ -77,3 +69,8 @@ const analyzeWeakAreasFlow = ai.defineFlow(
     }
   }
 );
+
+// Wrapper exported at bottom to prevent hoisting ReferenceError
+export async function analyzeWeakAreas(input: AnalyzeWeakAreasInput): Promise<AnalyzeWeakAreasOutput> {
+  return analyzeWeakAreasFlow(input);
+}

@@ -1,10 +1,6 @@
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for generating motivational quotes from successful people.
- *
- * - generateMotivationalQuote - A function that fetches a motivational quote from a successful person.
- * - GenerateMotivationalQuoteInput - The input type for the generateMotivationalQuote function.
- * - GenerateMotivationalQuoteOutput - The return type for the generateMotivationalQuote function.
  */
 
 import { ai } from '@/ai/genkit';
@@ -60,6 +56,7 @@ const generateMotivationalQuoteFlow = ai.defineFlow(
   }
 );
 
+// Wrapper exported at bottom to prevent hoisting ReferenceError
 export async function generateMotivationalQuote(
   input: GenerateMotivationalQuoteInput
 ): Promise<GenerateMotivationalQuoteOutput> {

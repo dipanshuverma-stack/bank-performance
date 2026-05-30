@@ -26,10 +26,6 @@ const AnalyzeAchievementsOutputSchema = z.object({
 });
 export type AnalyzeAchievementsOutput = z.infer<typeof AnalyzeAchievementsOutputSchema>;
 
-export async function analyzeAchievements(input: AnalyzeAchievementsInput): Promise<AnalyzeAchievementsOutput> {
-  return analyzeAchievementsFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'analyzeAchievementsPrompt',
   input: { schema: AnalyzeAchievementsInputSchema },
@@ -72,9 +68,13 @@ const analyzeAchievementsFlow = ai.defineFlow(
       const { output } = await prompt(input);
       return output || { newlyUnlocked: [] };
     } catch (error: any) {
-      // Gracefully handle quota exhaustion or other AI errors
       console.warn('Achievement discovery skipped due to AI availability:', error.message);
       return { newlyUnlocked: [] };
     }
   }
 );
+
+// Wrapper exported at bottom to prevent hoisting ReferenceError
+export async function analyzeAchievements(input: AnalyzeAchievementsInput): Promise<AnalyzeAchievementsOutput> {
+  return analyzeAchievementsFlow(input);
+}

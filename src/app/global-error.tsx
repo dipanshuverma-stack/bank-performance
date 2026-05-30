@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * @fileOverview Bulletproof Root Error Boundary.
- * Hardened with zero-dependency inline styles to ensure rendering 
- * even during total resource failure.
+ * @fileOverview Bulletproof Root Error Boundary for Next.js 15.
+ * Hardened with zero-dependency inline styles and pure HTML to ensure 
+ * rendering even during total resource failure or hydration mismatches.
  */
 export default function GlobalError({
   error,
@@ -13,7 +13,10 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <html>
+    <html lang="en">
+      <head>
+        <title>Terminal Critical Failure</title>
+      </head>
       <body style={{ 
         backgroundColor: '#020617', 
         color: '#f8fafc', 
@@ -22,41 +25,45 @@ export default function GlobalError({
         justifyContent: 'center', 
         minHeight: '100vh', 
         margin: 0,
-        fontFamily: 'system-ui, -apple-system, sans-serif' 
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        textAlign: 'center'
       }}>
-        <div style={{ textAlign: 'center', padding: '2rem', maxWidth: '600px' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🚨</div>
-          <h1 style={{ fontSize: '2rem', fontWeight: '900', marginBottom: '1rem', letterSpacing: '-0.05em' }}>SYSTEM CRITICAL</h1>
-          <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6' }}>
-            The terminal kernel has encountered a fatal exception. Global synchronization has been suspended.
+        <div style={{ padding: '20px', maxWidth: '500px' }}>
+          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🚨</div>
+          <h1 style={{ fontSize: '24px', fontWeight: '900', marginBottom: '16px', letterSpacing: '-0.05em', color: '#f87171' }}>
+            KERNEL CRITICAL
+          </h1>
+          <p style={{ color: '#94a3b8', marginBottom: '24px', lineHeight: '1.6', fontSize: '14px' }}>
+            The terminal kernel has encountered a fatal exception. Global synchronization has been suspended to protect the data vault.
           </p>
           <div style={{ 
-            padding: '1rem', 
+            padding: '12px', 
             backgroundColor: 'rgba(239, 68, 68, 0.1)', 
             border: '1px solid rgba(239, 68, 68, 0.2)', 
-            borderRadius: '0.75rem', 
-            fontSize: '0.75rem', 
+            borderRadius: '8px', 
+            fontSize: '11px', 
             color: '#f87171',
             textAlign: 'left',
             overflow: 'auto',
-            maxHeight: '200px',
-            fontFamily: 'monospace'
+            maxHeight: '150px',
+            fontFamily: 'monospace',
+            marginBottom: '32px'
           }}>
-            {error.message || 'Unknown Kernel Failure'}
+            {error?.message || 'Unknown Kernel Failure'}
           </div>
           <button
             onClick={() => reset()}
             style={{
-              marginTop: '2rem',
-              padding: '1rem 2.5rem',
+              padding: '12px 32px',
               backgroundColor: '#4f46e5',
               color: 'white',
               border: 'none',
-              borderRadius: '0.75rem',
+              borderRadius: '8px',
               fontWeight: 'bold',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '12px'
             }}
           >
             Reboot Kernel

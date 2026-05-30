@@ -1,10 +1,6 @@
 'use server';
 /**
  * @fileOverview A Genkit flow optimized for suggesting strategic study topics based on weak areas.
- * 
- * - generateAdaptiveToDoList - Generates 3-4 high-impact tasks with a strict focus on weak subjects.
- * - GenerateAdaptiveToDoListInput - Input including weak areas and available time.
- * - GenerateAdaptiveToDoListOutput - A list of 3-4 strategic tasks.
  */
 
 import { ai } from '@/ai/genkit';
@@ -36,12 +32,6 @@ const GenerateAdaptiveToDoListOutputSchema = z.object({
   overallRecommendation: z.string().optional(),
 });
 export type GenerateAdaptiveToDoListOutput = z.infer<typeof GenerateAdaptiveToDoListOutputSchema>;
-
-export async function generateAdaptiveToDoList(
-  input: GenerateAdaptiveToDoListInput
-): Promise<GenerateAdaptiveToDoListOutput> {
-  return generateAdaptiveToDoListFlow(input);
-}
 
 const prompt = ai.definePrompt({
   name: 'generateAdaptiveToDoListPrompt',
@@ -111,3 +101,10 @@ const generateAdaptiveToDoListFlow = ai.defineFlow(
     }
   }
 );
+
+// Wrapper exported at bottom to prevent hoisting ReferenceError
+export async function generateAdaptiveToDoList(
+  input: GenerateAdaptiveToDoListInput
+): Promise<GenerateAdaptiveToDoListOutput> {
+  return generateAdaptiveToDoListFlow(input);
+}
