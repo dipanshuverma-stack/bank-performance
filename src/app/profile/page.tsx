@@ -69,7 +69,20 @@ export default function ProfilePage() {
     if (typeof window === 'undefined') return;
     try {
       const saved = localStorage.getItem("elite-audit-logs");
-      if (saved) setLocalAuditLogs(JSON.parse(saved));
+      if (saved) {
+        const logs: AuditLog[] = JSON.parse(saved);
+        const twelveHoursAgo = Date.now() - (12 * 60 * 60 * 1000);
+        
+        // Auto-purge logs older than 12 hours
+        const purged = logs.filter(l => l.createdAt && l.createdAt > twelveHoursAgo);
+        
+        // Update local storage if any logs were purged
+        if (purged.length !== logs.length) {
+          localStorage.setItem("elite-audit-logs", JSON.stringify(purged));
+        }
+        
+        setLocalAuditLogs(purged);
+      }
     } catch (e) { console.warn("Audit log refresh failed"); }
   }, []);
 
@@ -284,9 +297,14 @@ export default function ProfilePage() {
             <div className="p-2.5 bg-primary/20 rounded-xl text-primary shrink-0"><History className="w-5 h-5" /></div>
             <CardTitle className="text-xl font-headline font-black text-white tracking-tight">Audit Archive</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" onClick={clearAuditLog} className="text-[10px] font-black uppercase text-slate-500 hover:text-destructive h-10 px-4 rounded-xl hover:bg-destructive/10">
-            <Trash2 className="w-4 h-4 mr-2" /> Purge Logs
-          </Button>
+          <div className="flex items-center gap-4">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/40 text-[8px] font-black py-1 px-3 uppercase tracking-widest hidden sm:flex">
+              12H Auto-Purge Active
+            </Badge>
+            <Button variant="ghost" size="sm" onClick={clearAuditLog} className="text-[10px] font-black uppercase text-slate-500 hover:text-destructive h-10 px-4 rounded-xl hover:bg-destructive/10">
+              <Trash2 className="w-4 h-4 mr-2" /> Purge Logs
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[400px]">
