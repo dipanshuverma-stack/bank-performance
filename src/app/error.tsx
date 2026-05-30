@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 
 /**
  * @fileOverview Hardened Segment Error Boundary.
- * Ensures the app shell survives module-level crashes without dependency on global styles.
+ * Ensures the app shell survives module-level crashes with minimalist inline styling.
  */
 export default function Error({
   error,

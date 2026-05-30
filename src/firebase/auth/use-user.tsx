@@ -15,7 +15,8 @@ export function useUser() {
 
   useEffect(() => {
     if (!auth) {
-      console.warn("[Auth] Auth instance not available.");
+      console.warn("[Auth] Auth instance not available. Check your Firebase configuration.");
+      setLoading(false); // Ensure loading is released even if auth is missing
       return;
     }
 

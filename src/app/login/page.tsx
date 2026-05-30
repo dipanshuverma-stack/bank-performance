@@ -22,7 +22,14 @@ export default function LoginPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
+    if (!auth) {
+      toast({ 
+        variant: "destructive", 
+        title: "Kernel Fault", 
+        description: "Authentication module not initialized. Please verify your terminal environment variables." 
+      });
+      return;
+    }
     setLoading(true);
 
     try {
@@ -42,7 +49,10 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
+    if (!auth) {
+      toast({ variant: "destructive", title: "Kernel Fault", description: "Auth service unavailable." });
+      return;
+    }
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -111,7 +121,7 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-            <Button disabled={loading} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all mt-4 group">
+            <Button type="submit" disabled={loading} className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all mt-4 group">
               {loading ? "Processing..." : isSignUp ? "Create Protocol" : "Engage Terminal"}
               <LogIn className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -122,12 +132,12 @@ export default function LoginPage() {
             <div className="relative flex justify-center text-[8px] font-black uppercase tracking-[0.4em]"><span className="bg-[#0b0e1a] px-4 text-white/40">Strategic Link</span></div>
           </div>
 
-          <Button variant="outline" onClick={handleGoogleSignIn} disabled={loading} className="w-full h-16 rounded-2xl border-white/20 bg-white/[0.05] font-black uppercase tracking-widest text-[10px] text-white shadow-lg hover:bg-white/[0.08] hover:border-white/40 active:scale-95 transition-all">
+          <Button type="button" variant="outline" onClick={handleGoogleSignIn} disabled={loading} className="w-full h-16 rounded-2xl border-white/20 bg-white/[0.05] font-black uppercase tracking-widest text-[10px] text-white shadow-lg hover:bg-white/[0.08] hover:border-white/40 active:scale-95 transition-all">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5 mr-3" alt="G" />
             Uplink with Google
           </Button>
 
-          <button onClick={() => setIsSignUp(!isSignUp)} className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-all flex items-center justify-center gap-2 group">
+          <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-all flex items-center justify-center gap-2 group">
             {isSignUp ? "Already archived? Login" : "New Aspirant? Register Phase"}
             <Sparkles className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>

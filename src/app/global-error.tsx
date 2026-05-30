@@ -2,8 +2,8 @@
 
 /**
  * @fileOverview Bulletproof Root Error Boundary for Next.js 15.
- * Hardened with zero-dependency inline styles and pure HTML to ensure 
- * rendering even during total resource failure or hydration mismatches.
+ * Hardened with zero-dependency inline styles to ensure rendering 
+ * even during total resource failure or hydration mismatches.
  */
 export default function GlobalError({
   error,
