@@ -37,13 +37,21 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (mounted && !loading && !user && pathname !== '/login') {
-      console.log("[Guard] Unauthorized access. Redirecting to login.");
       router.push('/login');
     }
   }, [user, loading, pathname, router, mounted]);
 
-  // Prevent hydration mismatch by ensuring initial mount state matches server
-  if (!mounted || loading) {
+  // Initial SSR should render the children but the Guard blocks access to protected content
+  // We use a loading state on the client to avoid hydration mismatch loops
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-10 h-10 text-primary animate-spin opacity-20" />
+      </div>
+    );
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-12 h-12 text-primary animate-spin opacity-40" />

@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 
 /**
- * @fileOverview Standard Error Boundary for page segments.
- * Hardened with inline styles for maximum resilience.
+ * @fileOverview Segment Error Boundary.
+ * Ensures the app shell survives module-level crashes.
  */
 export default function Error({
   error,
@@ -23,29 +23,29 @@ export default function Error({
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      minHeight: '60vh',
-      padding: '2rem',
+      padding: '4rem 2rem',
       textAlign: 'center',
       backgroundColor: 'rgba(255, 255, 255, 0.02)',
       borderRadius: '2.5rem',
       border: '2px dashed rgba(239, 68, 68, 0.2)',
-      margin: '1rem'
+      margin: '2rem auto',
+      maxWidth: '600px'
     }}>
       <div style={{
-        width: '5rem',
-        height: '5rem',
+        width: '4rem',
+        height: '4rem',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        borderRadius: '1.5rem',
+        borderRadius: '1.25rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '2.5rem',
+        fontSize: '2rem',
         marginBottom: '1.5rem'
       }}>
         ⚠️
       </div>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '0.5rem', color: 'inherit' }}>OPERATIONAL FAULT</h2>
-      <p style={{ opacity: 0.6, fontSize: '0.875rem', maxWidth: '320px', marginBottom: '2rem' }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '0.5rem', color: '#f8fafc' }}>OPERATIONAL FAULT</h2>
+      <p style={{ color: '#94a3b8', fontSize: '0.875rem', maxWidth: '320px', marginBottom: '2rem' }}>
         A system sub-module has encountered a critical exception. Restarting the protocol may resolve the conflict.
       </p>
       <div style={{ display: 'flex', gap: '1rem' }}>
@@ -66,24 +66,6 @@ export default function Error({
           }}
         >
           Reboot Module
-        </button>
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            height: '3rem',
-            padding: '0 2rem',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            color: 'inherit',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '1rem',
-            fontWeight: '900',
-            fontSize: '0.75rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            cursor: 'pointer'
-          }}
-        >
-          Refresh Page
         </button>
       </div>
     </div>

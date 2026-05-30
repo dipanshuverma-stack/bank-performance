@@ -2,7 +2,8 @@
 
 /**
  * @fileOverview Bulletproof Root Error Boundary.
- * Uses zero-dependency inline styles to ensure rendering even during total bundle failure.
+ * Hardened with zero-dependency inline styles to ensure rendering 
+ * even during total resource failure.
  */
 export default function GlobalError({
   error,
@@ -41,7 +42,7 @@ export default function GlobalError({
             maxHeight: '200px',
             fontFamily: 'monospace'
           }}>
-            {error.message || 'Kernel Failure'}
+            {error.message || 'Unknown Kernel Failure'}
           </div>
           <button
             onClick={() => reset()}
@@ -55,8 +56,7 @@ export default function GlobalError({
               fontWeight: 'bold',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              cursor: 'pointer',
-              boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.3)'
+              cursor: 'pointer'
             }}
           >
             Reboot Kernel
