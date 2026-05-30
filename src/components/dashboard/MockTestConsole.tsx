@@ -103,7 +103,7 @@ export function MockTestConsole() {
   const mocks = (user && cloudMocks && cloudMocks.length > 0) ? cloudMocks : localMocks;
   const filteredMocks = mocks.filter(m => m.stage === activeStage);
 
-  const addMock = () => {
+  const addMock = async () => {
     if (!mockName || !score || !correct || !wrong) {
       toast({ variant: "destructive", title: "Missing Metrics", description: "All primary performance metrics are required." });
       return;
@@ -139,8 +139,27 @@ export function MockTestConsole() {
     localStorage.setItem("elite-mock-logs", JSON.stringify(updated));
 
     if (user && db) {
-      const mockRef = doc(db, 'users', user.uid, 'mocks', newMock.id);
-      setDoc(mockRef, { ...newMock, serverTimestamp: new Date() }, { merge: true });
+      try {
+        const mockRef = doc(db, 'users', user.uid, 'mocks', newMock.id);
+    
+        await setDoc(
+          mockRef,
+          {
+            ...newMock,
+            serverTimestamp: new Date(),
+          },
+          { merge: true }
+        );
+    
+        console.log("Mock synced to Firestore");
+      } catch (error) {
+        console.error("Firestore sync failed:", error);
+    
+        toast({
+          title: "Cloud Sync Failed",
+          description: "Mock saved locally but not uploaded.",
+        });
+      }
     }
 
     setIsDialogOpen(false);
