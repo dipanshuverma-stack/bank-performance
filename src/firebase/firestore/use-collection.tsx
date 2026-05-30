@@ -22,7 +22,7 @@ export function useCollection<T = any>(query: Query | null) {
     const unsubscribe = onSnapshot(query, 
       (snapshot) => {
         const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T);
-        console.log(`[Firestore] Read Success: ${results.length} units retrieved from archive.`);
+        console.log(`[Firestore] Read Success: ${results.length} documents retrieved.`);
         setData(results);
         setLoading(false);
       },

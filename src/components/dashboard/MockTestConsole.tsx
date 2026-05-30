@@ -72,7 +72,6 @@ export function MockTestConsole() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeStage, setActiveStage] = useState<"Prelims" | "Mains">("Prelims");
   
-  // Logger State
   const [mockName, setMockName] = useState("");
   const [examType, setExamType] = useState("SBI PO");
   const [stage, setStage] = useState<'Prelims' | 'Mains'>('Prelims');
@@ -98,16 +97,12 @@ export function MockTestConsole() {
     setMounted(true);
     const saved = localStorage.getItem("elite-mock-logs");
     if (saved) {
-      try { setLocalMocks(JSON.parse(saved)); } catch (e) { console.warn("Local logs parse failure"); }
+      try { setLocalMocks(JSON.parse(saved)); } catch (e) {}
     }
   }, []);
 
-  /**
-   * REPAIRED: Unified Storage Logic
-   * Cloud-First: Use Cloud data if authenticated AND connection is healthy.
-   * Local-Fallback: Use local data otherwise.
-   */
-  const mocks = (user && db && cloudMocks && cloudMocks.length > 0) ? cloudMocks : localMocks;
+  // ENFORCED ONE SOURCE OF TRUTH: Firestore when authenticated
+  const mocks = (user && db) ? (cloudMocks || []) : localMocks;
   const filteredMocks = mocks.filter(m => m.stage === activeStage);
 
   const addMock = async () => {
@@ -141,7 +136,7 @@ export function MockTestConsole() {
       }
     };
 
-    // Parallel Archival: Cloud (Primary) + Local (Buffer)
+    // Buffer to local storage
     const updatedLocal = [newMock, ...localMocks];
     setLocalMocks(updatedLocal);
     localStorage.setItem("elite-mock-logs", JSON.stringify(updatedLocal));
@@ -151,13 +146,11 @@ export function MockTestConsole() {
         const mockRef = doc(db, 'users', user.uid, 'mocks', newMock.id);
         await setDoc(mockRef, { ...newMock, serverTimestamp: new Date() }, { merge: true });
         console.log(`[Firestore] Write Success: users/${user.uid}/mocks/${newMock.id}`);
-        toast({ title: "Cloud Synchronization Active", description: "Performance unit secured in Hybrid Vault." });
+        toast({ title: "Cloud Archive Secure", description: "Performance unit synced to Hybrid Vault." });
       } catch (error: any) {
         console.error(`[Firestore] Write Failure:`, error.message);
-        toast({ variant: "destructive", title: "Cloud Sync Fault", description: "Archived locally. Cloud uplink delayed." });
+        toast({ variant: "destructive", title: "Cloud Sync Fault", description: "Archived locally only. Check connection." });
       }
-    } else {
-      toast({ title: "Local Archival Complete", description: "Data secured in Local Vault. Sign in to enable cloud sync." });
     }
 
     setIsDialogOpen(false);
@@ -167,22 +160,19 @@ export function MockTestConsole() {
   };
 
   const removeMock = async (id: string) => {
-    // Remove from Local
     const updated = localMocks.filter(m => m.id !== id);
     setLocalMocks(updated);
     localStorage.setItem("elite-mock-logs", JSON.stringify(updated));
 
-    // Remove from Cloud
     if (user && db) {
       try {
         const mockRef = doc(db, 'users', user.uid, 'mocks', id);
         await deleteDoc(mockRef);
         console.log(`[Firestore] Purge Success: users/${user.uid}/mocks/${id}`);
       } catch (error: any) {
-        console.error(`[Firestore] Purge Failure:`, error.message);
+        console.error(`[Firestore] Write Failure (Delete):`, error.message);
       }
     }
-    logAuditAction("Performance", "Record Purged", "Mock unit removed from terminal archives.");
   };
 
   const currentSyllabus = ADDA247_SYLLABUS.filter(subject => stage === 'Prelims' ? subject.name !== 'General Awareness' : true);
@@ -190,7 +180,7 @@ export function MockTestConsole() {
   if (!mounted || authLoading) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
       <Loader2 className="w-10 h-10 animate-spin" />
-      <span className="text-[10px] font-black uppercase tracking-widest">Validating Archives...</span>
+      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Validating Archives...</span>
     </div>
   );
 
@@ -207,7 +197,7 @@ export function MockTestConsole() {
                 <CardTitle className="text-2xl font-headline font-black tracking-tight">Mock Vault</CardTitle>
                 <div className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mt-1 opacity-80 flex items-center gap-2">
                    <div className={`w-1.5 h-1.5 rounded-full ${user && db ? 'bg-emerald-500 animate-pulse' : 'bg-orange-500'}`} />
-                   {user && db ? `Cloud Uplink Verified: ${user.email}` : "Local Protocol Active"}
+                   {user && db ? "Cloud Sync Active" : "Local Vault Mode"}
                 </div>
               </div>
             </div>

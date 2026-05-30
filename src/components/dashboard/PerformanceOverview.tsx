@@ -9,14 +9,10 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
-import { Target, TrendingUp, BarChart3, LineChart, Layers, Zap } from "lucide-react";
+import { Target, TrendingUp, BarChart3, Layers, Zap } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { logAuditAction } from "@/lib/audit-logger";
 import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase";
@@ -46,15 +42,17 @@ export function PerformanceOverview() {
     return query(collection(db, 'users', user.uid, 'mocks'), orderBy('serverTimestamp', 'desc'));
   }, [db, user]);
 
-  const { data: cloudMocks, loading: cloudLoading } = useCollection(mocksQuery);
+  const { data: cloudMocks } = useCollection(mocksQuery);
+
+  const activeData = useMemo(() => {
+    if (!mounted) return [];
+    const local = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+    return (user && db) ? (cloudMocks || []) : local;
+  }, [mounted, cloudMocks, user, db]);
 
   const stats = useMemo(() => {
-    if (!mounted) return { avgScore: 0, avgAccuracy: 0, practicePrecision: 0, testsTaken: 0 };
-
-    const mockLogs = user && cloudMocks && cloudMocks.length > 0 ? cloudMocks : JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
-    const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
-    
-    if (stageFiltered.length === 0) return { avgScore: 0, avgAccuracy: 0, practicePrecision: 0, testsTaken: 0 };
+    const stageFiltered = activeData.filter((m: any) => m.stage === stage);
+    if (stageFiltered.length === 0) return { avgScore: 0, avgAccuracy: 0, testsTaken: 0 };
 
     const sumScore = stageFiltered.reduce((acc: number, m: any) => acc + (m.score || 0), 0);
     const sumAcc = stageFiltered.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0);
@@ -62,16 +60,12 @@ export function PerformanceOverview() {
     return {
       avgScore: parseFloat((sumScore / stageFiltered.length).toFixed(1)),
       avgAccuracy: parseFloat((sumAcc / stageFiltered.length).toFixed(1)),
-      practicePrecision: 0, 
       testsTaken: stageFiltered.length,
     };
-  }, [mounted, stage, cloudMocks, user]);
+  }, [activeData, stage]);
 
   const chartData = useMemo(() => {
-    if (!mounted) return EMPTY_CHART_DATA;
-    const mockLogs = user && cloudMocks && cloudMocks.length > 0 ? cloudMocks : JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
-    const stageFiltered = mockLogs.filter((m: any) => m.stage === stage);
-
+    const stageFiltered = activeData.filter((m: any) => m.stage === stage);
     if (stageFiltered.length === 0) return EMPTY_CHART_DATA;
 
     return stageFiltered.slice(0, 10).reverse().map((m: any) => ({
@@ -80,7 +74,7 @@ export function PerformanceOverview() {
       score: m.score,
       tests: 1
     }));
-  }, [mounted, stage, cloudMocks, user]);
+  }, [activeData, stage]);
 
   const handleStageChange = (val: "Prelims" | "Mains") => {
     setStage(val);

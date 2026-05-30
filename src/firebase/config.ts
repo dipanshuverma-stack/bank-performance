@@ -1,8 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 
 /**
- * @fileOverview Hardened Firebase Configuration.
- * Repaired: Removed restrictive validation logic that was blocking initialization.
+ * @fileOverview Hardened Firebase Configuration with Operational Telemetry.
  */
 
 const firebaseConfig = {
@@ -20,23 +19,15 @@ export const getFirebaseConfig = () => {
 
 export const getAppInstance = () => {
   try {
-    const key = firebaseConfig.apiKey;
-    
-    // Minimal validation to allow standard environment loading
-    if (!key || key === "undefined" || key === "") {
-      console.warn("[Firebase] Operational Warning: No API Key detected in environment. Cloud sync disabled.");
-      return null;
-    }
-    
     if (getApps().length > 0) {
       return getApp();
     }
     
     const app = initializeApp(firebaseConfig);
-    console.log("[Firebase] Identity & Persistence Kernel Initialized.");
+    console.log("[Firestore] Initialized: Persistence Kernel Active.");
     return app;
-  } catch (error) {
-    console.error('[Firebase] SDK Initialization Protocol Fault:', error);
+  } catch (error: any) {
+    console.error('[Firebase] SDK Initialization Protocol Fault:', error.message);
     return null;
   }
 };

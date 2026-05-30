@@ -65,7 +65,7 @@ export function AccuracyTimer() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isActive]);
 
-  const displayLogs = (user && cloudLogs && cloudLogs.length > 0) ? cloudLogs : localLogs;
+  const displayLogs = (user && db) ? (cloudLogs || []) : localLogs;
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -92,6 +92,7 @@ export function AccuracyTimer() {
       wrong: wrong ? parseInt(wrong) : undefined,
     };
     
+    // Local backup
     const updated = [newLog, ...localLogs];
     setLocalLogs(updated);
     localStorage.setItem("accuracy-logs", JSON.stringify(updated));
@@ -100,8 +101,10 @@ export function AccuracyTimer() {
       try {
         const logRef = doc(db, 'users', user.uid, 'accuracyLogs', newLog.id);
         await setDoc(logRef, { ...newLog, serverTimestamp: new Date() }, { merge: true });
+        console.log(`[Firestore] Write Success: users/${user.uid}/accuracyLogs/${newLog.id}`);
         toast({ title: "Session Archived", description: "Practice unit secured in Hybrid Vault." });
       } catch (err: any) {
+        console.error(`[Firestore] Write Failure:`, err.message);
         toast({ variant: "destructive", title: "Sync Error", description: err.message });
       }
     }
@@ -121,7 +124,10 @@ export function AccuracyTimer() {
       try {
         const logRef = doc(db, 'users', user.uid, 'accuracyLogs', id);
         await deleteDoc(logRef);
-      } catch (err) {}
+        console.log(`[Firestore] Purge Success: users/${user.uid}/accuracyLogs/${id}`);
+      } catch (err: any) {
+        console.error(`[Firestore] Write Failure (Delete):`, err.message);
+      }
     }
     logAuditAction("Performance", "Log Purged", "Practice unit removed from archives.");
     toast({ title: "Log Purged", description: "Record removed from vault." });

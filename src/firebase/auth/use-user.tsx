@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
 
 /**
  * @fileOverview Hardened user identity hook using Supabase Auth.
@@ -21,17 +20,18 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Initial Session Check
     const checkUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          setUser({
+          const loadedUser = {
             uid: session.user.id,
             email: session.user.email,
             displayName: session.user.user_metadata?.full_name,
             photoURL: session.user.user_metadata?.avatar_url,
-          });
+          };
+          console.log(`[Auth] User Loaded: ${loadedUser.email}`);
+          setUser(loadedUser);
         } else {
           setUser(null);
         }
@@ -44,16 +44,16 @@ export function useUser() {
 
     checkUser();
 
-    // 2. Listen for Auth State Changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`[Auth] Supabase Event: ${event}`);
       if (session?.user) {
-        setUser({
+        const loadedUser = {
           uid: session.user.id,
           email: session.user.email,
           displayName: session.user.user_metadata?.full_name,
           photoURL: session.user.user_metadata?.avatar_url,
-        });
+        };
+        console.log(`[Auth] User Loaded (${event}): ${loadedUser.email}`);
+        setUser(loadedUser);
       } else {
         setUser(null);
       }

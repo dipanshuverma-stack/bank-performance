@@ -3,7 +3,7 @@
 import React from 'react';
 
 /**
- * @fileOverview Minimalist Root Error Boundary for Next.js 15.
+ * @fileOverview Root Error Boundary for Next.js 15.
  * Replaces the entire layout during a fatal crash.
  */
 export default function GlobalError({
@@ -26,37 +26,29 @@ export default function GlobalError({
         justifyContent: 'center',
         minHeight: '100vh',
         margin: 0,
-        fontFamily: 'system-ui, sans-serif',
+        fontFamily: 'sans-serif',
         textAlign: 'center'
       }}>
         <div style={{ padding: '40px', maxWidth: '500px' }}>
           <div style={{ fontSize: '64px', marginBottom: '24px' }}>🚨</div>
-          <h1 style={{
-            fontSize: '24px',
-            fontWeight: 900,
-            marginBottom: '16px',
-            color: '#f87171',
-            letterSpacing: '-0.02em'
-          }}>
-            KERNEL CRITICAL
+          <h1 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px', color: '#f87171' }}>
+            TERMINAL CRITICAL
           </h1>
-          <p style={{ color: '#94a3b8', marginBottom: '32px', lineHeight: 1.6, fontSize: '14px' }}>
-            The terminal encountered a fatal error. This usually occurs during a structural hydration mismatch.
+          <p style={{ color: '#94a3b8', marginBottom: '32px', lineHeight: 1.6 }}>
+            The application kernel encountered a fatal error.
           </p>
           <div style={{
             padding: '16px',
             backgroundColor: 'rgba(239, 68, 68, 0.1)',
             border: '1px solid rgba(239, 68, 68, 0.2)',
             borderRadius: '12px',
-            fontSize: '11px',
+            fontSize: '12px',
             color: '#f87171',
-            textAlign: 'left',
-            overflow: 'auto',
-            maxHeight: '150px',
             fontFamily: 'monospace',
-            marginBottom: '32px'
+            marginBottom: '32px',
+            textAlign: 'left'
           }}>
-            {error?.message || 'Unknown Protocol Error'}
+            {error?.message || 'Unknown Execution Fault'}
           </div>
           <button
             onClick={() => reset()}
@@ -67,13 +59,10 @@ export default function GlobalError({
               border: 'none',
               borderRadius: '12px',
               fontWeight: 'bold',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              cursor: 'pointer',
-              fontSize: '12px'
+              cursor: 'pointer'
             }}
           >
-            Reboot Kernel
+            Reboot Terminal
           </button>
         </div>
       </body>

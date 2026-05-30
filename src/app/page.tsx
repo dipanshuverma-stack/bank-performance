@@ -14,14 +14,14 @@ import {
   Sparkles, 
   ArrowRight, 
   BrainCircuit, 
-  Target, 
   Zap,
   ChevronLeft,
   ChevronRight,
   Wifi,
   Trophy,
   Loader2,
-  WifiOff
+  WifiOff,
+  Target
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -44,30 +44,32 @@ export default function Home() {
 
   // Profile Subscription
   const userRef = useMemoFirebase(() =>  user && db ? doc(db, 'users', user.uid) : null, [db, user]);
-  const { data: cloudProfile, loading: profileLoading } = useDoc(userRef);
+  const { data: cloudProfile } = useDoc(userRef);
 
   // Mocks Subscription
   const mocksQuery = useMemoFirebase(() => {
     if (!user || !db) return null;
     return query(collection(db, 'users', user.uid, 'mocks'), orderBy('serverTimestamp', 'desc'));
   }, [db, user]);
-  const { data: cloudMocks, loading: mocksLoading } = useCollection(mocksQuery);
+  const { data: cloudMocks } = useCollection(mocksQuery);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Metrics Logic: Cloud-First with Local Fallback
+  // metrics logic: strictly Enforced Cloud-First
   const getMetrics = () => {
+    if (!mounted) return { avgAccuracy: 0, mocksCount: 0, isCloud: false };
+    
     const savedLocal = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
-    const activeData = (user && db && cloudMocks && cloudMocks.length > 0) ? cloudMocks : savedLocal;
+    const activeData = (user && db) ? (cloudMocks || []) : savedLocal;
     
     return {
       avgAccuracy: activeData.length > 0 
         ? Math.round(activeData.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / activeData.length) 
         : 0,
       mocksCount: activeData.length,
-      isCloud: !!(user && db && cloudMocks && cloudMocks.length > 0)
+      isCloud: !!(user && db)
     };
   };
 
