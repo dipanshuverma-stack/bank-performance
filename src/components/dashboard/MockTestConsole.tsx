@@ -92,6 +92,12 @@ export function MockTestConsole() {
   }, [db, user]);
   
   const { data: cloudMocks, loading: cloudLoading } = useCollection<MockLog>(mocksQuery);
+  useEffect(() => {
+    console.log("Current user:", user?.uid);
+    console.log("Cloud loading:", cloudLoading);
+    console.log("Cloud mocks count:", cloudMocks?.length);
+    console.log("Cloud mocks:", cloudMocks);
+  }, [cloudMocks, cloudLoading, user]);
 
   useEffect(() => {
     setMounted(true);
