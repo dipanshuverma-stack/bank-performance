@@ -1,6 +1,7 @@
 /**
  * @fileOverview Centralized utility for logging tactical user actions.
  * Integrates Supabase Identity with Firebase Firestore storage.
+ * Repaired: Hardened initialization and unified user mapping.
  */
 
 import { collection, addDoc, getFirestore } from 'firebase/firestore';
@@ -52,10 +53,11 @@ export const logAuditAction = async (category: string, action: string, details: 
           ...newLog,
           serverTimestamp: new Date(),
         });
-        console.log(`[Firestore] Hybrid Audit Success: users/${session.user.id}/auditLogs`);
+        // Silent success for background audits
       }
     }
   } catch (error: any) {
-    console.warn("[Audit] Operational Warning:", error.message);
+    // Graceful silent failure for audits to prevent UI interruption
+    console.warn("[Audit] Cloud Archive Delayed:", error.message);
   }
 };

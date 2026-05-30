@@ -20,7 +20,8 @@ import {
   ChevronRight,
   Wifi,
   Trophy,
-  Loader2
+  Loader2,
+  WifiOff
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -56,13 +57,21 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Metrics Logic
-  const metrics = {
-    avgAccuracy: cloudMocks && cloudMocks.length > 0 
-      ? Math.round(cloudMocks.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / cloudMocks.length) 
-      : 0,
-    mocksCount: cloudMocks?.length || 0,
+  // Metrics Logic: Cloud-First with Local Fallback
+  const getMetrics = () => {
+    const savedLocal = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
+    const activeData = (user && db && cloudMocks && cloudMocks.length > 0) ? cloudMocks : savedLocal;
+    
+    return {
+      avgAccuracy: activeData.length > 0 
+        ? Math.round(activeData.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / activeData.length) 
+        : 0,
+      mocksCount: activeData.length,
+      isCloud: !!(user && db && cloudMocks && cloudMocks.length > 0)
+    };
   };
+
+  const metrics = getMetrics();
 
   useEffect(() => {
     if (!intelApi) return;
@@ -98,9 +107,9 @@ export default function Home() {
               <Badge variant="outline" className="text-[9px] text-primary border-primary/30 px-3 py-1 rounded-full font-black uppercase bg-primary/5">
                 {cloudProfile?.profile?.targetExam || "SBI PO"}
               </Badge>
-              <div className="flex items-center gap-1.5 text-[9px] font-bold px-3 py-1 rounded-full border backdrop-blur-xl text-emerald-500 bg-emerald-500/5 border-emerald-500/20">
-                <Wifi className="w-3.5 h-3.5 animate-pulse" />
-                Cloud Link Stable
+              <div className={`flex items-center gap-1.5 text-[9px] font-bold px-3 py-1 rounded-full border backdrop-blur-xl ${metrics.isCloud ? 'text-emerald-500 bg-emerald-500/5 border-emerald-500/20' : 'text-orange-500 bg-orange-500/5 border-orange-500/20'}`}>
+                {metrics.isCloud ? <Wifi className="w-3.5 h-3.5 animate-pulse" /> : <WifiOff className="w-3.5 h-3.5" />}
+                {metrics.isCloud ? "Cloud Link Stable" : "Local Vault Mode"}
               </div>
           </div>
         </div>

@@ -2,7 +2,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 
 /**
  * @fileOverview Hardened Firebase Configuration.
- * Implements defensive checks for environment variables to prevent kernel-level crashes.
+ * Repaired: Removed restrictive validation logic that was blocking initialization.
  */
 
 const firebaseConfig = {
@@ -21,16 +21,22 @@ export const getFirebaseConfig = () => {
 export const getAppInstance = () => {
   try {
     const key = firebaseConfig.apiKey;
-    // Strictly validate that the key is not missing or a placeholder
-    if (!key || key === "" || key === "undefined" || key.includes("YOUR_") || key.includes("MISSING")) {
-      console.warn("[Firebase] Operational Warning: No valid API Key detected. Cloud sync suspended.");
+    
+    // Minimal validation to allow standard environment loading
+    if (!key || key === "undefined" || key === "") {
+      console.warn("[Firebase] Operational Warning: No API Key detected in environment. Cloud sync disabled.");
       return null;
     }
     
-    if (getApps().length > 0) return getApp();
-    return initializeApp(firebaseConfig);
+    if (getApps().length > 0) {
+      return getApp();
+    }
+    
+    const app = initializeApp(firebaseConfig);
+    console.log("[Firebase] Identity & Persistence Kernel Initialized.");
+    return app;
   } catch (error) {
-    console.warn('[Firebase] SDK Initialization Protocol Fault:', error);
+    console.error('[Firebase] SDK Initialization Protocol Fault:', error);
     return null;
   }
 };
