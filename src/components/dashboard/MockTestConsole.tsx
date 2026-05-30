@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -35,7 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { logAuditAction } from "@/lib/audit-logger";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { doc, setDoc, collection, deleteDoc, query, orderBy } from "firebase/firestore";
+import { doc, setDoc, collection, deleteDoc, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { ADDA247_SYLLABUS } from "@/lib/syllabus";
 
 interface MockLog {
@@ -144,7 +145,7 @@ export function MockTestConsole() {
     if (user && db) {
       try {
         const mockRef = doc(db, 'users', user.uid, 'mocks', newMock.id);
-        await setDoc(mockRef, { ...newMock, serverTimestamp: new Date() }, { merge: true });
+        await setDoc(mockRef, { ...newMock, serverTimestamp: serverTimestamp() }, { merge: true });
         console.log(`[Firestore] Write Success: users/${user.uid}/mocks/${newMock.id}`);
         toast({ title: "Cloud Archive Secure", description: "Performance unit synced to Hybrid Vault." });
       } catch (error: any) {

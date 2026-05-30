@@ -1,7 +1,9 @@
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 
 /**
  * @fileOverview Hardened Firebase Configuration with Operational Telemetry.
+ * Optimized for Next.js 15 zero-latency initialization.
  */
 
 const firebaseConfig = {
@@ -23,6 +25,10 @@ export const getAppInstance = () => {
       return getApp();
     }
     
+    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('placeholder')) {
+      console.warn("[Firebase] Warning: Missing or placeholder API Key. Cloud services may fail.");
+    }
+
     const app = initializeApp(firebaseConfig);
     console.log("[Firestore] Initialized: Persistence Kernel Active.");
     return app;

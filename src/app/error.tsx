@@ -4,7 +4,7 @@ import React from 'react';
 
 /**
  * @fileOverview Segment-level error boundary for Next.js 15.
- * Atomic Recovery Shell: Uses minimalist styling to ensure recovery.
+ * Hardened Atomic Shell: No external dependencies.
  */
 export default function Error({
   error,
@@ -19,34 +19,37 @@ export default function Error({
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '40px 20px',
+      minHeight: '400px',
+      padding: '40px',
       textAlign: 'center',
       backgroundColor: '#020617',
       color: '#f8fafc',
       borderRadius: '24px',
       border: '1px solid #1e293b',
-      margin: '20px auto',
-      maxWidth: '500px',
-      fontFamily: 'sans-serif'
+      margin: '20px',
+      fontFamily: 'system-ui, sans-serif'
     }}>
-      <div style={{ fontSize: '40px', marginBottom: '20px' }}>⚠️</div>
-      <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '10px' }}>MODULE FAULT</h2>
-      <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '30px', lineHeight: 1.5 }}>
-        {error?.message || "An isolated component encountered a runtime exception."}
+      <div style={{ fontSize: '48px', marginBottom: '24px' }}>⚠️</div>
+      <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '12px', letterSpacing: '0.1em' }}>MODULE FAULT</h2>
+      <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px', maxWidth: '400px', lineHeight: 1.6 }}>
+        {error?.message || "A strategic component encountered a runtime exception during synchronization."}
       </p>
       <button
         onClick={() => reset()}
         style={{
-          padding: '12px 24px',
+          padding: '14px 32px',
           backgroundColor: '#4f46e5',
           color: 'white',
           border: 'none',
           borderRadius: '12px',
           fontWeight: 'bold',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          textTransform: 'uppercase',
+          fontSize: '11px',
+          letterSpacing: '0.1em'
         }}
       >
-        Reload Module
+        Reboot Module
       </button>
     </div>
   );

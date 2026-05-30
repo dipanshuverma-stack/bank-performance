@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -10,7 +11,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { logAuditAction } from "@/lib/audit-logger";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { doc, setDoc, deleteDoc, collection, query, orderBy } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, collection, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
 interface AccuracyLog {
@@ -100,7 +101,7 @@ export function AccuracyTimer() {
     if (user && db) {
       try {
         const logRef = doc(db, 'users', user.uid, 'accuracyLogs', newLog.id);
-        await setDoc(logRef, { ...newLog, serverTimestamp: new Date() }, { merge: true });
+        await setDoc(logRef, { ...newLog, serverTimestamp: serverTimestamp() }, { merge: true });
         console.log(`[Firestore] Write Success: users/${user.uid}/accuracyLogs/${newLog.id}`);
         toast({ title: "Session Archived", description: "Practice unit secured in Hybrid Vault." });
       } catch (err: any) {

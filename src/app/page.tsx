@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -57,13 +58,19 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // metrics logic: strictly Enforced Cloud-First
+  // metrics logic: Enforced Cloud-First Protocol
   const getMetrics = () => {
     if (!mounted) return { avgAccuracy: 0, mocksCount: 0, isCloud: false };
     
     const savedLocal = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
     const activeData = (user && db) ? (cloudMocks || []) : savedLocal;
     
+    if (user && db) {
+      console.log(`[Dashboard] Sourcing data from Firestore. Units: ${cloudMocks?.length || 0}`);
+    } else {
+      console.log(`[Dashboard] Sourcing data from Local Vault. Units: ${savedLocal.length}`);
+    }
+
     return {
       avgAccuracy: activeData.length > 0 
         ? Math.round(activeData.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / activeData.length) 

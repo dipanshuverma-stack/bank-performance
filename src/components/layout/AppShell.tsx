@@ -10,8 +10,8 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { ClientSideWrappers } from '@/components/layout/ClientSideWrappers';
 
 /**
- * @fileOverview Client-side App Shell managing hybrid layouts and auth guards.
- * Unified for Supabase Identity propagation.
+ * @fileOverview Hardened App Shell for Next.js 15.
+ * Prevents hydration mismatches by deferring authenticated layout.
  */
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -21,6 +21,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
 
+  // Defer everything to ensure safe client-side hydration
   useEffect(() => {
     setMounted(true);
     setIsOffline(localStorage.getItem("elite-offline-mode") === "true");
@@ -32,6 +33,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, pathname, router, mounted, isOffline]);
 
+  // Initial server and client render must be identical to avoid hydration error
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center gap-4">
@@ -44,7 +46,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-12 h-12 text-primary animate-spin opacity-40" />
-        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">Synchronizing Supabase Identity...</span>
+        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">
+          Synchronizing Tactical Identity...
+        </span>
       </div>
     );
   }
