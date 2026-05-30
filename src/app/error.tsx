@@ -3,8 +3,8 @@
 import React from 'react';
 
 /**
- * @fileOverview Segment-level error boundary for Next.js 15.
- * Hardened Atomic Shell: No external dependencies.
+ * @fileOverview Segment-level error boundary.
+ * Atomic Recovery Shell: No external dependencies.
  */
 export default function Error({
   error,
@@ -32,7 +32,7 @@ export default function Error({
       <div style={{ fontSize: '48px', marginBottom: '24px' }}>⚠️</div>
       <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '12px', letterSpacing: '0.1em' }}>MODULE FAULT</h2>
       <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px', maxWidth: '400px', lineHeight: 1.6 }}>
-        {error?.message || "A strategic component encountered a runtime exception during synchronization."}
+        {error?.message || "A strategic component encountered a runtime exception."}
       </p>
       <button
         onClick={() => reset()}

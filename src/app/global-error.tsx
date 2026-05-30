@@ -3,7 +3,7 @@
 import React from 'react';
 
 /**
- * @fileOverview Root Error Boundary for Next.js 15.
+ * @fileOverview Root Error Boundary.
  * Replaces the entire layout during a fatal crash.
  */
 export default function GlobalError({
@@ -16,7 +16,7 @@ export default function GlobalError({
   return (
     <html lang="en">
       <head>
-        <title>Kernel Panic</title>
+        <title>Terminal Critical</title>
       </head>
       <body style={{
         backgroundColor: '#020617',
@@ -63,8 +63,7 @@ export default function GlobalError({
               cursor: 'pointer',
               textTransform: 'uppercase',
               fontSize: '12px',
-              letterSpacing: '0.1em',
-              boxShadow: '0 20px 40px -10px rgba(79, 70, 229, 0.4)'
+              letterSpacing: '0.1em'
             }}
           >
             Reboot Terminal

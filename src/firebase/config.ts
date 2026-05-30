@@ -1,9 +1,10 @@
-
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 /**
- * @fileOverview Hardened Firebase Configuration with Operational Telemetry.
- * Optimized for Next.js 15 zero-latency initialization.
+ * @fileOverview Hardened Firebase Configuration.
+ * Optimized for dual-mode execution (Client & Server).
  */
 
 const firebaseConfig = {
@@ -15,25 +16,30 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-export const getFirebaseConfig = () => {
-  return firebaseConfig;
-};
-
-export const getAppInstance = () => {
-  try {
-    if (getApps().length > 0) {
-      return getApp();
-    }
-    
-    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('placeholder')) {
-      console.warn("[Firebase] Warning: Missing or placeholder API Key. Cloud services may fail.");
-    }
-
-    const app = initializeApp(firebaseConfig);
-    console.log("[Firestore] Initialized: Persistence Kernel Active.");
-    return app;
-  } catch (error: any) {
-    console.error('[Firebase] SDK Initialization Protocol Fault:', error.message);
+/**
+ * Safely retrieves or initializes the Firebase App instance.
+ * Returns null if credentials are missing or invalid to prevent kernel panic.
+ */
+export function getAppInstance(): FirebaseApp | null {
+  if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('your_')) {
     return null;
   }
-};
+  try {
+    return getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  } catch (error) {
+    console.error("[Firebase] Kernel Init Error:", error);
+    return null;
+  }
+}
+
+const appInstance = getAppInstance();
+
+export const app = appInstance;
+export const auth = appInstance ? getAuth(appInstance) : null;
+export const db = appInstance ? getFirestore(appInstance) : null;
+
+if (appInstance) {
+  console.log("[Firebase] Core Persistence Kernel Initialized.");
+} else {
+  console.warn("[Firebase] Operational Warning: Cloud Sync suspended due to missing credentials.");
+}

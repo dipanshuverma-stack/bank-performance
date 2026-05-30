@@ -1,7 +1,6 @@
 import { Plus_Jakarta_Sans, Outfit } from 'next/font/google';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
-import { AppShell } from '@/components/layout/AppShell';
 import { Toaster } from '@/components/ui/toaster';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -30,7 +29,7 @@ export default function RootLayout({
     <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable}`} suppressHydrationWarning>
       <body className="font-body antialiased bg-background text-foreground min-h-screen overflow-x-hidden">
         <FirebaseClientProvider>
-          <AppShell>{children}</AppShell>
+          {children}
           <Toaster />
         </FirebaseClientProvider>
       </body>

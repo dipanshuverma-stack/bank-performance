@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -6,35 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  RotateCcw, Save, Trash2, BookOpen, Timer as TimerIcon, Zap, Clock, Play, Pause, Activity, Target, ShieldCheck
+  RotateCcw, Save, Trash2, BookOpen, Timer as TimerIcon, Zap, Clock, Play, Pause, Activity, ShieldCheck
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { logAuditAction } from "@/lib/audit-logger";
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { doc, setDoc, deleteDoc, collection, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { useUser } from "@/firebase";
+import { useRealtimeCollection } from "@/hooks/use-database";
+import { DatabaseService } from "@/services/database";
 import { useToast } from "@/hooks/use-toast";
-
-interface AccuracyLog {
-  id: string;
-  subject: string;
-  topic: string;
-  time: number;
-  date: string;
-  correct?: number;
-  wrong?: number;
-}
+import { orderBy } from "firebase/firestore";
 
 export function AccuracyTimer() {
   const { toast } = useToast();
-  const [mounted, setMounted] = useState(false);
-  const { user } = useUser();
-  const db = useFirestore();
-  
+  const user = useUser();
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
-  const [localLogs, setLocalLogs] = useState<AccuracyLog[]>([]);
+  const [mounted, setMounted] = useState(false);
   
-  // Tactical State
   const [currentSubject, setCurrentSubject] = useState("Reasoning");
   const [currentTopic, setCurrentTopic] = useState("");
   const [correct, setCorrect] = useState("");
@@ -42,19 +28,10 @@ export function AccuracyTimer() {
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const logsQuery = useMemoFirebase(() => {
-    if (!user || !db) return null;
-    return query(collection(db, 'users', user.uid, 'accuracyLogs'), orderBy('serverTimestamp', 'desc'));
-  }, [db, user]);
-  
-  const { data: cloudLogs } = useCollection<AccuracyLog>(logsQuery);
+  const { data: logs, loading } = useRealtimeCollection('accuracyLogs', [orderBy('createdAt', 'desc')]);
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("accuracy-logs");
-    if (saved) {
-      try { setLocalLogs(JSON.parse(saved)); } catch (e) { console.warn("Local logs parse failure"); }
-    }
   }, []);
 
   useEffect(() => {
@@ -66,254 +43,115 @@ export function AccuracyTimer() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isActive]);
 
-  const displayLogs = (user && db) ? (cloudLogs || []) : localLogs;
-
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
     return `${m.toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   };
 
   const handleSaveLog = async () => {
-    if (time < 10) {
-      toast({ variant: "destructive", title: "Operational Fault", description: "Practice unit too short to be archived (minimum 10s required)." });
+    if (!user) return;
+    if (time < 5) {
+      toast({ variant: "destructive", title: "Invalid Session", description: "Unit too short to archive." });
       return;
     }
     if (!currentTopic.trim()) {
-      toast({ variant: "destructive", title: "Metadata Missing", description: "Objective topic is required for archival." });
+      toast({ variant: "destructive", title: "Metadata Missing", description: "Topic is required." });
       return;
     }
     
-    const newLog: AccuracyLog = {
-      id: Date.now().toString(),
-      subject: currentSubject,
-      topic: currentTopic,
-      time: time,
-      date: new Date().toLocaleDateString(),
-      correct: correct ? parseInt(correct) : undefined,
-      wrong: wrong ? parseInt(wrong) : undefined,
-    };
-    
-    // Local backup
-    const updated = [newLog, ...localLogs];
-    setLocalLogs(updated);
-    localStorage.setItem("accuracy-logs", JSON.stringify(updated));
-
-    if (user && db) {
-      try {
-        const logRef = doc(db, 'users', user.uid, 'accuracyLogs', newLog.id);
-        await setDoc(logRef, { ...newLog, serverTimestamp: serverTimestamp() }, { merge: true });
-        console.log(`[Firestore] Write Success: users/${user.uid}/accuracyLogs/${newLog.id}`);
-        toast({ title: "Session Archived", description: "Practice unit secured in Hybrid Vault." });
-      } catch (err: any) {
-        console.error(`[Firestore] Write Failure:`, err.message);
-        toast({ variant: "destructive", title: "Sync Error", description: err.message });
-      }
+    try {
+      await DatabaseService.save(user.uid, 'accuracyLogs', {
+        subject: currentSubject,
+        topic: currentTopic,
+        time: time,
+        correct: correct ? parseInt(correct) : 0,
+        wrong: wrong ? parseInt(wrong) : 0,
+        date: new Date().toLocaleDateString(),
+      });
+      
+      setTime(0); setIsActive(false); setCurrentTopic(""); setCorrect(""); setWrong("");
+      toast({ title: "Session Archived", description: "Unit secured in Cloud Vault." });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Sync Fault", description: err.message });
     }
-
-    logAuditAction("Performance", "Practice Archived", `${currentTopic} - ${formatTime(time)} recorded.`);
-    
-    // Reset Controls
-    setTime(0); setIsActive(false); setCurrentTopic(""); setCorrect(""); setWrong("");
-  };
-
-  const deleteLog = async (id: string) => {
-    const updated = localLogs.filter(l => l.id !== id);
-    setLocalLogs(updated);
-    localStorage.setItem("accuracy-logs", JSON.stringify(updated));
-
-    if (user && db) {
-      try {
-        const logRef = doc(db, 'users', user.uid, 'accuracyLogs', id);
-        await deleteDoc(logRef);
-        console.log(`[Firestore] Purge Success: users/${user.uid}/accuracyLogs/${id}`);
-      } catch (err: any) {
-        console.error(`[Firestore] Write Failure (Delete):`, err.message);
-      }
-    }
-    logAuditAction("Performance", "Log Purged", "Practice unit removed from archives.");
-    toast({ title: "Log Purged", description: "Record removed from vault." });
   };
 
   if (!mounted) return null;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-14 pb-24">
-      <Card className="xl:col-span-4 bento-card border-none shadow-2xl bg-card/60 backdrop-blur-3xl h-fit xl:sticky xl:top-32">
-        <CardHeader className="bg-primary/5 p-6 border-b border-border/40">
-          <div className="flex items-center gap-4">
-             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
-                <TimerIcon className="w-6 h-6" />
-             </div>
-             <div>
-                <CardTitle className="text-2xl font-headline font-black tracking-tight">Console</CardTitle>
-                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-primary opacity-80 mt-1">Status: {isActive ? "Recording" : "Standby"}</div>
-             </div>
-          </div>
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <Card className="xl:col-span-4 bento-card bg-card/60 border-white/5 h-fit">
+        <CardHeader className="bg-primary/5 border-b border-white/5">
+          <CardTitle className="text-xl font-headline font-black flex items-center gap-3">
+            <TimerIcon className="w-5 h-5 text-primary" /> Console
+          </CardTitle>
         </CardHeader>
-        <CardContent className="p-6 lg:p-8 space-y-8">
-          <div className="flex flex-col items-center justify-center py-10 bg-slate-50/50 dark:bg-white/5 rounded-[2.5rem] shadow-inner border border-white/5 relative overflow-hidden group">
-             <div className="text-7xl font-headline font-black text-foreground tracking-tighter tabular-nums mb-6 relative z-10 transition-transform duration-500 group-hover:scale-105">
-               {formatTime(time)}
+        <CardContent className="p-8 space-y-8">
+          <div className="flex flex-col items-center py-10 bg-white/5 rounded-[2.5rem] border border-white/5 shadow-inner">
+             <div className="text-7xl font-headline font-black tracking-tighter tabular-nums mb-4">{formatTime(time)}</div>
+             <div className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/10 text-muted-foreground'}`}>
+               {isActive ? "Recording Flow" : "Standby"}
              </div>
-             <div className="flex items-center gap-3 px-6 py-2 bg-accent/40 rounded-full border border-white/10 relative z-10">
-                <div className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse shadow-[0_0_10px_#10B981]' : 'bg-muted-foreground'}`} />
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{isActive ? "Executing Protocol" : "Idle State"}</span>
-             </div>
-             <Activity className="absolute bottom-[-20px] right-[-20px] w-32 h-32 text-primary/5 rotate-12 transition-transform duration-1000 group-hover:scale-110" />
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mission Category</label>
-              <Select value={currentSubject} onValueChange={setCurrentSubject}>
-                <SelectTrigger className="rounded-2xl h-14 bg-accent/30 border-none font-bold shadow-inner"><SelectValue /></SelectTrigger>
-                <SelectContent className="rounded-2xl border-none shadow-2xl">
-                  <SelectItem value="Reasoning" className="font-bold">Reasoning</SelectItem>
-                  <SelectItem value="Quants" className="font-bold">Quantitative Aptitude</SelectItem>
-                  <SelectItem value="English" className="font-bold">English Language</SelectItem>
-                  <SelectItem value="GA" className="font-bold">General Awareness</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Objective Topic</label>
-              <Input 
-                placeholder="e.g. Circular Arrangement Set 1" 
-                value={currentTopic} 
-                onChange={(e) => setCurrentTopic(e.target.value)} 
-                className="rounded-2xl h-14 bg-accent/30 border-none font-bold shadow-inner"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-success ml-1">Correct Hits</label>
-                <Input 
-                  type="number"
-                  placeholder="Optional" 
-                  value={correct} 
-                  onChange={(e) => setCorrect(e.target.value)} 
-                  className="rounded-2xl h-14 bg-success/5 border-2 border-success/10 font-bold text-center"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-destructive ml-1">Errors</label>
-                <Input 
-                  type="number"
-                  placeholder="Optional" 
-                  value={wrong} 
-                  onChange={(e) => setWrong(e.target.value)} 
-                  className="rounded-2xl h-14 bg-destructive/5 border-2 border-destructive/10 font-bold text-center"
-                />
-              </div>
-            </div>
+          <div className="space-y-4">
+            <Select value={currentSubject} onValueChange={setCurrentSubject}>
+              <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-none font-bold"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Reasoning">Reasoning</SelectItem>
+                <SelectItem value="Quants">Quants</SelectItem>
+                <SelectItem value="English">English</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input 
+              placeholder="Topic Designation..." 
+              value={currentTopic} 
+              onChange={(e) => setCurrentTopic(e.target.value)} 
+              className="h-14 rounded-2xl bg-white/5 border-none font-bold"
+            />
           </div>
 
           <div className="flex gap-4">
-             <Button 
-                onClick={() => setIsActive(!isActive)}
-                className={`flex-1 h-16 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-xl transition-all active:scale-95 border-none ${isActive ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
-             >
-                <div className="flex items-center justify-center gap-3">
-                  {isActive ? <><Pause className="w-5 h-5 fill-current" /> Stop Session</> : <><Play className="w-5 h-5 fill-current" /> Start Unit</>}
-                </div>
+             <Button onClick={() => setIsActive(!isActive)} className={`flex-1 h-16 rounded-2xl font-black uppercase text-[10px] tracking-widest ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary'}`}>
+                {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />} {isActive ? "Stop" : "Start"}
              </Button>
-             <Button 
-                variant="outline"
-                onClick={() => {setIsActive(false); setTime(0);}}
-                className="w-16 h-16 rounded-[1.5rem] border-2 border-border/60 hover:bg-accent transition-all shrink-0 active:rotate-180"
-             >
-                <RotateCcw className="w-6 h-6 text-muted-foreground" />
-             </Button>
+             <Button variant="outline" onClick={() => {setIsActive(false); setTime(0);}} className="w-16 h-16 rounded-2xl border-white/10"><RotateCcw /></Button>
           </div>
 
-          <Button 
-            onClick={handleSaveLog}
-            className="w-full h-16 rounded-[1.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl shadow-emerald-500/20 transition-all active:scale-[0.98]"
-          >
-            <Save className="w-5 h-5 mr-3" /> Archive Practice Unit
+          <Button onClick={handleSaveLog} className="w-full h-16 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase text-[10px] tracking-widest">
+            <Save className="mr-2" /> Archive Unit
           </Button>
         </CardContent>
       </Card>
 
-      <Card className="xl:col-span-8 bento-card border-none shadow-2xl bg-card/40 backdrop-blur-3xl overflow-hidden">
-        <CardHeader className="bg-accent/5 p-6 lg:p-8 border-b border-border/40">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                  <BookOpen className="w-6 h-6" />
-               </div>
-               <div>
-                  <CardTitle className="text-2xl font-headline font-black tracking-tight">Archives</CardTitle>
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60 mt-1">Operational History: {displayLogs.length} Records</div>
-               </div>
-            </div>
-            <div className="flex items-center gap-3 px-6 py-3 bg-primary/5 rounded-2xl border border-primary/20 shadow-sm">
-               <Zap className="w-4 h-4 text-primary animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-widest text-primary">Live Optimization Protocol Active</span>
-            </div>
-          </div>
+      <Card className="xl:col-span-8 bento-card bg-card/40 border-white/5 overflow-hidden">
+        <CardHeader className="bg-white/5 border-b border-white/5">
+          <CardTitle className="text-xl font-headline font-black">Archive Feed</CardTitle>
         </CardHeader>
-        <CardContent className="p-6 lg:p-10">
-          {displayLogs.length > 0 ? (
-            <div className="space-y-4">
-              {displayLogs.map((log) => {
-                const total = (log.correct || 0) + (log.wrong || 0);
-                const accuracy = total > 0 ? Math.round((log.correct! / total) * 100) : null;
-                
-                return (
-                  <div key={log.id} className="group relative flex flex-col md:flex-row md:items-center justify-between p-6 rounded-[2rem] border-2 border-border/40 bg-card hover:border-primary/40 transition-all duration-500 shadow-sm hover:shadow-xl">
-                    <div className="flex items-center gap-6 mb-6 md:mb-0">
-                      <div className={`w-16 h-16 rounded-2xl bg-accent flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all duration-700 shrink-0 shadow-inner ${log.subject === 'Quants' ? 'text-blue-500' : 'text-purple-500'}`}>
-                        {log.subject === 'Quants' ? <Zap className="w-8 h-8 fill-current" /> : <BookOpen className="w-8 h-8 fill-current" />}
-                      </div>
-                      <div>
-                        <div className="font-black text-xl tracking-tight text-foreground leading-tight">{log.topic}</div>
-                        <div className="flex flex-wrap items-center gap-3 mt-2">
-                          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest bg-accent/40 px-3 py-1 rounded-lg border border-border/40">{log.date}</span>
-                          <span className="text-[10px] text-primary font-black uppercase tracking-widest h-6 flex items-center px-3 bg-primary/5 rounded-lg border border-primary/10">{log.subject}</span>
-                          {accuracy !== null && (
-                            <div className="flex items-center gap-2">
-                               <ShieldCheck className={`w-4 h-4 ${accuracy >= 85 ? 'text-emerald-500' : 'text-orange-500'}`} />
-                               <span className={`text-[10px] font-black uppercase tracking-widest ${accuracy >= 85 ? 'text-emerald-500' : 'text-orange-500'}`}>
-                                 {accuracy}% Precision
-                               </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between md:justify-end gap-10">
-                      <div className="text-right flex flex-col items-end">
-                        <div className="flex items-center gap-2 text-primary">
-                          <Clock className="w-6 h-6 opacity-40 animate-pulse" />
-                          <span className="font-headline font-black text-4xl tracking-tighter tabular-nums leading-none">{formatTime(log.time)}</span>
-                        </div>
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-2 opacity-50">Operational Time</span>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => deleteLog(log.id)} 
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive h-12 w-12 transition-all rounded-2xl hover:bg-destructive/10 shrink-0"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </Button>
-                    </div>
+        <CardContent className="p-8">
+          <div className="space-y-4">
+            {logs.map((log: any) => (
+              <div key={log.id} className="p-6 rounded-[2rem] bg-white/5 border border-white/5 flex items-center justify-between group hover:border-primary/20 transition-all">
+                <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Activity /></div>
+                  <div>
+                    <div className="font-black text-lg">{log.topic}</div>
+                    <div className="text-[10px] font-black uppercase text-muted-foreground opacity-60 tracking-widest">{log.subject} • {log.date}</div>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="py-32 text-center flex flex-col items-center">
-               <div className="w-24 h-24 rounded-[2.5rem] bg-accent/20 flex items-center justify-center mb-10 opacity-30 shadow-inner">
-                 <TimerIcon className="w-10 h-10" />
-               </div>
-               <p className="text-[12px] font-black uppercase tracking-[0.6em] text-muted-foreground/30">Vault Segment Empty</p>
-               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/20 mt-4 max-w-xs leading-relaxed">Archive a practice unit to begin long-term performance tracking.</p>
-            </div>
-          )}
+                </div>
+                <div className="flex items-center gap-8">
+                  <div className="text-right">
+                    <div className="text-2xl font-headline font-black tabular-nums">{formatTime(log.time)}</div>
+                    <div className="text-[8px] font-black uppercase text-primary tracking-widest">Op Time</div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => user && DatabaseService.remove(user.uid, 'accuracyLogs', log.id)} className="opacity-0 group-hover:opacity-100 text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                </div>
+              </div>
+            ))}
+            {!loading && logs.length === 0 && (
+              <div className="py-20 text-center text-muted-foreground font-bold uppercase tracking-widest text-sm opacity-20">No Units Logged</div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,235 +1,108 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { PerformanceOverview } from "@/components/dashboard/PerformanceOverview";
-import { SubjectWisePerformance } from "@/components/dashboard/SubjectWisePerformance";
-import { CountdownCard } from "@/components/dashboard/CountdownCard";
-import { QuoteCard } from "@/components/dashboard/QuoteCard";
-import { AdaptiveToDo } from "@/components/dashboard/AdaptiveToDo";
-import { PersonalBests } from "@/components/dashboard/PersonalBests";
-import { ReadinessScore } from "@/components/dashboard/ReadinessScore";
-import { AiInsightsPanel } from "@/components/dashboard/AiInsightsPanel";
-import { 
-  Activity, 
-  Sparkles, 
-  ArrowRight, 
-  BrainCircuit, 
-  Zap,
-  ChevronLeft,
-  ChevronRight,
-  Wifi,
-  Trophy,
-  Loader2,
-  WifiOff,
-  Target
-} from "lucide-react";
+import { AppShell } from "@/components/layout/AppShell";
+import { useUser } from "@/firebase";
+import { useRealtimeCollection } from "@/hooks/use-database";
+import { Activity, Zap, Target, Trophy, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem, 
-  type CarouselApi
-} from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
-import { collection, query, orderBy, doc } from "firebase/firestore";
 
 export default function Home() {
+  const user = useUser();
+  const { data: mocks } = useRealtimeCollection('mocks');
   const [mounted, setMounted] = useState(false);
-  const { user, loading: authLoading } = useUser();
-  const db = useFirestore();
-
-  const [intelApi, setIntelApi] = useState<CarouselApi>();
-
-  // Profile Subscription
-  const userRef = useMemoFirebase(() =>  user && db ? doc(db, 'users', user.uid) : null, [db, user]);
-  const { data: cloudProfile } = useDoc(userRef);
-
-  // Mocks Subscription
-  const mocksQuery = useMemoFirebase(() => {
-    if (!user || !db) return null;
-    return query(collection(db, 'users', user.uid, 'mocks'), orderBy('serverTimestamp', 'desc'));
-  }, [db, user]);
-  const { data: cloudMocks } = useCollection(mocksQuery);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // metrics logic: Enforced Cloud-First Protocol
-  const getMetrics = () => {
-    if (!mounted) return { avgAccuracy: 0, mocksCount: 0, isCloud: false };
-    
-    const savedLocal = JSON.parse(localStorage.getItem("elite-mock-logs") || "[]");
-    const activeData = (user && db) ? (cloudMocks || []) : savedLocal;
-    
-    if (user && db) {
-      console.log(`[Dashboard] Sourcing data from Firestore. Units: ${cloudMocks?.length || 0}`);
-    } else {
-      console.log(`[Dashboard] Sourcing data from Local Vault. Units: ${savedLocal.length}`);
-    }
+  const avgAccuracy = mocks.length > 0 
+    ? Math.round(mocks.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / mocks.length) 
+    : 0;
 
-    return {
-      avgAccuracy: activeData.length > 0 
-        ? Math.round(activeData.reduce((acc: number, m: any) => acc + (m.accuracy || 0), 0) / activeData.length) 
-        : 0,
-      mocksCount: activeData.length,
-      isCloud: !!(user && db)
-    };
-  };
-
-  const metrics = getMetrics();
-
-  useEffect(() => {
-    if (!intelApi) return;
-    const intervalId = setInterval(() => {
-      intelApi.scrollNext();
-    }, 8000);
-    return () => clearInterval(intervalId);
-  }, [intelApi]);
-
-  if (!mounted || authLoading) return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4">
-      <Loader2 className="w-10 h-10 animate-spin text-primary opacity-40" />
-      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Synchronizing Tactical Data...</span>
-    </div>
-  );
+  if (!mounted) return null;
 
   return (
-    <div className="space-y-8 pb-24">
-      <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 px-2">
-        <div className="space-y-3 max-w-3xl min-w-0">
-          <div className="flex items-center gap-3">
-             <div className="h-1 w-6 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.6)]" />
-             <span className="text-[9px] text-primary font-black uppercase tracking-[0.3em] flex items-center gap-2">
-               <Sparkles className="w-3 h-3 animate-pulse" />
-               Operational L1
-             </span>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-headline font-black tracking-tighter text-foreground leading-[1.1] truncate">
-            {cloudProfile?.profile?.name ? `Elite, ${cloudProfile.profile.name}` : "Operational"} <br />
-            <span className="text-primary italic">Intelligence</span>
-          </h1>
-          <div className="flex flex-wrap items-center gap-2 mt-2">
-              <Badge variant="outline" className="text-[9px] text-primary border-primary/30 px-3 py-1 rounded-full font-black uppercase bg-primary/5">
-                {cloudProfile?.profile?.targetExam || "SBI PO"}
-              </Badge>
-              <div className={`flex items-center gap-1.5 text-[9px] font-bold px-3 py-1 rounded-full border backdrop-blur-xl ${metrics.isCloud ? 'text-emerald-500 bg-emerald-500/5 border-emerald-500/20' : 'text-orange-500 bg-orange-500/5 border-orange-500/20'}`}>
-                {metrics.isCloud ? <Wifi className="w-3.5 h-3.5 animate-pulse" /> : <WifiOff className="w-3.5 h-3.5" />}
-                {metrics.isCloud ? "Cloud Link Stable" : "Local Vault Mode"}
-              </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 bg-card/60 backdrop-blur-3xl border border-white/10 rounded-3xl p-5 shadow-xl hover:border-primary/40 transition-all group min-w-0 xl:min-w-[280px]">
-           <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-105 transition-all duration-700 shrink-0 shadow-inner">
-             <Activity className="w-5 h-5" />
-           </div>
-           <div className="space-y-0 min-w-0">
-              <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Global Accuracy</div>
-              <div className="text-2xl md:text-3xl font-headline font-black tracking-tighter text-foreground">{metrics.avgAccuracy}%</div>
-              <div className="text-[7px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1">
-                <Zap className="w-2.5 h-2.5 animate-pulse" /> Precision Peak
-              </div>
-           </div>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-        <div className="lg:col-span-4 min-w-0 h-full"><CountdownCard /></div>
-        <div className="lg:col-span-8 min-w-0 h-full"><QuoteCard className="h-full" /></div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-        <div className="lg:col-span-8 space-y-8 min-w-0">
-          <PerformanceOverview />
-          <SubjectWisePerformance />
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-2">
-              <h3 className="text-lg lg:text-xl font-headline font-black flex items-center gap-2.5 tracking-tight"><BrainCircuit className="w-5 h-5 text-primary" />Strategic Intelligence</h3>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="w-8 h-8 rounded-lg border" onClick={() => intelApi?.scrollPrev()}><ChevronLeft className="w-3.5 h-3.5" /></Button>
-                <Button variant="outline" size="icon" className="w-8 h-8 rounded-lg border" onClick={() => intelApi?.scrollNext()}><ChevronRight className="w-3.5 h-3.5" /></Button>
-              </div>
+    <AppShell>
+      <div className="space-y-10 pb-24">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 px-2">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="h-1 w-8 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.6)]" />
+              <span className="text-[10px] text-primary font-black uppercase tracking-[0.3em]">Operational L1</span>
             </div>
-
-            <Carousel setApi={setIntelApi} opts={{ align: "start", loop: true }} className="w-full">
-              <CarouselContent className="-ml-4">
-                <CarouselItem className="pl-4 md:basis-1/2 flex min-w-0"><AiInsightsPanel className="w-full min-h-[320px]" /></CarouselItem>
-                <CarouselItem className="pl-4 md:basis-1/2 flex min-w-0"><ReadinessScore className="w-full min-h-[320px]" /></CarouselItem>
-              </CarouselContent>
-            </Carousel>
+            <h1 className="text-3xl md:text-5xl font-headline font-black tracking-tighter">
+              Elite, <span className="text-primary italic">{user?.displayName || 'Aspirant'}</span>
+            </h1>
+            <p className="text-muted-foreground font-medium text-sm max-w-lg">Neural link stable. Terminal metrics synchronized with cloud-first persistence.</p>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 min-w-0">
-            <AdaptiveToDo />
-            <div className="space-y-6 flex flex-col min-w-0">
-               <div className="p-6 rounded-[2rem] bg-indigo-600 text-white relative overflow-hidden group hover:scale-[1.01] transition-all duration-700 shadow-xl border border-white/10 flex-1 min-h-[200px]">
-                <div className="relative z-10">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-2xl flex items-center justify-center text-white border border-white/30"><Zap className="w-5 h-5 animate-pulse" /></div>
-                    <Badge className="bg-white/20 text-white border-white/30 text-[7px] font-black uppercase px-2 py-0.5 backdrop-blur-md">Active Streak</Badge>
-                  </div>
-                  <h3 className="text-xl font-headline font-black mb-1 tracking-tight">Consistency Engine</h3>
-                  <p className="text-[10px] text-indigo-100 leading-relaxed mb-4 font-medium opacity-90 max-w-[200px]">Maintain Elite Momentum.</p>
-                  <div className="space-y-2"><div className="w-full h-2 bg-white/10 rounded-full overflow-hidden border border-white/5"><div className="h-full w-[85%] bg-white shadow-[0_0_10px_white]" /></div></div>
-                </div>
-                <Activity className="absolute -bottom-6 -right-6 w-32 h-32 text-white/5 rotate-12" />
-              </div>
-              <PersonalBests />
-            </div>
-          </div>
-        </div>
-        
-        <div className="lg:col-span-4 space-y-8 min-w-0">
-          <div className="p-6 rounded-[2rem] bg-slate-900 border border-white/10 relative overflow-hidden group shadow-xl">
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                <div className="text-[8px] font-black text-primary uppercase tracking-[0.2em]">Operational Mastery</div>
-              </div>
-              <h3 className="text-xl font-headline font-black text-white mb-6 tracking-tight">Status Matrix</h3>
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-end">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Saturation</span>
-                    <span className="text-xl font-headline font-black text-white">{cloudProfile?.mastery || 0}%</span>
-                  </div>
-                  <div className="h-2.5 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary transition-all duration-1000 shadow-[0_0_10px_rgba(var(--primary),0.6)]" style={{ width: `${cloudProfile?.mastery || 0}%` }} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-end">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Readiness</span>
-                    <span className="text-xl font-headline font-black text-white">{metrics.avgAccuracy}%</span>
-                  </div>
-                  <div className="h-2.5 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.6)]" style={{ width: `${metrics.avgAccuracy}%` }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <Trophy className="absolute -bottom-8 -right-8 w-32 h-32 text-white/5 rotate-12" />
-          </div>
-
-          <div className="p-6 rounded-[2rem] bg-card border border-border/60 hover:border-primary/40 transition-all duration-700 group shadow-xl">
-             <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary"><Target className="w-5 h-5" /></div>
-                <div>
-                   <h4 className="text-base font-headline font-black tracking-tight">Mission Depth</h4>
-                   <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">{metrics.mocksCount} Units Archived</p>
-                </div>
+          <Card className="bg-primary/5 border-2 border-primary/20 rounded-[2.5rem] p-6 flex items-center gap-6 shadow-xl backdrop-blur-xl">
+             <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center text-primary shadow-inner"><Activity /></div>
+             <div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-primary/60">Global Accuracy</div>
+                <div className="text-3xl font-headline font-black tracking-tighter">{avgAccuracy}%</div>
+                <div className="text-[8px] font-bold text-emerald-500 uppercase flex items-center gap-1 mt-0.5"><Zap className="w-2.5 h-2.5" /> Precision Peak</div>
              </div>
-             <Link href="/mocks" className="block w-full">
-              <button className="w-full h-11 rounded-xl bg-accent/50 hover:bg-primary hover:text-primary-foreground transition-all text-[8px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 group/btn border border-transparent">Access Archives <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" /></button>
-             </Link>
-          </div>
+          </Card>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            { label: "Mission Volume", value: mocks.length, icon: Target, color: "text-blue-500" },
+            { label: "Highest Hit", value: mocks.length > 0 ? Math.max(...mocks.map((m: any) => m.score)) : 0, icon: Trophy, color: "text-yellow-500" },
+            { label: "Consistency", value: "85%", icon: TrendingUp, color: "text-emerald-500" }
+          ].map((stat, i) => (
+            <Card key={i} className="bento-card bg-card/40 border-white/5 p-8 group">
+               <div className="flex justify-between items-start mb-6">
+                 <div className={`p-3 rounded-2xl bg-white/5 ${stat.color} group-hover:scale-110 transition-transform`}><stat.icon /></div>
+                 <Badge variant="outline" className="text-[8px] font-black uppercase opacity-40">Stat Unit</Badge>
+               </div>
+               <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">{stat.label}</div>
+               <div className="text-4xl font-headline font-black tracking-tighter">{stat.value}</div>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+           <Card className="bento-card bg-slate-900 text-white p-10 relative overflow-hidden">
+              <div className="relative z-10 space-y-6">
+                 <div className="flex items-center gap-3">
+                    <ShieldCheck className="text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Readiness Protocol</span>
+                 </div>
+                 <h2 className="text-4xl font-headline font-black tracking-tighter leading-none">Operational <br/> Mastery Score</h2>
+                 <div className="space-y-4">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest opacity-60"><span>Saturation</span> <span>{avgAccuracy}%</span></div>
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden shadow-inner border border-white/5">
+                       <div className="h-full bg-primary shadow-[0_0_15px_rgba(var(--primary),0.8)]" style={{ width: `${avgAccuracy}%` }} />
+                    </div>
+                 </div>
+              </div>
+              <Sparkles className="absolute -bottom-10 -right-10 w-64 h-64 text-white/5 rotate-12" />
+           </Card>
+
+           <Card className="bento-card bg-card/60 border-white/5 p-10">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 rounded-2xl bg-primary/10 text-primary shadow-inner"><Activity /></div>
+                <div>
+                   <h3 className="text-xl font-headline font-black tracking-tight">Active Stream</h3>
+                   <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mt-0.5">Real-time persistence updates</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                 {mocks.slice(0, 3).map((m: any) => (
+                    <div key={m.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+                       <span className="font-bold text-sm">{m.name}</span>
+                       <Badge className="bg-primary/20 text-primary text-[8px] font-black px-3 py-1">ARCHIVED</Badge>
+                    </div>
+                 ))}
+                 {mocks.length === 0 && <div className="py-10 text-center text-[10px] font-black uppercase opacity-20 tracking-widest">No Recent Activity</div>}
+              </div>
+           </Card>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }
