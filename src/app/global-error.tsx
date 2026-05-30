@@ -1,8 +1,10 @@
 'use client';
 
+import React from 'react';
+
 /**
  * @fileOverview Minimalist Root Error Boundary for Next.js 15.
- * Corrected: Uses JSX style objects to prevent hydration/rendering failures.
+ * Replaces the entire layout during a fatal crash.
  */
 export default function GlobalError({
   error,
@@ -14,7 +16,7 @@ export default function GlobalError({
   return (
     <html lang="en">
       <head>
-        <title>Kernel Protocol Fault</title>
+        <title>Kernel Panic</title>
       </head>
       <body style={{
         backgroundColor: '#020617',
@@ -39,7 +41,7 @@ export default function GlobalError({
             KERNEL CRITICAL
           </h1>
           <p style={{ color: '#94a3b8', marginBottom: '32px', lineHeight: 1.6, fontSize: '14px' }}>
-            The terminal kernel encountered a fatal exception. This is usually due to hydration conflicts or resource loading failures.
+            The terminal encountered a fatal error. This usually occurs during a structural hydration mismatch.
           </p>
           <div style={{
             padding: '16px',

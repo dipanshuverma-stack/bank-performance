@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/firebase";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword } from "firebase/auth";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,6 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [mounted, setMounted] = useState(false);
   
-  const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -28,23 +26,17 @@ export default function LoginPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) {
-      toast({ 
-        variant: "destructive", 
-        title: "Environment Calibration Required", 
-        description: "Cloud services are offline. Use Offline Protocol to proceed." 
-      });
-      return;
-    }
     setLoading(true);
 
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        toast({ title: "Account Created", description: "Identity archive initialized." });
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        toast({ title: "Account Created", description: "Identity archive initialized. Please check email if required." });
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        toast({ title: "Uplink Secure", description: "Operational session established." });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        toast({ title: "Uplink Secure", description: "Supabase identity verified." });
       }
       localStorage.removeItem("elite-offline-mode");
       router.push("/");
@@ -56,17 +48,17 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
     setLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      localStorage.removeItem("elite-offline-mode");
-      toast({ title: "Google Uplink Active", description: "Strategic data sync enabled." });
-      router.push("/");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
     } catch (error: any) {
       toast({ variant: "destructive", title: "Auth Failure", description: error.message });
-    } finally {
       setLoading(false);
     }
   };
@@ -85,7 +77,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[#020617] relative overflow-hidden">
-      {/* Background Decor */}
       <div className="scanning-line" />
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/15 blur-[150px] rounded-full animate-pulse" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/15 blur-[150px] rounded-full animate-pulse delay-700" />
@@ -103,31 +94,12 @@ export default function LoginPage() {
               <CardTitle className="text-4xl font-headline font-black tracking-tighter text-white">Elite <span className="text-primary italic">Terminal</span></CardTitle>
               <div className="flex items-center justify-center gap-2">
                 <ShieldCheck className="w-3 h-3 text-primary animate-pulse" />
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/80">Security Protocol L3</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/80">Supabase Auth L3</p>
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent className="px-8 pb-10 space-y-8">
-          {!auth && (
-            <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex flex-col gap-3 mb-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase text-orange-500 tracking-widest leading-none">Kernel Warning</p>
-                  <p className="text-[10px] text-orange-500/80 font-bold leading-relaxed">Firebase credentials not detected. Authentication and Cloud Sync are currently unavailable.</p>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={initiateOfflineProtocol}
-                className="h-12 rounded-xl border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 text-orange-500 font-black uppercase text-[10px] tracking-widest transition-all"
-              >
-                <WifiOff className="w-4 h-4 mr-2" /> Initiate Offline Protocol
-              </Button>
-            </div>
-          )}
-
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-2 brightness-150">Archive ID (Email)</label>
@@ -138,8 +110,7 @@ export default function LoginPage() {
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
-                  disabled={!auth}
-                  className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner disabled:opacity-30" 
+                  className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner" 
                   placeholder="aspirant@elite.com" 
                 />
               </div>
@@ -153,16 +124,15 @@ export default function LoginPage() {
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   required 
-                  disabled={!auth}
-                  className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner disabled:opacity-30" 
+                  className="pl-14 h-16 rounded-2xl bg-white/[0.08] border-white/20 focus:border-primary focus:bg-white/[0.12] focus:ring-primary/20 text-base font-bold placeholder:text-white/30 text-white transition-all shadow-inner" 
                   placeholder="••••••••" 
                 />
               </div>
             </div>
             <Button 
               type="submit" 
-              disabled={loading || !auth} 
-              className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all mt-4 group disabled:opacity-50"
+              disabled={loading} 
+              className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all mt-4 group"
             >
               {loading ? "Processing..." : isSignUp ? "Create Protocol" : "Engage Terminal"}
               <LogIn className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -178,28 +148,33 @@ export default function LoginPage() {
             type="button" 
             variant="outline" 
             onClick={handleGoogleSignIn} 
-            disabled={loading || !auth} 
-            className="w-full h-16 rounded-2xl border-white/20 bg-white/[0.05] font-black uppercase tracking-widest text-[10px] text-white shadow-lg hover:bg-white/[0.08] hover:border-white/40 active:scale-95 transition-all disabled:opacity-50"
+            disabled={loading} 
+            className="w-full h-16 rounded-2xl border-white/20 bg-white/[0.05] font-black uppercase tracking-widest text-[10px] text-white shadow-lg hover:bg-white/[0.08] hover:border-white/40 active:scale-95 transition-all"
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5 mr-3" alt="G" />
             Uplink with Google
           </Button>
 
-          <button 
-            type="button" 
-            onClick={() => setIsSignUp(!isSignUp)} 
-            disabled={!auth} 
-            className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-all flex items-center justify-center gap-2 group disabled:opacity-30"
-          >
-            {isSignUp ? "Already archived? Login" : "New Aspirant? Register Phase"}
-            <Sparkles className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </button>
+          <div className="flex flex-col gap-4">
+            <button 
+              type="button" 
+              onClick={() => setIsSignUp(!isSignUp)} 
+              className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-primary transition-all flex items-center justify-center gap-2 group"
+            >
+              {isSignUp ? "Already archived? Login" : "New Aspirant? Register Phase"}
+              <Sparkles className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+            
+            <button 
+              type="button" 
+              onClick={initiateOfflineProtocol}
+              className="text-[9px] font-black uppercase tracking-widest text-orange-500/50 hover:text-orange-500 transition-colors"
+            >
+              Bypass Cloud: Initiate Offline Protocol
+            </button>
+          </div>
         </CardContent>
       </Card>
-      
-      <div className="fixed bottom-10 left-0 right-0 text-center opacity-30 hover:opacity-60 transition-opacity">
-        <p className="text-[9px] font-black text-white uppercase tracking-[0.8em]">Secure Operational Environment L1.0.4</p>
-      </div>
     </div>
   );
 }

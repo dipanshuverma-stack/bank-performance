@@ -6,27 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  User as UserIcon, Save, History, FileJson, Database, LogOut, Cloud, ShieldCheck, Download, Trash2
+  User as UserIcon, Save, History, Database, LogOut, Cloud, ShieldCheck, Download, Trash2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { logAuditAction, type AuditLog } from "@/lib/audit-logger";
-import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
+import { useEliteAuth, useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, collection, query, orderBy, limit } from "firebase/firestore";
-import { signOut } from "firebase/auth";
-import { useAuth } from "@/firebase";
+import { supabase } from "@/lib/supabase";
 
 export default function ProfilePage() {
   const { toast } = useToast();
   const db = useFirestore();
-  const auth = useAuth();
-  const { user } = useUser();
+  const { user } = useEliteAuth();
   const [mounted, setMounted] = useState(false);
   const [storageSize, setStorageSize] = useState("0 KB");
   const [localAuditLogs, setLocalAuditLogs] = useState<AuditLog[]>([]);
   
-  // Tactical Parameters
   const [profile, setProfile] = useState({
     name: "Dipanshu",
     targetExam: "SBI PO",
@@ -100,8 +97,7 @@ export default function ProfilePage() {
   };
 
   const handleSignOut = async () => {
-    if (!auth) return;
-    await signOut(auth);
+    await supabase.auth.signOut();
     logAuditAction("Security", "Cloud Uplink severed", "Manual sign-out initiated.");
     toast({ title: "Cloud Uplink Severed", description: "Operational mode switched to Local Only." });
   };
@@ -157,7 +153,7 @@ export default function ProfilePage() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-primary">Cloud Uplink Active</div>
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-primary">Supabase Uplink Active</div>
                 <div className="text-sm font-black truncate max-w-[140px] tracking-tight">
                   {user.displayName || user.email || "Elite Aspirant"}
                 </div>
@@ -231,7 +227,7 @@ export default function ProfilePage() {
                   </div>
                </div>
                <p className="text-[11px] text-slate-500 leading-relaxed italic border-l-2 border-white/10 pl-4">
-                 Performance logs are archived locally and mirrored to the cloud uplink for multi-device operational continuity.
+                 Auth provided by Supabase. Data archived in Firestore and mirrored locally for cross-device operational continuity.
                </p>
             </CardContent>
           </Card>

@@ -1,8 +1,10 @@
 'use client';
 
+import React from 'react';
+
 /**
  * @fileOverview Segment-level error boundary.
- * Corrected: Uses JSX style objects to ensure compatibility with React/Next.js.
+ * Corrected: Minimalist shell to ensure Next.js recovery.
  */
 export default function Error({
   error,
@@ -19,7 +21,7 @@ export default function Error({
       justifyContent: 'center',
       padding: '80px 20px',
       textAlign: 'center',
-      backgroundColor: 'rgba(2, 6, 23, 0.5)',
+      backgroundColor: 'rgba(2, 6, 23, 0.8)',
       borderRadius: '32px',
       border: '2px dashed rgba(239, 68, 68, 0.2)',
       margin: '40px auto',
@@ -45,7 +47,7 @@ export default function Error({
         marginBottom: '12px',
         color: '#f8fafc',
         letterSpacing: '-0.01em'
-      }}>MODULE FAULT</h2>
+      }}>SEGMENT FAULT</h2>
       <p style={{
         color: '#94a3b8',
         fontSize: '14px',
@@ -53,7 +55,7 @@ export default function Error({
         marginBottom: '32px',
         lineHeight: 1.5
       }}>
-        {error?.message || "A system sub-module has encountered a resource conflict."}
+        {error?.message || "An isolated module has encountered a runtime exception."}
       </p>
       <button
         onClick={() => reset()}
@@ -71,7 +73,7 @@ export default function Error({
           cursor: 'pointer'
         }}
       >
-        Retry Module
+        Reset Module
       </button>
     </div>
   );

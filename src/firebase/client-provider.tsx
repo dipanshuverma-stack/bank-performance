@@ -1,12 +1,12 @@
 'use client';
 
 import React, { ReactNode, useMemo, useState, useEffect } from 'react';
-import { initializeFirebase } from './index';
+import { initializeFirebase } from './init';
 import { FirebaseProvider } from './provider';
 
 /**
  * @fileOverview Client-side Firebase Provider.
- * Safely initializes Firebase instances while maintaining structural hydration parity.
+ * Safely initializes Firestore instances while Supabase handles Auth.
  */
 export function FirebaseClientProvider({
   children,
@@ -20,24 +20,23 @@ export function FirebaseClientProvider({
   }, []);
 
   const instances = useMemo(() => {
-    // structural stability: return consistent shape even if null
     if (typeof window === 'undefined') {
-      return { firebaseApp: null, firestore: null, auth: null };
+      return { firebaseApp: null, firestore: null };
     }
     try {
-      return initializeFirebase();
+      const { firebaseApp, firestore } = initializeFirebase();
+      return { firebaseApp, firestore };
     } catch (error) {
       console.error('[Firebase] Critical Initialization Error:', error);
-      return { firebaseApp: null, firestore: null, auth: null };
+      return { firebaseApp: null, firestore: null };
     }
   }, []);
 
-  // Structural Stability: Always render the provider to avoid hydration mismatches
+  // Ensure providers are stable during hydration
   return (
     <FirebaseProvider 
       firebaseApp={instances.firebaseApp} 
-      firestore={instances.firestore} 
-      auth={instances.auth}
+      firestore={instances.firestore}
     >
       {children}
     </FirebaseProvider>

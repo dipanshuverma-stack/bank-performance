@@ -1,15 +1,7 @@
-import { getAppInstance } from './config';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-
-export function initializeFirebase() {
-  const firebaseApp = getAppInstance();
-  const firestore = getFirestore(firebaseApp);
-  const auth = getAuth(firebaseApp);
-
-  return { firebaseApp, firestore, auth };
-}
-
+/**
+ * @fileOverview Unified entry point for Firebase modules.
+ */
+export * from './init';
 export * from './provider';
 export * from './client-provider';
 export * from './auth/use-user';

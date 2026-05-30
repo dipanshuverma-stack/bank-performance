@@ -1,10 +1,10 @@
 /**
  * @fileOverview Centralized utility for logging tactical user actions.
- * Standardized on Firebase Auth for cloud synchronization.
+ * Integrates Supabase Identity with Firebase Firestore storage.
  */
 
-import { doc, collection, addDoc, getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { collection, addDoc, getFirestore } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import { getAppInstance } from '@/firebase/config';
 
 export interface AuditLog {
@@ -40,19 +40,19 @@ export const logAuditAction = async (category: string, action: string, details: 
     localStorage.setItem("elite-audit-logs", JSON.stringify([newLog, ...purgedLogs].slice(0, 50)));
     window.dispatchEvent(new Event('elite-audit-updated'));
 
-    // 2. Cloud Uplink (Source of Truth)
+    // 2. Cloud Uplink (Hybrid: Supabase Auth -> Firestore DB)
     const firebaseApp = getAppInstance();
     if (firebaseApp) {
-      const auth = getAuth(firebaseApp);
       const db = getFirestore(firebaseApp);
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (auth && auth.currentUser) {
-        const logRef = collection(db, 'users', auth.currentUser.uid, 'auditLogs');
+      if (session?.user) {
+        const logRef = collection(db, 'users', session.user.id, 'auditLogs');
         await addDoc(logRef, {
           ...newLog,
           serverTimestamp: new Date(),
         });
-        console.log(`[Firestore] Audit Write Success: users/${auth.currentUser.uid}/auditLogs`);
+        console.log(`[Firestore] Hybrid Audit Success: users/${session.user.id}/auditLogs`);
       }
     }
   } catch (error: any) {

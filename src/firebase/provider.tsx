@@ -3,33 +3,35 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth } from 'firebase/auth';
+import { EliteUser, useUser } from './auth/use-user';
 
 interface FirebaseContextProps {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
-  auth: Auth | null;
+  user: EliteUser | null;
+  loading: boolean;
 }
 
 const FirebaseContext = createContext<FirebaseContextProps>({
   firebaseApp: null,
   firestore: null,
-  auth: null,
+  user: null,
+  loading: true,
 });
 
 export function FirebaseProvider({
   children,
   firebaseApp,
   firestore,
-  auth,
 }: {
   children: ReactNode;
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
-  auth: Auth | null;
 }) {
+  const { user, loading } = useUser();
+
   return (
-    <FirebaseContext.Provider value={{ firebaseApp, firestore, auth }}>
+    <FirebaseContext.Provider value={{ firebaseApp, firestore, user, loading }}>
       {children}
     </FirebaseContext.Provider>
   );
@@ -39,17 +41,17 @@ export function useFirebase() {
   return useContext(FirebaseContext);
 }
 
-export function useFirebaseApp() {
-  const { firebaseApp } = useFirebase();
-  return firebaseApp;
-}
-
 export function useFirestore() {
   const { firestore } = useFirebase();
   return firestore;
 }
 
+export function useEliteAuth() {
+  const { user, loading } = useFirebase();
+  return { user, loading };
+}
+
+// Deprecated useAuth to maintain backward compatibility during transition
 export function useAuth() {
-  const { auth } = useFirebase();
-  return auth;
+  return null; // Firebase Auth is no longer used directly
 }
