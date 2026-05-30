@@ -74,7 +74,6 @@ const generateAdaptiveToDoListFlow = ai.defineFlow(
       return output;
     } catch (error: any) {
       console.warn('Adaptive study planner skipped due to AI availability:', error.message);
-      // Strategic Fallback: Return standard high-impact tasks
       return {
         dailyToDoList: [
           { 
@@ -102,7 +101,7 @@ const generateAdaptiveToDoListFlow = ai.defineFlow(
   }
 );
 
-// Wrapper exported at bottom to prevent hoisting ReferenceError
+// Wrapper exported at bottom to prevent ReferenceError during Server Action hoisting
 export async function generateAdaptiveToDoList(
   input: GenerateAdaptiveToDoListInput
 ): Promise<GenerateAdaptiveToDoListOutput> {

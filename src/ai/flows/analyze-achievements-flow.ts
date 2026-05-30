@@ -1,6 +1,9 @@
 'use server';
 /**
  * @fileOverview AI flow to discover and award dynamic achievements based on user performance.
+ * - analyzeAchievements - Handles achievement discovery logic.
+ * - AnalyzeAchievementsInput - Performance data for analysis.
+ * - AnalyzeAchievementsOutput - Newly discovered achievement units.
  */
 
 import { ai } from '@/ai/genkit';
@@ -26,16 +29,22 @@ const AnalyzeAchievementsOutputSchema = z.object({
 });
 export type AnalyzeAchievementsOutput = z.infer<typeof AnalyzeAchievementsOutputSchema>;
 
+const promptInputSchema = z.object({
+  mockLogsStr: z.string(),
+  studySessionsStr: z.string(),
+  existingAchievementsStr: z.string(),
+});
+
 const prompt = ai.definePrompt({
   name: 'analyzeAchievementsPrompt',
-  input: { schema: AnalyzeAchievementsInputSchema },
+  input: { schema: promptInputSchema },
   output: { schema: AnalyzeAchievementsOutputSchema },
   prompt: `You are an AI game designer for a bank exam preparation platform. Your goal is to keep the user motivated by "discovering" achievements in their performance data.
 
 User Data:
-- Mock Logs: {{json mockLogs}}
-- Study Sessions: {{json studySessions}}
-- Already Unlocked: {{json existingAchievements}}
+- Mock Logs: {{{mockLogsStr}}}
+- Study Sessions: {{{studySessionsStr}}}
+- Already Unlocked: {{{existingAchievementsStr}}}
 
 INSTRUCTIONS:
 1. Analyze the logs for patterns. Look for:
@@ -47,14 +56,7 @@ INSTRUCTIONS:
 
 2. Award achievements that haven't been unlocked yet.
 3. Be creative with "Creative" type achievements (e.g., "The Night Owl", "The Weekend Warrior", "Subject Specialist").
-4. If no new achievements are found, return an empty array for 'newlyUnlocked'.
-
-Example Output:
-{
-  "newlyUnlocked": [
-    { "id": "night_owl", "title": "Night Owl", "description": "Logged a study session after midnight. True dedication!", "icon": "Moon", "type": "creative" }
-  ]
-}`,
+4. If no new achievements are found, return an empty array for 'newlyUnlocked'.`,
 });
 
 const analyzeAchievementsFlow = ai.defineFlow(
@@ -65,7 +67,11 @@ const analyzeAchievementsFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const { output } = await prompt(input);
+      const { output } = await prompt({
+        mockLogsStr: JSON.stringify(input.mockLogs),
+        studySessionsStr: JSON.stringify(input.studySessions),
+        existingAchievementsStr: JSON.stringify(input.existingAchievements),
+      });
       return output || { newlyUnlocked: [] };
     } catch (error: any) {
       console.warn('Achievement discovery skipped due to AI availability:', error.message);
@@ -74,7 +80,7 @@ const analyzeAchievementsFlow = ai.defineFlow(
   }
 );
 
-// Wrapper exported at bottom to prevent hoisting ReferenceError
+// Wrapper exported at bottom to prevent ReferenceError during Server Action hoisting
 export async function analyzeAchievements(input: AnalyzeAchievementsInput): Promise<AnalyzeAchievementsOutput> {
   return analyzeAchievementsFlow(input);
 }

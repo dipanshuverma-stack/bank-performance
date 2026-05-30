@@ -70,7 +70,7 @@ const analyzeWeakAreasFlow = ai.defineFlow(
   }
 );
 
-// Wrapper exported at bottom to prevent hoisting ReferenceError
+// Wrapper exported at bottom to prevent ReferenceError during Server Action hoisting
 export async function analyzeWeakAreas(input: AnalyzeWeakAreasInput): Promise<AnalyzeWeakAreasOutput> {
   return analyzeWeakAreasFlow(input);
 }
